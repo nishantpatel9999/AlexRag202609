@@ -1,12 +1,12 @@
 """DiscordChatExporter-style HTML → JSONL ingest (streaming / large-file friendly).
 
 Corpus notes (see docs/CORPUS.md):
-- Operator Mac HTML (equity-trades, alex-journal, prime-report, pf-update) is
-  NOT ingested in MVP — fixtures only. focuslist-ideas is out of MVP.
-- pf-update is portfolio snapshots, not a fill log.
+- Operator Mac HTML (equity-trades, alex-journal, prime-report, pf-update ~1428)
+  is NOT ingested in MVP — fixtures only. focuslist-ideas is out of MVP.
+- pf-update is portfolio/state only, not fills ground truth (equity-trades remains #1).
 - Follow-on messages often omit <time datetime>; timestamps inherit across
   messages AND message groups from the last seen datetime.
-- Naive timestamps are America/Los_Angeles (PT), confirmed.
+- Naive timestamps are America/Los_Angeles; ingest is labeled **PT**.
 """
 
 from __future__ import annotations
@@ -201,6 +201,7 @@ def iter_discord_html(
                 attachment_paths=_resolve_attachments(html_path, raw.get("attachment_paths") or []),
                 source_type=source_type,  # type: ignore[arg-type]
                 path=str(html_path),
+                tz_label="PT",
             )
         )
 
@@ -225,7 +226,7 @@ def ingest_discord_html(
     source_type: str = "journal",
     chunk_size: int = CHUNK_SIZE,
 ) -> int:
-    """Write JSONL (id, ts, author, text, attachment_paths). Returns message count."""
+    """Write JSONL (id, ts, author, text, attachment_paths, tz_label=PT). Returns message count."""
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -18,6 +18,15 @@ def test_golden_pack_loads_48() -> None:
     assert pack.sealed_cutoff == "timestamp < decision_ts"
     assert pack.post_fill_enter_evidence == "banned"
     assert pack.pnl_required is False
+    assert pack.timezone == "America/Los_Angeles"
+    assert pack.timezone_label == "PT"
+    assert pack.gitbook_scrape is False
+    assert "pf-update" in pack.mvp_channels
+    assert "focuslist-ideas" in pack.oos_channels
+    assert pack.pf_update.get("approx_messages") == 1428
+    assert pack.pf_update_fixtures
+    assert all(f.message_id == "TBD" for f in pack.pf_update_fixtures)
+    assert all(f.source_type == "pf_update" for f in pack.pf_update_fixtures)
 
 
 def test_precedence_matches_corpus_spec() -> None:
@@ -43,7 +52,8 @@ def test_mvp_channels_include_pf_update_not_focuslist() -> None:
     assert names == {"equity-trades", "alex-journal", "prime-report", "pf-update"}
     assert CHANNEL_TO_SOURCE["pf-update"] == "pf_update"
     pf = next(c for c in CORPUS_CHANNELS if c["channel"] == "pf-update")
-    assert "not a fill log" in pf["role"]
+    assert "not fills ground truth" in pf["role"] or "not a fill log" in pf["role"]
+    assert pf["approx_messages"] == 1428
     assert pf["mac_html"] == PF_UPDATE_MAC_HTML
     assert "pf-update" in PF_UPDATE_MAC_HTML
     out = {c["channel"] for c in OUT_OF_MVP_CHANNELS}
@@ -70,6 +80,15 @@ def test_post_fill_journal_banned_as_enter_evidence() -> None:
         enter_evidence_illegal(
             timestamp=post,
             source_type="journal",
+            decision_ts=fill,
+            fill_ts=fill,
+        )
+        is True
+    )
+    assert (
+        enter_evidence_illegal(
+            timestamp=post,
+            source_type="pf_update",
             decision_ts=fill,
             fill_ts=fill,
         )

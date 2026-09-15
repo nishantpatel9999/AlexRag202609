@@ -1,11 +1,17 @@
 # Eval Spec V0 — golden pack + sealed cutoff
 
 Offline evaluation for AlexRag202609. **No P&L** in MVP. **No live trading.**
-This document is the V0 eval contract. The research attachment was not present
-in the agent workspace; axes, cutoff, and the 48-case pack shape are locked
-from that brief plus `docs/CORPUS.md`.
 
 Pack file: [`eval/golden_cases_v0.json`](../eval/golden_cases_v0.json).
+Corpus lock: [`docs/CORPUS.md`](CORPUS.md).
+
+Research lock delta applied here (binary attachments were not present in the
+agent workspace; this spec follows that lock and does **not** invent Discord
+message IDs):
+
+1. Doctrine MVP = **live GitBook** + `PRIMETRADING_RULEBOOK_DISTILLATION.md` + `PrimeTrading_Ebook.pdf` only — **no full scrape**.
+2. Timezone = **America/Los_Angeles**, confirmed. Ingest is labeled **PT**.
+3. **pf-update is in MVP** (~1428 msgs): portfolio/state only, **not** fills ground truth. **equity-trades remains #1** in precedence. **focuslist-ideas stays OOS**.
 
 ## 1. What is scored
 
@@ -30,7 +36,7 @@ inventing indicator numbers.
 
 Only evidence with **`timestamp < decision_ts`** may be used for a decision.
 
-- Naive timestamps are `America/Los_Angeles` (see `docs/CORPUS.md`).
+- Naive timestamps are `America/Los_Angeles` (**PT**). See `docs/CORPUS.md`.
 - Missing timestamps **do not** qualify as sealed (fail-closed for that citation).
 - Equality is excluded: `timestamp == decision_ts` is **not** allowed.
 
@@ -40,11 +46,12 @@ harness is scoring a live paper-day proposal).
 ## 3. Post-fill rationalization is banned as enter-evidence
 
 A fill/close on the tape is not a reason to have entered. Journal, gameplan,
-prime-report, or doctrine written **at or after** `fill_ts` (or `decision_ts` if
-`fill_ts` is absent) **must not** be cited to justify `enter`.
+prime-report, **pf-update**, or doctrine written **at or after** `fill_ts` (or
+`decision_ts` if `fill_ts` is absent) **must not** be cited to justify `enter`.
 
 Allowed after fill: **manage** and **exit** scoring may cite the fill itself and
-later tape. Enter/abstain-before-entry may not.
+later tape. Enter/abstain-before-entry may not. pf-update is portfolio/state
+context only and is never fills ground truth.
 
 ## 4. Conflict labels (first-class)
 
@@ -53,17 +60,21 @@ labels, not merged away.
 
 Precedence when sources disagree remains:
 
-fills/closes → same-time journal → morning gameplan → evening prime-report → pf-update (portfolio snapshots, **not** a fill log) → GitBook doctrine-only.
+**equity-trades (fills/closes, #1)** → same-time journal → morning gameplan → evening prime-report → **pf-update (portfolio/state, not a fill log)** → GitBook doctrine-only.
 
-## 5. Pack layout (48 cases)
+## 5. Pack layout (48 cases + pf_update_fixtures)
 
 `eval/golden_cases_v0.json`:
 
 - `version`: `v0`
 - `n_cases`: 48
 - `score_axes`: enter, abstain, size, manage, exit, citation
+- `timezone`: `America/Los_Angeles` / `timezone_label`: `PT`
+- `doctrine`: live GitBook + distillation.md + ebook.pdf; `gitbook_scrape`: false
+- `mvp_channels` / `oos_channels` (focuslist-ideas OOS)
 - `cases[]`: `golden-01` … `golden-48`
 - eight cases per conflict label; primary axes cycle the six score axes
+- **`pf_update_fixtures`**: reserved slots whose **`message_id` is `TBD`**. Do not invent concrete Discord IDs.
 
 `status` is `schema_v0` until operator fills `decision_ts` / citations from Mac
 exports. The harness still **loads and validates** all 48 offline.
@@ -88,5 +99,7 @@ cutoff helpers, and scores a `Prediction` when one is supplied.
 
 - Full paper trading loop
 - P&L / expectancy
-- Invented prices, NER sizes, or indicators
+- Invented prices, NER sizes, indicators, or Discord message IDs
 - Ingest of operator Mac corpus trees
+- Full GitBook scrape
+- focuslist-ideas

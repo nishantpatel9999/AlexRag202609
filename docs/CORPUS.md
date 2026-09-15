@@ -8,20 +8,20 @@ those trees into this repo.
 
 ## Discord channels (DiscordChatExporter HTML)
 
-Timestamps are **America/Los_Angeles (PT)**. Treat naive / missing-offset
-datetimes as `America/Los_Angeles` unless the export already has an offset.
-DiscordChatExporter omits `<time datetime>` on follow-on messages;
-**timestamps inherit across messages and message groups** from the last seen
-datetime.
+Timestamps are **America/Los_Angeles**, confirmed. Ingest is labeled **PT**.
+Treat naive / missing-offset datetimes as `America/Los_Angeles` unless the
+export already has an offset. DiscordChatExporter omits `<time datetime>` on
+follow-on messages; **timestamps inherit across messages and message groups**
+from the last seen datetime.
 
 ### In MVP
 
 | Channel | `source_type` | Approx msgs | Role |
 | --- | --- | ---: | --- |
-| equity-trades | `trade_log` | 6664 | Text tape / fills / closes. **Ground truth** when sources disagree. |
+| equity-trades | `trade_log` | 6664 | Text tape / fills / closes. **#1 / ground truth** when sources disagree. |
 | alex-journal | `journal` | 5471 | Chart-heavy same-session notes. |
 | prime-report | `report` | 3062 | Evening focuslists. |
-| pf-update | `pf_update` | (count TBD) | **Portfolio snapshots** (NAV / DD / positions). **Not a fill log.** Never overrides tape. |
+| pf-update | `pf_update` | **1428** | **Portfolio/state only** (NAV / DD / positions). **Not fills ground truth.** Never overrides tape. |
 | morning gameplan | `gameplan` | (split TBD) | Morning plan stream. Label exists even if it still sits inside journal exports until split. |
 
 pf-update on the operator Mac (not read by MVP; inventory only):
@@ -39,34 +39,33 @@ Other in-MVP Discord exports (example layout — not read by MVP):
 <mac-exports>/prime-report/*.html
 ```
 
-### Out of MVP
+### Out of MVP (OOS)
 
 | Channel | Notes |
 | --- | --- |
-| focuslist-ideas | **Out of MVP.** Do not ingest. |
+| focuslist-ideas | **Out of sample / out of MVP.** Do not ingest. |
 
-## Doctrine (not a local GitBook mirror)
+## Doctrine (MVP)
 
-There is **no** GitBook clone in-tree or on disk as a source of truth.
-**No full offline GitBook scrape for MVP.**
+**No full offline GitBook scrape.** There is **no** GitBook clone in-tree as a source of truth.
 
 | Source | How it is used |
 | --- | --- |
-| Live GitBook | Doctrine, fetched later — not mirrored locally in MVP |
+| Live GitBook | Doctrine only — not mirrored locally in MVP |
 | `PRIMETRADING_RULEBOOK_DISTILLATION.md` | Distilled rulebook (operator file) |
 | `PrimeTrading_Ebook.pdf` | Ebook doctrine (operator file; PDF parse is out of MVP) |
 
-`ingest-gitbook` on a local directory is a **fixture stub** only (tiny playbook markdown under `tests/fixtures/gitbook`). It must not be treated as a GitBook dump of the live book.
+`ingest-gitbook` on a local directory is a **fixture stub** only (`tests/fixtures/gitbook`). It must not be treated as a GitBook dump of the live book.
 
 ## Precedence when sources conflict
 
-Highest wins:
+Highest wins. **equity-trades remains #1.**
 
 1. **equity fills/closes** (`trade_log` / equity-trades) — tape is ground truth
 2. **same-time journal** (`journal` / alex-journal)
 3. **morning gameplan** (`gameplan`)
 4. **evening prime-report** (`report`)
-5. **pf-update portfolio snapshots** (`pf_update`) — account-state context only; **not a fill log**; never outranks tape/journal/gameplan/report on fills
+5. **pf-update portfolio/state** (`pf_update`) — account snapshots only; **not a fill log**; never outranks tape
 6. **GitBook doctrine-only** (`gitbook`) — qualitative rules, never overrides tape
 
 Config: `retrieval.precedence` in `config/default.yaml`.
@@ -99,6 +98,9 @@ Spec: [`docs/EVAL_SPEC_V0.md`](EVAL_SPEC_V0.md).
 MVP loads and validates all 48 offline and scores enter/abstain/size/manage/exit
 plus citation coverage when a prediction is supplied. **No P&L.** Evidence must
 have `timestamp < decision_ts`. Post-fill journal/doctrine/pf-update cannot justify enter.
+
+The pack includes **`pf_update_fixtures`** with **`message_id: TBD`**. Do **not**
+invent Discord message IDs.
 
 Session dates and tickers are filled from Discord exports later — do not invent
 indicator numbers.

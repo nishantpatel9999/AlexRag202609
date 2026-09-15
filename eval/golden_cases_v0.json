@@ -12,6 +12,86 @@
   "sealed_cutoff": "timestamp < decision_ts",
   "post_fill_enter_evidence": "banned",
   "pnl_required": false,
+  "timezone": "America/Los_Angeles",
+  "timezone_label": "PT",
+  "gitbook_scrape": false,
+  "doctrine": [
+    "live GitBook",
+    "PRIMETRADING_RULEBOOK_DISTILLATION.md",
+    "PrimeTrading_Ebook.pdf"
+  ],
+  "mvp_channels": [
+    "equity-trades",
+    "alex-journal",
+    "prime-report",
+    "pf-update"
+  ],
+  "oos_channels": [
+    "focuslist-ideas"
+  ],
+  "pf_update": {
+    "approx_messages": 1428,
+    "role": "portfolio/state only; not fills ground truth",
+    "precedence": "equity-trades remains #1; pf-update never outranks tape"
+  },
+  "pf_update_fixtures": [
+    {
+      "id": "pf-update-fixture-01",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    },
+    {
+      "id": "pf-update-fixture-02",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    },
+    {
+      "id": "pf-update-fixture-03",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    },
+    {
+      "id": "pf-update-fixture-04",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    },
+    {
+      "id": "pf-update-fixture-05",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    },
+    {
+      "id": "pf-update-fixture-06",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    },
+    {
+      "id": "pf-update-fixture-07",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    },
+    {
+      "id": "pf-update-fixture-08",
+      "message_id": "TBD",
+      "source_type": "pf_update",
+      "role": "portfolio_state_not_fill",
+      "notes": "Concrete Discord message IDs TBD. Do not invent."
+    }
+  ],
   "cases": [
     {
       "id": "golden-01",
@@ -30,7 +110,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-02",
@@ -49,7 +130,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-03",
@@ -68,7 +150,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-04",
@@ -87,7 +170,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-05",
@@ -106,7 +190,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-06",
@@ -125,7 +210,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-07",
@@ -144,7 +230,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-08",
@@ -163,7 +250,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-09",
@@ -182,7 +270,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-10",
@@ -201,7 +290,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-11",
@@ -220,7 +310,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-12",
@@ -239,7 +330,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-13",
@@ -258,7 +350,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-14",
@@ -277,7 +370,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-15",
@@ -296,7 +390,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-16",
@@ -315,7 +410,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-17",
@@ -334,7 +430,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-18",
@@ -353,7 +450,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-19",
@@ -372,7 +470,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-20",
@@ -391,7 +490,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-21",
@@ -410,7 +510,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-22",
@@ -429,7 +530,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-23",
@@ -448,7 +550,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-24",
@@ -467,7 +570,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-25",
@@ -486,7 +590,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-26",
@@ -505,7 +610,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-27",
@@ -524,7 +630,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-28",
@@ -543,7 +650,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-29",
@@ -562,7 +670,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-30",
@@ -581,7 +690,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-31",
@@ -600,7 +710,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-32",
@@ -619,7 +730,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-33",
@@ -638,7 +750,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-34",
@@ -657,7 +770,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-35",
@@ -676,7 +790,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-36",
@@ -695,7 +810,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-37",
@@ -714,7 +830,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-38",
@@ -733,7 +850,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-39",
@@ -752,7 +870,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-40",
@@ -771,7 +890,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-41",
@@ -790,7 +910,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-42",
@@ -809,7 +930,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-43",
@@ -828,7 +950,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-44",
@@ -847,7 +970,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-45",
@@ -866,7 +990,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-46",
@@ -885,7 +1010,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-47",
@@ -904,7 +1030,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     },
     {
       "id": "golden-48",
@@ -923,7 +1050,8 @@
       "fill_ts": null,
       "ticker": null,
       "status": "schema_v0",
-      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices, indicators, or Discord message IDs. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence. pf-update is portfolio/state only; equity-trades remains fills ground truth.",
+      "pf_update_fixtures": []
     }
   ]
 }

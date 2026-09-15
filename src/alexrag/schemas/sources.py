@@ -77,8 +77,8 @@ CORPUS_CHANNELS = (
     {
         "channel": "pf-update",
         "source_type": "pf_update",
-        "approx_messages": None,
-        "role": "portfolio snapshots (NAV/DD/positions); not a fill log; never overrides tape",
+        "approx_messages": 1428,
+        "role": "portfolio/state only (NAV/DD/positions); not fills ground truth; never overrides tape",
         "mvp": True,
         "mac_html": PF_UPDATE_MAC_HTML,
         "mac_html_files": (
@@ -103,4 +103,5 @@ DOCTRINE_SOURCES = (
 )
 
 DEFAULT_DISCORD_TZ = "America/Los_Angeles"
+DEFAULT_DISCORD_TZ_LABEL = "PT"
 GOLDEN_CASE_COUNT = 48

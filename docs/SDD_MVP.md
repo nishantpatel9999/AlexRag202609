@@ -42,7 +42,7 @@ Kill switch: when engaged, the orchestrator abstains immediately and must not ca
 
 ## 5. Data flow
 
-1. **Ingest** Discord HTML (streaming; fixtures only) and optional doctrine/fixture markdown → JSONL `{id, ts, author, text, attachment_paths}`.
+1. **Ingest** Discord HTML (streaming; fixtures only; timestamps labeled **PT**) and optional doctrine/fixture markdown → JSONL `{id, ts, author, text, attachment_paths}`.
 2. **Caption stub** records a placeholder for each attachment path (no model, no network).
 3. **Chunk** text with source tags: `trade_log | journal | gameplan | report | pf_update | gitbook`.
 4. **Embed** with the `EmbeddingProvider` interface. MVP: deterministic **fake** in-memory vectors for tests.

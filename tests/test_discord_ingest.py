@@ -14,6 +14,7 @@ def test_discord_html_extracts_fields(fixtures_dir: Path, tmp_path: Path) -> Non
     assert len(messages) == 2
     first, second = messages
     assert first.id == "1001"
+    assert first.tz_label == "PT"
     assert first.author == "Alex"
     assert first.ts is not None
     assert first.ts.year == 2026
@@ -33,6 +34,7 @@ def test_discord_ingest_writes_jsonl(fixtures_dir: Path, tmp_path: Path) -> None
     lines = out.read_text(encoding="utf-8").strip().splitlines()
     assert len(lines) == 2
     assert '"id": "1001"' in lines[0]
+    assert '"tz_label": "PT"' in lines[0]
     assert "attachment_paths" in lines[1]
 
 

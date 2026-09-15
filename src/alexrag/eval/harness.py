@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -28,6 +28,16 @@ class Expected(BaseModel):
     timestamped_citations: bool = True
 
 
+class PfUpdateFixture(BaseModel):
+    """Portfolio/state fixture slot. Concrete Discord IDs stay TBD — do not invent."""
+
+    id: str
+    message_id: Literal["TBD"] | None = "TBD"
+    source_type: Literal["pf_update"] = "pf_update"
+    role: str = "portfolio_state_not_fill"
+    notes: str = "Concrete Discord message IDs TBD. Do not invent."
+
+
 class GoldenCase(BaseModel):
     id: str
     conflict_label: str
@@ -38,6 +48,7 @@ class GoldenCase(BaseModel):
     ticker: str | None = None
     status: str = "schema_v0"
     notes: str = ""
+    pf_update_fixtures: list[PfUpdateFixture] = Field(default_factory=list)
 
 
 class GoldenPack(BaseModel):
@@ -47,6 +58,27 @@ class GoldenPack(BaseModel):
     sealed_cutoff: str
     post_fill_enter_evidence: str
     pnl_required: bool = False
+    timezone: str = "America/Los_Angeles"
+    timezone_label: str = "PT"
+    gitbook_scrape: bool = False
+    doctrine: list[str] = Field(
+        default_factory=lambda: [
+            "live GitBook",
+            "PRIMETRADING_RULEBOOK_DISTILLATION.md",
+            "PrimeTrading_Ebook.pdf",
+        ]
+    )
+    mvp_channels: list[str] = Field(
+        default_factory=lambda: [
+            "equity-trades",
+            "alex-journal",
+            "prime-report",
+            "pf-update",
+        ]
+    )
+    oos_channels: list[str] = Field(default_factory=lambda: ["focuslist-ideas"])
+    pf_update: dict[str, Any] = Field(default_factory=dict)
+    pf_update_fixtures: list[PfUpdateFixture] = Field(default_factory=list)
     cases: list[GoldenCase]
 
 

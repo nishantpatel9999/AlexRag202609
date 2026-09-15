@@ -24,7 +24,7 @@ def ingest_discord(
         "journal", help="trade_log|journal|gameplan|report|pf_update|gitbook"
     ),
 ) -> None:
-    """Stream Discord HTML to JSONL (id, ts, author, text, attachment_paths)."""
+    """Stream Discord HTML to JSONL (id, ts, author, text, attachment_paths). Timestamps labeled PT."""
 
     count = ingest_discord_html(html, out, source_type=source_type)
     typer.echo(f"wrote {count} messages to {out}")

@@ -20,3 +20,5 @@ class IngestedMessage(BaseModel):
     captions: list[str] = Field(default_factory=list)
     # DiscordChatExporter omits datetime on follow-on messages; inherit last seen ts.
     ts_inherited: bool = False
+    # Ingest is labeled PT. Naive timestamps are America/Los_Angeles.
+    tz_label: str = "PT"
