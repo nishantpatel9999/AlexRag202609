@@ -20,6 +20,7 @@ SOURCE_FILES = {
     "journal": "journal.jsonl",
     "gameplan": "gameplan.jsonl",
     "report": "report.jsonl",
+    "pf_update": "pf_update.jsonl",
     "gitbook": "gitbook.jsonl",
 }
 

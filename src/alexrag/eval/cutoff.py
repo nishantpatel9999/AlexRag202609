@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
 
-ENTER_BANNED_SOURCES = frozenset({"journal", "gameplan", "report", "gitbook"})
+ENTER_BANNED_SOURCES = frozenset({"journal", "gameplan", "report", "pf_update", "gitbook"})
 
 
 def aware(ts: datetime) -> datetime:

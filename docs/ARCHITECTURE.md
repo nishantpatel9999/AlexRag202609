@@ -7,7 +7,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
             │                                  │
             ▼                                  ▼
    ingest.discord_html                 ingest.gitbook (stub)
-   PT + inherited timestamps           live GitBook later; MVP fixtures
+   PT (America/Los_Angeles) inherit   live GitBook later; no full scrape
             │                                  │
             └──────────── JSONL ───────────────┘
                            │
@@ -18,7 +18,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
               chunk + source tags + FakeEmbeddingProvider
                            │
                            ▼
-              retrieve (fills > journal > gameplan > report > gitbook)
+              retrieve (fills > journal > gameplan > report > pf_update snapshots > gitbook)
               sealed: timestamp < decision_clock; no post-fill enter-evidence
                            │
                            ▼

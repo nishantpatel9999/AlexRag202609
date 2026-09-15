@@ -1,11 +1,12 @@
 """DiscordChatExporter-style HTML → JSONL ingest (streaming / large-file friendly).
 
 Corpus notes (see docs/CORPUS.md):
-- Operator Mac HTML (equity-trades ~6664, alex-journal ~5471, prime-report ~3062)
-  is NOT ingested in MVP — fixtures only.
+- Operator Mac HTML (equity-trades, alex-journal, prime-report, pf-update) is
+  NOT ingested in MVP — fixtures only. focuslist-ideas is out of MVP.
+- pf-update is portfolio snapshots, not a fill log.
 - Follow-on messages often omit <time datetime>; timestamps inherit across
   messages AND message groups from the last seen datetime.
-- Naive timestamps are America/Los_Angeles unless the export already has an offset.
+- Naive timestamps are America/Los_Angeles (PT), confirmed.
 """
 
 from __future__ import annotations

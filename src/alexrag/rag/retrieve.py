@@ -77,7 +77,9 @@ def retrieve_with_precedence(
     per_source: int | None = None,
     before: datetime | None = None,
 ) -> RetrievalResult:
-    """Fill slots by corpus precedence: fills > journal > gameplan > report > gitbook.
+    """Fill slots by corpus precedence: fills > journal > gameplan > report > pf_update > gitbook.
+
+    ``pf_update`` is portfolio snapshots, not a fill log, and must not outrank tape.
 
     If ``before`` is set (decision_ts), only chunks with timestamp < before are used
     (sealed chronological cutoff). Missing timestamps are excluded.

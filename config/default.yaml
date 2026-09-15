@@ -10,12 +10,14 @@ retrieval:
   min_confidence: 0.2
   stale_after_hours: 36
   top_k: 8
-  # equity fills/closes > same-time journal > morning gameplan > evening prime-report > GitBook doctrine
+  # equity fills/closes > same-time journal > morning gameplan > evening prime-report
+  # > pf-update (portfolio snapshots, not a fill log) > GitBook doctrine
   precedence:
     - trade_log
     - journal
     - gameplan
     - report
+    - pf_update
     - gitbook
 
 paper_gates:

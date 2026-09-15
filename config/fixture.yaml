@@ -15,6 +15,7 @@ retrieval:
     - journal
     - gameplan
     - report
+    - pf_update
     - gitbook
 
 paper_gates:

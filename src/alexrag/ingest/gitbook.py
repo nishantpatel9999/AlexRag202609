@@ -2,8 +2,7 @@
 
 Production doctrine (docs/CORPUS.md):
   live GitBook + PRIMETRADING_RULEBOOK_DISTILLATION.md + PrimeTrading_Ebook.pdf
-MVP walks a tiny local directory (tests/fixtures/gitbook). Do not point this
-at a GitBook clone or Mac export paths.
+No full offline GitBook scrape for MVP. Walks tests/fixtures/gitbook only.
 """
 
 from __future__ import annotations

@@ -5,7 +5,7 @@ Qualitative rules only. This file must not be treated as a source of indicator v
 This fixture is **not** a GitBook mirror. Production doctrine is live GitBook +
 PRIMETRADING_RULEBOOK_DISTILLATION.md + PrimeTrading_Ebook.pdf (see docs/CORPUS.md).
 
-- Prefer trade_log evidence over journal over gameplan over evening report over this playbook.
+- Prefer trade_log evidence over journal over gameplan over evening report over pf-update snapshots over this playbook.
 - If the tape is a trend day, wait for reclaim before adding.
 - If citations lack timestamps, abstain.
 - If the feed is stale or audit is missing, abstain (fail-closed).

@@ -26,8 +26,29 @@ def test_precedence_matches_corpus_spec() -> None:
         "journal",
         "gameplan",
         "report",
+        "pf_update",
         "gitbook",
     )
+
+
+def test_mvp_channels_include_pf_update_not_focuslist() -> None:
+    from alexrag.schemas.sources import (
+        CHANNEL_TO_SOURCE,
+        CORPUS_CHANNELS,
+        OUT_OF_MVP_CHANNELS,
+        PF_UPDATE_MAC_HTML,
+    )
+
+    names = {c["channel"] for c in CORPUS_CHANNELS}
+    assert names == {"equity-trades", "alex-journal", "prime-report", "pf-update"}
+    assert CHANNEL_TO_SOURCE["pf-update"] == "pf_update"
+    pf = next(c for c in CORPUS_CHANNELS if c["channel"] == "pf-update")
+    assert "not a fill log" in pf["role"]
+    assert pf["mac_html"] == PF_UPDATE_MAC_HTML
+    assert "pf-update" in PF_UPDATE_MAC_HTML
+    out = {c["channel"] for c in OUT_OF_MVP_CHANNELS}
+    assert "focuslist-ideas" in out
+    assert "focuslist-ideas" not in names
 
 
 def test_sealed_cutoff_strictly_before() -> None:

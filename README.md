@@ -65,7 +65,7 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `docs/FILL_FIDELITY_M0.md` | PaperFill / FillIntent / M0 (0bps fixture mid) |
 | `config/fixture.yaml` | Non-zero hard_limits + `paper.nav` for offline Exec |
 | `src/alexrag/schemas` | `Proposal`, `FillIntent`, `PaperFill`/`FillReceipt`, `AuditEvent` |
-| `docs/CORPUS.md` | Channel counts, precedence, doctrine, golden-case pointer |
+| `docs/CORPUS.md` | MVP channels (incl. pf-update snapshots), PT timestamps, doctrine, precedence |
 
 ## TODOs (not in MVP)
 

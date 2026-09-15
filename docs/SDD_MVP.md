@@ -15,7 +15,7 @@ MVP goal: an **offline-runnable scaffold** that can ingest Discord HTML, index f
 - No Discord bot, no real Alpaca submit, no vision model, no TradingView MCP client.
 - No calendar “go-live” date. Paper→live is **gate-driven** (see `docs/RISK_GATES.md`).
 - No ingest of operator Mac Discord/GitBook trees in MVP (fixtures only).
-- No local GitBook mirror. Doctrine = live GitBook + `PRIMETRADING_RULEBOOK_DISTILLATION.md` + `PrimeTrading_Ebook.pdf`.
+- No local GitBook mirror and **no full offline GitBook scrape** for MVP. Doctrine = live GitBook + `PRIMETRADING_RULEBOOK_DISTILLATION.md` + `PrimeTrading_Ebook.pdf`.
 
 ## 3. Operating modes
 
@@ -44,9 +44,9 @@ Kill switch: when engaged, the orchestrator abstains immediately and must not ca
 
 1. **Ingest** Discord HTML (streaming; fixtures only) and optional doctrine/fixture markdown → JSONL `{id, ts, author, text, attachment_paths}`.
 2. **Caption stub** records a placeholder for each attachment path (no model, no network).
-3. **Chunk** text with source tags: `trade_log | journal | gameplan | report | gitbook`.
+3. **Chunk** text with source tags: `trade_log | journal | gameplan | report | pf_update | gitbook`.
 4. **Embed** with the `EmbeddingProvider` interface. MVP: deterministic **fake** in-memory vectors for tests.
-5. **Retrieve** with conflict precedence **fills/closes → same-time journal → morning gameplan → evening prime-report → GitBook doctrine-only**.
+5. **Retrieve** with conflict precedence **fills/closes → same-time journal → morning gameplan → evening prime-report → pf-update (portfolio snapshots, not a fill log) → GitBook doctrine-only**.
 6. **Agents:** Regime → Setup → Risk → (if not abstain) Exec paper stub → Auditor.
 7. **Audit log** JSONL. If the audit sink is missing or unwritable → **fail-closed abstain**.
 8. Emit `Proposal` JSON (includes `conflict_labels`). Exec never runs in live mode (there is no live mode).
@@ -136,11 +136,11 @@ CLI consumes **DiscordChatExporter-style** HTML:
 - Follow-on messages often omit `<time datetime>`; **timestamps inherit across messages and message groups**.
 - Naive / missing-offset timestamps are treated as **America/Los_Angeles** unless the export already includes an offset.
 
-The parser is **large-file friendly**: it feeds the HTML parser in chunks and writes JSONL incrementally. It must not download remote attachments. Operator Mac exports (equity-trades ~6664, alex-journal ~5471, prime-report ~3062) are **not** ingested in MVP.
+The parser is **large-file friendly**: it feeds the HTML parser in chunks and writes JSONL incrementally. It must not download remote attachments. Operator Mac exports (equity-trades ~6664, alex-journal ~5471, prime-report ~3062, pf-update portfolio snapshots) are **not** ingested in MVP. **focuslist-ideas is out of MVP.**
 
 ### GitBook / playbook
 
-**There is no local GitBook mirror.** Doctrine is live GitBook + `PRIMETRADING_RULEBOOK_DISTILLATION.md` + `PrimeTrading_Ebook.pdf`. `ingest-gitbook` walks a tiny fixture/doctrine directory only (`tests/fixtures/gitbook`). PDF parse and live GitBook fetch are out of MVP.
+**There is no local GitBook mirror and no full offline GitBook scrape for MVP.** Doctrine is live GitBook + `PRIMETRADING_RULEBOOK_DISTILLATION.md` + `PrimeTrading_Ebook.pdf`. `ingest-gitbook` walks a tiny fixture/doctrine directory only (`tests/fixtures/gitbook`). PDF parse and live GitBook fetch are out of MVP.
 
 ## 10. Fail-closed policy
 

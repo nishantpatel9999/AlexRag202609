@@ -20,7 +20,9 @@ app = typer.Typer(no_args_is_help=True, add_completion=False)
 def ingest_discord(
     html: Path = typer.Argument(..., exists=True, readable=True, help="DiscordChatExporter HTML"),
     out: Path = typer.Option(..., "--out", "-o", help="JSONL output path"),
-    source_type: str = typer.Option("journal", help="trade_log|journal|report|gitbook"),
+    source_type: str = typer.Option(
+        "journal", help="trade_log|journal|gameplan|report|pf_update|gitbook"
+    ),
 ) -> None:
     """Stream Discord HTML to JSONL (id, ts, author, text, attachment_paths)."""
 

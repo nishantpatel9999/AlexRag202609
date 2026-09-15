@@ -8,19 +8,30 @@ those trees into this repo.
 
 ## Discord channels (DiscordChatExporter HTML)
 
-Treat naive timestamps as **America/Los_Angeles** unless the export already
-has an offset. DiscordChatExporter omits `<time datetime>` on follow-on
-messages; **timestamps inherit across messages and message groups** from the
-last seen datetime.
+Timestamps are **America/Los_Angeles (PT)**. Treat naive / missing-offset
+datetimes as `America/Los_Angeles` unless the export already has an offset.
+DiscordChatExporter omits `<time datetime>` on follow-on messages;
+**timestamps inherit across messages and message groups** from the last seen
+datetime.
+
+### In MVP
 
 | Channel | `source_type` | Approx msgs | Role |
 | --- | --- | ---: | --- |
 | equity-trades | `trade_log` | 6664 | Text tape / fills / closes. **Ground truth** when sources disagree. |
 | alex-journal | `journal` | 5471 | Chart-heavy same-session notes. |
 | prime-report | `report` | 3062 | Evening focuslists. |
+| pf-update | `pf_update` | (count TBD) | **Portfolio snapshots** (NAV / DD / positions). **Not a fill log.** Never overrides tape. |
 | morning gameplan | `gameplan` | (split TBD) | Morning plan stream. Label exists even if it still sits inside journal exports until split. |
 
-Operator-local layout (example only — not read by MVP):
+pf-update on the operator Mac (not read by MVP; inventory only):
+
+```text
+/Users/n_mac/DiscordArchives/PrimeTrading/PrimeTrading - Alex - 📒pf-update [1019259954101747753].html
+/Users/n_mac/DiscordArchives/PrimeTrading/PrimeTrading - Alex - 📒pf-update [1019259954101747753]_Files
+```
+
+Other in-MVP Discord exports (example layout — not read by MVP):
 
 ```text
 <mac-exports>/equity-trades/*.html
@@ -28,9 +39,16 @@ Operator-local layout (example only — not read by MVP):
 <mac-exports>/prime-report/*.html
 ```
 
+### Out of MVP
+
+| Channel | Notes |
+| --- | --- |
+| focuslist-ideas | **Out of MVP.** Do not ingest. |
+
 ## Doctrine (not a local GitBook mirror)
 
 There is **no** GitBook clone in-tree or on disk as a source of truth.
+**No full offline GitBook scrape for MVP.**
 
 | Source | How it is used |
 | --- | --- |
@@ -48,9 +66,12 @@ Highest wins:
 2. **same-time journal** (`journal` / alex-journal)
 3. **morning gameplan** (`gameplan`)
 4. **evening prime-report** (`report`)
-5. **GitBook doctrine-only** (`gitbook`) — qualitative rules, never overrides tape
+5. **pf-update portfolio snapshots** (`pf_update`) — account-state context only; **not a fill log**; never outranks tape/journal/gameplan/report on fills
+6. **GitBook doctrine-only** (`gitbook`) — qualitative rules, never overrides tape
 
 Config: `retrieval.precedence` in `config/default.yaml`.
+
+pf-update may later inform paper-book diagnostics (NAV / daily loss / portfolio DD). It is **not** enter-evidence for a fill.
 
 ## Conflicts are first-class
 
@@ -77,7 +98,7 @@ Spec: [`docs/EVAL_SPEC_V0.md`](EVAL_SPEC_V0.md).
 
 MVP loads and validates all 48 offline and scores enter/abstain/size/manage/exit
 plus citation coverage when a prediction is supplied. **No P&L.** Evidence must
-have `timestamp < decision_ts`. Post-fill journal/doctrine cannot justify enter.
+have `timestamp < decision_ts`. Post-fill journal/doctrine/pf-update cannot justify enter.
 
 Session dates and tickers are filled from Discord exports later — do not invent
 indicator numbers.

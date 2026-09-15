@@ -65,13 +65,23 @@ def test_precedence_prefers_trade_log() -> None:
             timestamp=ts,
         )
     )
-    result = retrieve_with_precedence(index, "NVDA trend day fill", top_k=4)
+    index.add(
+        chunk_text(
+            "pf-update: account NAV snapshot, not a fill.",
+            source_id="pf",
+            source_type="pf_update",
+            timestamp=ts,
+        )
+    )
+    result = retrieve_with_precedence(index, "NVDA trend day fill", top_k=8)
     assert result.hits
     assert result.hits[0].chunk.source_type == "trade_log"
     types = [h.chunk.source_type for h in result.hits]
     assert types.index("trade_log") < types.index("journal")
     assert types.index("journal") < types.index("gameplan")
     assert types.index("gameplan") < types.index("gitbook")
+    assert types.index("trade_log") < types.index("pf_update")
+    assert types.index("pf_update") < types.index("gitbook")
 
 
 def test_sealed_cutoff_excludes_at_or_after_decision() -> None:

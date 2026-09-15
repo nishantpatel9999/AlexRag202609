@@ -13,9 +13,10 @@ SOURCE_TYPES = (
     "journal",  # alex-journal: same-time charts/notes
     "gameplan",  # morning gameplan
     "report",  # prime-report: evening focuslists
+    "pf_update",  # pf-update: portfolio snapshots, NOT a fill log
     "gitbook",  # doctrine only (live GitBook + distillation/ebook; not a local GitBook mirror)
 )
-SourceType = Literal["trade_log", "journal", "gameplan", "report", "gitbook"]
+SourceType = Literal["trade_log", "journal", "gameplan", "report", "pf_update", "gitbook"]
 
 PRECEDENCE_DEFAULT = SOURCE_TYPES
 
@@ -24,6 +25,7 @@ CHANNEL_TO_SOURCE: dict[str, SourceType] = {
     "alex-journal": "journal",
     "morning-gameplan": "gameplan",
     "prime-report": "report",
+    "pf-update": "pf_update",
 }
 
 # Conflicts are common in the live corpus. Labels are first-class on Proposal / eval notes.
@@ -45,29 +47,57 @@ ConflictLabel = Literal[
 ]
 
 # Operator-local DiscordChatExporter inventories (Mac Studio). Not ingested in MVP.
+PF_UPDATE_MAC_HTML = (
+    "/Users/n_mac/DiscordArchives/PrimeTrading/"
+    "PrimeTrading - Alex - 📒pf-update [1019259954101747753].html"
+)
+
 CORPUS_CHANNELS = (
     {
         "channel": "equity-trades",
         "source_type": "trade_log",
         "approx_messages": 6664,
         "role": "text tape / fills / closes; ground truth when sources disagree",
+        "mvp": True,
     },
     {
         "channel": "alex-journal",
         "source_type": "journal",
         "approx_messages": 5471,
         "role": "chart-heavy same-session notes",
+        "mvp": True,
     },
     {
         "channel": "prime-report",
         "source_type": "report",
         "approx_messages": 3062,
         "role": "evening focuslists",
+        "mvp": True,
+    },
+    {
+        "channel": "pf-update",
+        "source_type": "pf_update",
+        "approx_messages": None,
+        "role": "portfolio snapshots (NAV/DD/positions); not a fill log; never overrides tape",
+        "mvp": True,
+        "mac_html": PF_UPDATE_MAC_HTML,
+        "mac_html_files": (
+            "/Users/n_mac/DiscordArchives/PrimeTrading/"
+            "PrimeTrading - Alex - 📒pf-update [1019259954101747753]_Files"
+        ),
+    },
+)
+
+OUT_OF_MVP_CHANNELS = (
+    {
+        "channel": "focuslist-ideas",
+        "mvp": False,
+        "role": "out of MVP; do not ingest",
     },
 )
 
 DOCTRINE_SOURCES = (
-    "live GitBook (no local mirror)",
+    "live GitBook (no local mirror; no full offline GitBook scrape for MVP)",
     "PRIMETRADING_RULEBOOK_DISTILLATION.md",
     "PrimeTrading_Ebook.pdf",
 )

@@ -53,7 +53,7 @@ labels, not merged away.
 
 Precedence when sources disagree remains:
 
-fills/closes → same-time journal → morning gameplan → evening prime-report → GitBook doctrine-only.
+fills/closes → same-time journal → morning gameplan → evening prime-report → pf-update (portfolio snapshots, **not** a fill log) → GitBook doctrine-only.
 
 ## 5. Pack layout (48 cases)
 
