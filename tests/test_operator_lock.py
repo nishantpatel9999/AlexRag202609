@@ -182,6 +182,7 @@ def test_secrets_stay_out_of_git() -> None:
     root = ROOT
     example = (root / ".env.example").read_text(encoding="utf-8")
     assert "INFERHUB_API_KEY=" in example
+    assert "INFERHUB_PROVIDER=cbcn" in example
     assert "ALPACA_API_KEY_ID=" in example
     assert "ALPACA_API_SECRET_KEY=" in example
     # Placeholders only — no assigned secret values in the example.
