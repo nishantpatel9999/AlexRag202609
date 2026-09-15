@@ -92,10 +92,11 @@ Maps the proposal onto coded hard limits and fail-closed gates. Abstains on:
 
 Hard-limit fields (Nishant-locked operator values; present even while Exec is a stub):
 
-- `max_notional_pct` = 1.0 (100% of paper equity; **dollars = `paper.nav * pct` at runtime**)
+- `max_notional_pct` = 1.5 (150% of paper equity; **dollars = `paper.nav * pct` at runtime**)
 - `max_positions` = 15
 - `max_daily_loss_pct` = 0.10 (10% of equity; dollars derived the same way)
 - `max_portfolio_dd` = 0.25 (25% of equity)
+- `notional_breach_policy` = `pro_rata_trim_for_new_entry` (pro-rata trim open positions to make room for a new entry that would otherwise exceed 150% gross)
 
 Values are **operator-owned**, not research outputs. `paper.nav` defaults to `0` so go-decisions fail-closed until equity is set (`config/fixture.yaml` for M0). Snapshot includes both pcts and derived dollar `max_notional` / `max_daily_loss`.
 

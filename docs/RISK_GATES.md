@@ -9,13 +9,25 @@ There is **no target go-live date** in this project.
 | Control | Behavior |
 | --- | --- |
 | Kill switch | `ALEXRAG_KILL_SWITCH=true` → `abstain_reason=kill_switch_fail`, Exec skipped |
-| Coded hard limits | Nishant-locked: `max_positions=15`, `max_daily_loss_pct=0.10`, `max_portfolio_dd=0.25`, `max_notional_pct=1.0`. Dollar notional/daily-loss = `paper.nav * pct` at runtime. `paper.nav` ≤ 0 or pcts/positions ≤ 0 → `hard_limits_unconfigured`. Risk **enforces** daily loss (dollars vs 10% equity) and portfolio DD (fraction vs 25%) against `paper_book` (`daily_loss_breach` / `portfolio_dd_breach`) — not snapshot-only. |
+| Coded hard limits | Nishant-locked: `max_positions=15`, `max_daily_loss_pct=0.10`, `max_portfolio_dd=0.25`, `max_notional_pct=1.5` (150% of equity). Dollar daily-loss / notional cap = `paper.nav * pct` at runtime. `paper.nav` ≤ 0 or pcts/positions ≤ 0 → `hard_limits_unconfigured`. Risk **enforces** daily loss (dollars vs 10% equity) and portfolio DD (fraction vs 25%) against `paper_book` (`daily_loss_breach` / `portfolio_dd_breach`) — not snapshot-only. Gross notional overflow uses `notional_breach_policy=pro_rata_trim_for_new_entry`. |
 | Fail-closed stale feed | Newest citation vs `decision_clock` older than `stale_after_hours` → `stale_feed` (orchestrator **and** RiskAgent) |
 | Fail-closed missing audit | Audit path missing or unwritable → `missing_audit` (no Exec) |
 | Fail-closed retrieval | Confidence `< min_confidence` → `low_retrieval_confidence` |
 | Citations | Go-decisions require timestamped citations. Sealed citations must evidence side or Risk emits `unexplained_order`. |
 
 Closed `abstain_reason` set: `alexrag.schemas.reasons.AbstainReason` (includes `stale_feed`, `missing_audit`, `daily_loss_breach`, `portfolio_dd_breach`, `kill_switch_fail`, `unexplained_order`, plus existing reasons).
+
+## Notional breach policy (`pro_rata_trim_for_new_entry`)
+
+Gross notional cap is **150% of paper equity**. This is not a reject-the-new-entry rule.
+
+If a **new entry/buy** would push gross notional above that cap:
+
+1. **Pro-rata trim all open positions** (same scale factor on each name, including shorts as gross) until `existing_gross' + new_size = 150% of equity`.
+2. **Then enter** the new size. The new order is **not** shrunk to leftover room.
+3. If the new size **alone** exceeds 150% of equity, flatten existing positions to 0 and clip the new entry to the cap.
+
+Pure sizing function (offline, no broker): `alexrag.agents.notional_trim.pro_rata_trim_for_new_entry`. Config field: `hard_limits.notional_breach_policy`. **No live path.**
 
 ## Paper-run counters (diagnostics, not a hard floor)
 

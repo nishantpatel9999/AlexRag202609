@@ -32,14 +32,15 @@ When `proposal.abstain=false`, Exec must not leave `side=None` / `notional=0` / 
 - `side` / optional `limit_px` / optional `invalidation` copied **only** from citations with `timestamp < decision_clock`
 - `order_type=limit` iff a sealed limit px is present; otherwise `market`
 - `size_ner_pct → notional = min(paper_nav * ner/100, max_notional_dollars)`; `qty = notional / ref_px`
-- `max_notional_dollars = paper.nav * max_notional_pct` (operator lock: 100% of paper equity)
+- `max_notional_dollars = paper.nav * max_notional_pct` (operator lock: 150% of paper equity)
+- If a new entry would push **gross** notional above that cap: `notional_breach_policy=pro_rata_trim_for_new_entry` (pro-rata trim open positions to make room, then enter). Math: `alexrag.agents.notional_trim`.
 - `ref_px` = sealed limit if present, else next fixture mid
 - copy `decision_clock`
 - if any required field is missing, Exec **skips** (`intent.abstain=true`) rather than emitting a holey go intent
 
 ## Fixture config
 
-`config/default.yaml` locks operator pcts (`max_positions=15`, `max_daily_loss_pct=0.10`, `max_portfolio_dd=0.25`, `max_notional_pct=1.0`) and keeps `paper.nav = 0` (fail-closed dollar derivation).
+`config/default.yaml` locks operator pcts (`max_positions=15`, `max_daily_loss_pct=0.10`, `max_portfolio_dd=0.25`, `max_notional_pct=1.5`, `notional_breach_policy=pro_rata_trim_for_new_entry`) and keeps `paper.nav = 0` (fail-closed dollar derivation).
 
 `config/fixture.yaml` uses the same pcts with `paper.nav` set and points `paper.bars_path` at `tests/fixtures/m0/bars.json` so cleared proposals can exercise Exec **without live keys**.
 

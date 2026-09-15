@@ -56,11 +56,12 @@ def test_operator_pcts_derive_dollars_from_equity() -> None:
     assert settings.hard_limits.max_positions == 15
     assert settings.hard_limits.max_daily_loss_pct == 0.10
     assert settings.hard_limits.max_portfolio_dd == 0.25
-    assert settings.hard_limits.max_notional_pct == 1.0
-    assert settings.max_notional_dollars() == 100000.0
+    assert settings.hard_limits.max_notional_pct == 1.5
+    assert settings.max_notional_dollars() == 150000.0
     assert settings.max_daily_loss_dollars() == 10000.0
     snap = settings.hard_limits_snapshot()
-    assert snap["max_notional"] == 100000.0
+    assert snap["max_notional"] == 150000.0
+    assert snap["notional_breach_policy"] == "pro_rata_trim_for_new_entry"
     assert snap["max_daily_loss"] == 10000.0
     assert snap["paper_equity"] == 100000.0
 
@@ -145,7 +146,7 @@ def test_paper_nav_env_derives_dollars(monkeypatch) -> None:
     monkeypatch.setenv("ALEXRAG_PAPER_NAV", "50000")
     settings = load_settings(load_env_file=False)
     assert settings.paper.nav == 50000.0
-    assert settings.max_notional_dollars() == 50000.0
+    assert settings.max_notional_dollars() == 75000.0
     assert settings.max_daily_loss_dollars() == 5000.0
 
 

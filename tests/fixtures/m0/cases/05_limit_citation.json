@@ -4,10 +4,11 @@
   "scar_bps": 0.0,
   "paper_nav": 100000.0,
   "hard_limits": {
-    "max_notional_pct": 1.0,
+    "max_notional_pct": 1.5,
     "max_positions": 15,
     "max_daily_loss_pct": 0.10,
-    "max_portfolio_dd": 0.25
+    "max_portfolio_dd": 0.25,
+    "notional_breach_policy": "pro_rata_trim_for_new_entry"
   },
   "bars": [
     {
@@ -38,12 +39,13 @@
     "thesis": "limit/invalidation copied from sealed citations only; M0 still marks next mid at 0bps",
     "setup_summary": "$NVDA long limit 120 invalidation 118",
     "hard_limits_snapshot": {
-      "max_notional_pct": 1.0,
+      "max_notional_pct": 1.5,
       "max_positions": 15,
       "max_daily_loss_pct": 0.10,
       "max_portfolio_dd": 0.25,
+      "notional_breach_policy": "pro_rata_trim_for_new_entry",
       "paper_equity": 100000.0,
-      "max_notional": 100000.0,
+      "max_notional": 150000.0,
       "max_daily_loss": 10000.0
     }
   },

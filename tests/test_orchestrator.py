@@ -104,10 +104,11 @@ def test_hard_limits_present_and_block_when_nav_zero(
     fixtures_dir: Path, tmp_path: Path
 ) -> None:
     settings = load_settings()
-    assert settings.hard_limits.max_notional_pct == 1.0
+    assert settings.hard_limits.max_notional_pct == 1.5
     assert settings.hard_limits.max_positions == 15
     assert settings.hard_limits.max_daily_loss_pct == 0.10
     assert settings.hard_limits.max_portfolio_dd == 0.25
+    assert settings.hard_limits.notional_breach_policy == "pro_rata_trim_for_new_entry"
     assert settings.paper.nav == 0.0
     assert settings.max_notional_dollars() == 0.0
     assert settings.max_daily_loss_dollars() == 0.0
@@ -119,13 +120,14 @@ def test_hard_limits_present_and_block_when_nav_zero(
         audit_path=tmp_path / "a.jsonl",
     )
     snap = result.proposal.hard_limits_snapshot
-    assert snap["max_notional_pct"] == 1.0
+    assert snap["max_notional_pct"] == 1.5
     assert snap["max_positions"] == 15
     assert snap["max_daily_loss_pct"] == 0.10
     assert snap["max_portfolio_dd"] == 0.25
     assert snap["max_notional"] == 0.0
     assert snap["max_daily_loss"] == 0.0
     assert snap["paper_equity"] == 0.0
+    assert snap["notional_breach_policy"] == "pro_rata_trim_for_new_entry"
     # Operator pcts are locked; nav 0 still fail-closes dollar derivation.
     assert result.proposal.abstain is True
 
@@ -164,7 +166,7 @@ def test_fixture_config_exercises_m0_exec(fixtures_dir: Path, tmp_path: Path) ->
         decision_clock=clock,
         audit_path=tmp_path / "m0.jsonl",
     )
-    assert settings.max_notional_dollars() == 100000.0
+    assert settings.max_notional_dollars() == 150000.0
     assert result.proposal.abstain is False
     assert result.fill is not None
     assert result.fill.abstain is False

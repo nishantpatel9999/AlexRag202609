@@ -16,7 +16,7 @@ from alexrag.schemas.proposal import Citation, Proposal
 
 def test_default_yaml_fail_closed_zero_nav() -> None:
     settings = load_settings()
-    assert settings.hard_limits.max_notional_pct == 1.0
+    assert settings.hard_limits.max_notional_pct == 1.5
     assert settings.hard_limits.max_positions == 15
     assert settings.hard_limits.max_daily_loss_pct == 0.10
     assert settings.hard_limits.max_portfolio_dd == 0.25
@@ -27,12 +27,13 @@ def test_default_yaml_fail_closed_zero_nav() -> None:
 
 def test_fixture_yaml_operator_limits_derive_dollars() -> None:
     settings = load_settings(config_path=ROOT / "config" / "fixture.yaml")
-    assert settings.hard_limits.max_notional_pct == 1.0
+    assert settings.hard_limits.max_notional_pct == 1.5
     assert settings.hard_limits.max_positions == 15
     assert settings.hard_limits.max_daily_loss_pct == 0.10
     assert settings.hard_limits.max_portfolio_dd == 0.25
+    assert settings.hard_limits.notional_breach_policy == "pro_rata_trim_for_new_entry"
     assert settings.paper.nav == 100000.0
-    assert settings.max_notional_dollars() == 100000.0
+    assert settings.max_notional_dollars() == 150000.0
     assert settings.max_daily_loss_dollars() == 10000.0
     assert settings.hard_limits_ready() is True
     assert settings.paper.fill_model == "M0"

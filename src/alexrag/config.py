@@ -18,7 +18,8 @@ DEFAULT_CONFIG_PATH = ROOT / "config" / "default.yaml"
 OPERATOR_MAX_POSITIONS = 15
 OPERATOR_MAX_DAILY_LOSS_PCT = 0.10
 OPERATOR_MAX_PORTFOLIO_DD = 0.25
-OPERATOR_MAX_NOTIONAL_PCT = 1.0
+OPERATOR_MAX_NOTIONAL_PCT = 1.5
+NOTIONAL_BREACH_POLICY = "pro_rata_trim_for_new_entry"
 
 
 class RetrievalSettings(BaseModel):
@@ -38,12 +39,18 @@ class HardLimits(BaseModel):
 
     Dollar notional and dollar daily-loss are **not** stored here; Settings
     derives them from ``paper.nav`` at runtime.
+
+    ``notional_breach_policy=pro_rata_trim_for_new_entry``: if a new entry would
+    push gross notional above ``max_notional_pct`` of equity, pro-rata trim all
+    open positions enough to make room, then enter. See
+    ``alexrag.agents.notional_trim.pro_rata_trim_for_new_entry``.
     """
 
     max_notional_pct: float = OPERATOR_MAX_NOTIONAL_PCT
     max_positions: int = OPERATOR_MAX_POSITIONS
     max_daily_loss_pct: float = OPERATOR_MAX_DAILY_LOSS_PCT
     max_portfolio_dd: float = OPERATOR_MAX_PORTFOLIO_DD
+    notional_breach_policy: Literal["pro_rata_trim_for_new_entry"] = NOTIONAL_BREACH_POLICY
 
 
 class PathSettings(BaseModel):
@@ -114,7 +121,7 @@ class Settings(BaseModel):
         return self.paper.nav
 
     def max_notional_dollars(self) -> float:
-        """100% of paper equity when ``max_notional_pct`` is 1.0. 0 if nav/pct unconfigured."""
+        """150% of paper equity when ``max_notional_pct`` is 1.5. 0 if nav/pct unconfigured."""
 
         nav = self.paper.nav
         pct = self.hard_limits.max_notional_pct
@@ -212,6 +219,7 @@ def _env_overlay() -> dict[str, Any]:
         ("ALEXRAG_MAX_POSITIONS", "max_positions", envutil.get_int),
         ("ALEXRAG_MAX_DAILY_LOSS_PCT", "max_daily_loss_pct", envutil.get_float),
         ("ALEXRAG_MAX_PORTFOLIO_DD", "max_portfolio_dd", envutil.get_float),
+        ("ALEXRAG_NOTIONAL_BREACH_POLICY", "notional_breach_policy", envutil.get_str),
     ):
         val = caster(env_name)
         if val is not None:
