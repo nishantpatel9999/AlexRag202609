@@ -85,10 +85,13 @@ def test_settings_reject_live_mode() -> None:
 
 def test_settings_lock_inferhub_llm() -> None:
     s = Settings.model_validate({})
+    assert s.llm.provider == "inferhub"
+    assert s.llm.model == "cbcn/GLM-5.3-flash"
     assert s.llm.base_url == "https://api.inferhub.dev/v1"
-    assert s.llm.provider == "cbcn"
-    assert s.llm.model == "GLM-5.3-flash"
+    assert s.llm.inferhub_provider == "cbcn"
     with pytest.raises(ValidationError):
         Settings.model_validate({"llm": {"model": "other"}})
     with pytest.raises(ValidationError):
         Settings.model_validate({"llm": {"provider": "openai"}})
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"llm": {"model": "other/GLM-5.3-flash"}})

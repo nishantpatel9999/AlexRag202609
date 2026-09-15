@@ -8,7 +8,16 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field, field_validator
 
 from alexrag import envutil
-from alexrag.llm.inferhub import INFERHUB_BASE_URL, INFERHUB_MODEL, INFERHUB_PROVIDER, require_cbcn_provider
+from alexrag.llm.inferhub import (
+    INFERHUB_BASE_URL,
+    INFERHUB_MODEL,
+    INFERHUB_PROVIDER,
+    LLM_PROVIDER,
+    require_cbcn_model,
+    require_cbcn_provider,
+    require_inferhub_base_url,
+    require_llm_provider,
+)
 from alexrag.schemas.sources import PRECEDENCE_DEFAULT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -68,18 +77,35 @@ class EmbeddingSettings(BaseModel):
 class LlmSettings(BaseModel):
     """Always-on LLM via Inferhub. API key is env-only (INFERHUB_API_KEY).
 
-    Calls go to ``https://api.inferhub.dev/v1`` with upstream ``provider=cbcn``
-    only — no other Inferhub routes. Model is GLM-5.3-flash.
+    ``LLM_PROVIDER=inferhub``, model id ``cbcn/GLM-5.3-flash``, host
+    ``https://api.inferhub.dev/v1``, upstream ``INFERHUB_PROVIDER=cbcn``.
+    No other Inferhub routes.
     """
 
+    provider: Literal["inferhub"] = LLM_PROVIDER
+    model: Literal["cbcn/GLM-5.3-flash"] = INFERHUB_MODEL
     base_url: Literal["https://api.inferhub.dev/v1"] = INFERHUB_BASE_URL
-    provider: Literal["cbcn"] = INFERHUB_PROVIDER
-    model: Literal["GLM-5.3-flash"] = INFERHUB_MODEL
+    inferhub_provider: Literal["cbcn"] = INFERHUB_PROVIDER
 
     @field_validator("provider")
     @classmethod
+    def _inferhub_backend(cls, v: str) -> str:
+        return require_llm_provider(v)
+
+    @field_validator("inferhub_provider")
+    @classmethod
     def _cbcn_only(cls, v: str) -> str:
         return require_cbcn_provider(v)
+
+    @field_validator("model")
+    @classmethod
+    def _cbcn_prefixed_model(cls, v: str) -> str:
+        return require_cbcn_model(v)
+
+    @field_validator("base_url")
+    @classmethod
+    def _locked_base_url(cls, v: str) -> str:
+        return require_inferhub_base_url(v)
 
 
 class PaperSimSettings(BaseModel):
@@ -256,9 +282,18 @@ def _env_overlay() -> dict[str, Any]:
         overlay["paths"] = paths
 
     llm: dict[str, Any] = {}
+    llm_provider = envutil.get_str("LLM_PROVIDER")
+    if llm_provider is not None:
+        llm["provider"] = llm_provider
+    llm_model = envutil.get_str("LLM_MODEL")
+    if llm_model is not None:
+        llm["model"] = llm_model
     inferhub_provider = envutil.get_str("INFERHUB_PROVIDER")
     if inferhub_provider is not None:
-        llm["provider"] = inferhub_provider
+        llm["inferhub_provider"] = inferhub_provider
+    inferhub_base = envutil.get_str("INFERHUB_BASE_URL")
+    if inferhub_base is not None:
+        llm["base_url"] = inferhub_base
     if llm:
         overlay["llm"] = llm
     return overlay

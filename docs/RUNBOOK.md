@@ -89,7 +89,7 @@ Nishant-locked operator values (config/env):
 
 ## LLM (always-on)
 
-Inferhub host: `https://api.inferhub.dev/v1`. **Upstream provider is locked to `cbcn`** (`INFERHUB_PROVIDER=cbcn` / `llm.provider`). No other Inferhub routes. Model: **GLM-5.3-flash**. Stub: `alexrag.llm.inferhub.InferhubClient` (request body always includes `provider=cbcn`). Secret via `INFERHUB_API_KEY` env only — never in git.
+Inferhub host: `https://api.inferhub.dev/v1` (`INFERHUB_BASE_URL`). **LLM_PROVIDER=inferhub**. **Upstream `INFERHUB_PROVIDER=cbcn` only** — do not route to any other Inferhub upstream. Model id: **`cbcn/GLM-5.3-flash`** (`LLM_MODEL`, provider prefix on the model). Stub: `alexrag.llm.inferhub.InferhubClient` (request body always includes `provider=cbcn` and `model=cbcn/GLM-5.3-flash`). Secret via `INFERHUB_API_KEY` env only — never in git.
 
 ## Alpaca (paper only)
 

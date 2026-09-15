@@ -79,18 +79,26 @@ def test_nav_zero_cannot_derive_dollars(tmp_path: Path) -> None:
 
 def test_llm_locked_to_inferhub_cbcn() -> None:
     settings = load_settings()
+    assert settings.llm.provider == "inferhub"
+    assert settings.llm.model == "cbcn/GLM-5.3-flash"
     assert settings.llm.base_url == "https://api.inferhub.dev/v1"
-    assert settings.llm.provider == "cbcn"
-    assert settings.llm.model == "GLM-5.3-flash"
+    assert settings.llm.inferhub_provider == "cbcn"
     with pytest.raises(ValidationError):
         Settings.model_validate({"llm": {"provider": "openai"}})
     with pytest.raises(ValidationError):
-        Settings.model_validate({"llm": {"provider": "inferhub.dev"}})
+        Settings.model_validate({"llm": {"inferhub_provider": "inferhub.dev"}})
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"llm": {"model": "GLM-5.3-flash"}})
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"llm": {"model": "other/GLM-5.3-flash"}})
 
 
 def test_inferhub_stub_presence_only_never_returns_key(monkeypatch) -> None:
     monkeypatch.delenv(INFERHUB_API_KEY_ENV, raising=False)
     monkeypatch.delenv(INFERHUB_PROVIDER_ENV, raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("INFERHUB_BASE_URL", raising=False)
     cold = InferhubClient()
     assert cold.configured is False
     assert cold.provider == INFERHUB_PROVIDER
@@ -98,8 +106,10 @@ def test_inferhub_stub_presence_only_never_returns_key(monkeypatch) -> None:
     assert payload["status"] == "stubbed"
     assert payload["provider"] == "cbcn"
     assert payload["request"]["provider"] == "cbcn"
-    assert payload["base_url"] == "https://api.inferhub.dev/v1"
+    assert payload["request"]["model"] == INFERHUB_MODEL
     assert payload["model"] == INFERHUB_MODEL
+    assert payload["llm_provider"] == "inferhub"
+    assert payload["base_url"] == "https://api.inferhub.dev/v1"
     assert payload["text"] is None
     blob = str(payload)
     assert "sk-" not in blob
@@ -112,6 +122,7 @@ def test_inferhub_stub_presence_only_never_returns_key(monkeypatch) -> None:
     hot_payload = hot.complete()
     assert hot_payload["configured"] is True
     assert hot_payload["request"]["provider"] == "cbcn"
+    assert hot_payload["request"]["model"] == INFERHUB_MODEL
     assert "secret-must-not-leak" not in str(hot_payload)
     assert "secret-must-not-leak" not in repr(hot)
 
@@ -119,6 +130,10 @@ def test_inferhub_stub_presence_only_never_returns_key(monkeypatch) -> None:
         InferhubClient(provider="other-upstream")
     with pytest.raises(ValueError, match="cbcn"):
         cold.complete(provider="openai")
+    with pytest.raises(ValueError, match="cbcn"):
+        InferhubClient(model="GLM-5.3-flash")
+    with pytest.raises(ValueError, match="cbcn"):
+        cold.complete(model="other/GLM-5.3-flash")
 
     monkeypatch.setenv(INFERHUB_PROVIDER_ENV, "not-cbcn")
     with pytest.raises(ValueError, match="cbcn"):
@@ -162,10 +177,19 @@ def test_alpaca_paper_env_names_presence_only(monkeypatch) -> None:
 
 
 def test_inferhub_provider_env_must_be_cbcn(monkeypatch) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "inferhub")
+    monkeypatch.setenv("LLM_MODEL", "cbcn/GLM-5.3-flash")
+    monkeypatch.setenv("INFERHUB_BASE_URL", "https://api.inferhub.dev/v1")
     monkeypatch.setenv("INFERHUB_PROVIDER", "cbcn")
     settings = load_settings(load_env_file=False)
-    assert settings.llm.provider == "cbcn"
+    assert settings.llm.provider == "inferhub"
+    assert settings.llm.model == "cbcn/GLM-5.3-flash"
+    assert settings.llm.inferhub_provider == "cbcn"
     monkeypatch.setenv("INFERHUB_PROVIDER", "other")
+    with pytest.raises(ValidationError):
+        load_settings(load_env_file=False)
+    monkeypatch.setenv("INFERHUB_PROVIDER", "cbcn")
+    monkeypatch.setenv("LLM_MODEL", "other/GLM-5.3-flash")
     with pytest.raises(ValidationError):
         load_settings(load_env_file=False)
 
@@ -183,6 +207,9 @@ def test_secrets_stay_out_of_git() -> None:
     example = (root / ".env.example").read_text(encoding="utf-8")
     assert "INFERHUB_API_KEY=" in example
     assert "INFERHUB_PROVIDER=cbcn" in example
+    assert "LLM_PROVIDER=inferhub" in example
+    assert "LLM_MODEL=cbcn/GLM-5.3-flash" in example
+    assert "INFERHUB_BASE_URL=https://api.inferhub.dev/v1" in example
     assert "ALPACA_API_KEY_ID=" in example
     assert "ALPACA_API_SECRET_KEY=" in example
     # Placeholders only — no assigned secret values in the example.
