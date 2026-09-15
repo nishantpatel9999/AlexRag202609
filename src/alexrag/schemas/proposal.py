@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from alexrag.schemas.reasons import AbstainReason
 from alexrag.schemas.sources import CONFLICT_LABELS, SourceType
 
 
@@ -31,7 +32,7 @@ class Proposal(BaseModel):
     size_ner_pct: float = 0.0
     confidence: float = 0.0
     abstain: bool = True
-    abstain_reason: str | None = "uninitialized"
+    abstain_reason: AbstainReason | None = AbstainReason.UNINITIALIZED
     citations: list[Citation] = Field(default_factory=list)
     thesis: str = ""
     setup_summary: str = ""
@@ -44,3 +45,6 @@ class Proposal(BaseModel):
         default_factory=list,
         description="Subset of " + ",".join(CONFLICT_LABELS),
     )
+    citation_faithfulness: bool | None = None
+    hindsight: bool | None = None
+    replay_case_id: str | None = None

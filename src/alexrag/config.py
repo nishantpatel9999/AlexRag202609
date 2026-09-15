@@ -55,6 +55,18 @@ class PaperSimSettings(BaseModel):
     bars_path: str | None = None
 
 
+class PaperBook(BaseModel):
+    """Operator/fixture snapshot of the paper book. Risk enforces loss/DD against this.
+
+    ``sessions`` / ``decisions`` are diagnostics, not a promotion hard floor.
+    """
+
+    daily_loss: float = 0.0
+    portfolio_dd: float = 0.0
+    sessions: int = 0
+    decisions: int = 0
+
+
 class Settings(BaseModel):
     """Runtime settings. Live mode is rejected at parse time — no live trading path."""
 
@@ -65,6 +77,7 @@ class Settings(BaseModel):
     paper_gates: PaperGateSettings = Field(default_factory=PaperGateSettings)
     hard_limits: HardLimits = Field(default_factory=HardLimits)
     paper: PaperSimSettings = Field(default_factory=PaperSimSettings)
+    paper_book: PaperBook = Field(default_factory=PaperBook)
     paths: PathSettings = Field(default_factory=PathSettings)
     embedding: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
 

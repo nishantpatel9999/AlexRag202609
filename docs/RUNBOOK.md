@@ -71,11 +71,11 @@ Default decision clock on dry-run is the **latest fixture timestamp** so histori
 ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests/fixtures
 ```
 
-Expect `abstain=true` and `abstain_reason=kill_switch`. Exec must not run.
+Expect `abstain=true` and `abstain_reason=kill_switch_fail`. Exec must not run.
 
 ## Hard limits
 
-Operator-set in config/env: `max_notional`, `max_positions`, `max_daily_loss`, `max_portfolio_dd`. Defaults of `0` fail-closed (no go-decision). These are not model-suggested sizes. Offline Exec/M0 replay uses `config/fixture.yaml` (non-zero limits + `paper.nav`); see `docs/FILL_FIDELITY_M0.md`.
+Operator-set in config/env: `max_notional`, `max_positions`, `max_daily_loss`, `max_portfolio_dd`. Defaults of `0` fail-closed (no go-decision). Risk enforces daily loss and portfolio DD against `paper_book`. These are not model-suggested sizes. `sessions`/`decisions` are diagnostics, not a hard floor (`docs/RISK_GATES.md`). Offline Exec/M0 replay uses `config/fixture.yaml` (non-zero limits + `paper.nav`); see `docs/FILL_FIDELITY_M0.md`.
 
 ## What not to run
 

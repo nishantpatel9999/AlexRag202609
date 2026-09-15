@@ -1,9 +1,36 @@
 from __future__ import annotations
 
+from alexrag.agents.audit_hooks import apply_promotion_hooks
 from alexrag.agents.audit_log import AuditLog
 from alexrag.schemas.fill_intent import FillIntent
 from alexrag.schemas.paper_fill import PaperFill
 from alexrag.schemas.proposal import Proposal
+from alexrag.schemas.reasons import AbstainReason
+
+
+def _auditor_reason(problem: str) -> AbstainReason:
+    if problem.startswith("missing_audit_events"):
+        return AbstainReason.AUDIT_INCOMPLETE
+    if problem == "missing_audit" or problem.startswith("audit_"):
+        return AbstainReason.MISSING_AUDIT
+    if problem.startswith("missing_audit"):
+        return AbstainReason.MISSING_AUDIT
+    if problem == "no_citations":
+        return AbstainReason.NO_CITATIONS
+    if problem == "non_paper_fill":
+        return AbstainReason.NON_PAPER_FILL
+    if problem.startswith("go_intent"):
+        return AbstainReason.GO_INTENT_INCOMPLETE
+    if problem == "unexplained_order":
+        return AbstainReason.UNEXPLAINED_ORDER
+    if problem in {
+        "stubbed_marked_filled",
+        "receipt_intent_mismatch",
+        "receipt_proposal_mismatch",
+        "acked_qty_mismatch",
+    }:
+        return AbstainReason.RECEIPT_INCONSISTENT
+    return AbstainReason.AUDIT_INCOMPLETE
 
 
 class AuditorAgent:
@@ -17,6 +44,8 @@ class AuditorAgent:
         audit: AuditLog,
         fill: FillIntent | None,
         receipt: PaperFill | None = None,
+        *,
+        replay_case_id: str | None = None,
     ) -> Proposal:
         problems: list[str] = []
         if not audit.available:
@@ -35,6 +64,8 @@ class AuditorAgent:
                 problems.append("go_intent_incomplete")
             if fill.decision_clock is None:
                 problems.append("go_intent_missing_clock")
+            if fill.ticker and fill.ticker not in proposal.tickers:
+                problems.append("unexplained_order")
         if receipt:
             if receipt.status == "stubbed" and receipt.filled:
                 problems.append("stubbed_marked_filled")
@@ -48,10 +79,15 @@ class AuditorAgent:
 
         if problems:
             proposal.abstain = True
-            proposal.abstain_reason = problems[0]
+            proposal.abstain_reason = _auditor_reason(problems[0])
             proposal.risk_notes = list(proposal.risk_notes) + problems
             proposal.size_ner_pct = 0.0
             proposal.fill_intent_id = None
+
+        fill_ts = None if receipt is None or not receipt.filled else receipt.fill_ts
+        hooks = apply_promotion_hooks(
+            proposal, fill_ts=fill_ts, replay_case_id=replay_case_id
+        )
 
         audit.emit(
             kind="auditor_complete",
@@ -59,11 +95,14 @@ class AuditorAgent:
             proposal_id=proposal.proposal_id,
             payload={
                 "abstain": proposal.abstain,
-                "reason": proposal.abstain_reason,
+                "reason": None if proposal.abstain_reason is None else str(proposal.abstain_reason),
                 "problems": problems,
                 "fill_intent_id": proposal.fill_intent_id,
                 "receipt_status": None if receipt is None else receipt.status,
                 "receipt_filled": None if receipt is None else receipt.filled,
+                "citation_faithfulness": hooks["citation_faithfulness"],
+                "hindsight": hooks["hindsight"],
+                "replay_case_id": hooks["replay_case_id"],
             },
         )
         return proposal

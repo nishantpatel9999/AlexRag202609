@@ -5,7 +5,10 @@ from dataclasses import dataclass
 
 @dataclass
 class PaperMetrics:
-    """Paper-window and citation/abstain/conflict rates. See docs/CORPUS.md and RISK_GATES.md."""
+    """Paper-window and citation/abstain/conflict rates. See docs/CORPUS.md and RISK_GATES.md.
+
+    ``sessions`` and ``decisions`` are **diagnostics**, not a promotion hard floor.
+    """
 
     sessions: int
     decisions: int
@@ -14,6 +17,8 @@ class PaperMetrics:
     timestamped_citation_decisions: int
     # First-class corpus conflicts (docs/CORPUS.md). Counted in a later eval pack.
     conflict_decisions: int = 0
+    citation_faithful_decisions: int = 0
+    hindsight_decisions: int = 0
 
     @property
     def abstain_rate(self) -> float:
@@ -47,6 +52,35 @@ def paper_window_met(
     min_sessions: int = 60,
     min_decisions: int = 100,
 ) -> bool:
-    """Default paper window: ≥60 sessions OR 100 decisions. Not a calendar date."""
+    """Legacy ≥60 sessions OR 100 decisions check.
+
+    Diagnostic only — not a promotion hard floor. Calendar time never promotes.
+    """
 
     return sessions >= min_sessions or decisions >= min_decisions
+
+
+def paper_run_diagnostics(
+    sessions: int,
+    decisions: int,
+    *,
+    min_sessions: int = 60,
+    min_decisions: int = 100,
+) -> dict:
+    """Session/decision counters for audit payloads. Not a gate."""
+
+    return {
+        "sessions": sessions,
+        "decisions": decisions,
+        "min_sessions": min_sessions,
+        "min_decisions": min_decisions,
+        "meets_legacy_session_or_decision_threshold": paper_window_met(
+            sessions,
+            decisions,
+            min_sessions=min_sessions,
+            min_decisions=min_decisions,
+        ),
+        "paper_window_hard_floor": False,
+        "calendar_promotes": False,
+        "counters_are_diagnostics": True,
+    }

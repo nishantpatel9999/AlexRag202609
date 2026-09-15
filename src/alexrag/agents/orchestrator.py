@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from alexrag.agents.audit_hooks import apply_promotion_hooks
 from alexrag.agents.audit_log import AuditLog
 from alexrag.agents.auditor import AuditorAgent
 from alexrag.agents.exec_agent import ExecAgent
@@ -13,12 +14,14 @@ from alexrag.agents.risk import RiskAgent
 from alexrag.agents.setup import SetupAgent
 from alexrag.config import ROOT, Settings
 from alexrag.eval.cutoff import aware
+from alexrag.eval.metrics import paper_run_diagnostics
 from alexrag.marketdata.fixture_bars import load_fixture_bars
 from alexrag.rag.index import InMemoryIndex
 from alexrag.rag.retrieve import retrieve_with_precedence
 from alexrag.schemas.fill_intent import FillIntent
 from alexrag.schemas.paper_fill import PaperFill
 from alexrag.schemas.proposal import Proposal
+from alexrag.schemas.reasons import AbstainReason
 from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
 
 
@@ -29,11 +32,13 @@ class PaperDayResult:
         fill: FillIntent | None,
         audit: AuditLog,
         receipt: PaperFill | None = None,
+        diagnostics: dict | None = None,
     ) -> None:
         self.proposal = proposal
         self.fill = fill
         self.audit = audit
         self.receipt = receipt
+        self.diagnostics = diagnostics or {}
 
     def proposal_json(self) -> str:
         return self.proposal.model_dump_json(indent=2)
@@ -51,6 +56,7 @@ def run_paper_day(
     decision_clock: datetime | None = None,
     audit_path: Path | None = None,
     dry_run: bool = True,
+    replay_case_id: str | None = None,
 ) -> PaperDayResult:
     """Regime→Setup→Risk→Exec (M0 paper_sim / alpaca stub)→Auditor. No network. No live path."""
 
@@ -63,26 +69,38 @@ def run_paper_day(
         decision_clock=clock,
         mode="paper",
         abstain=True,
-        abstain_reason="pipeline_start",
+        abstain_reason=AbstainReason.PIPELINE_START,
         hard_limits_snapshot=settings.hard_limits_snapshot(),
+        replay_case_id=replay_case_id,
+    )
+    diagnostics = paper_run_diagnostics(
+        settings.paper_book.sessions,
+        settings.paper_book.decisions + 1,
+        min_sessions=settings.paper_gates.min_sessions,
+        min_decisions=settings.paper_gates.min_decisions,
     )
 
-    def finish(reason: str | None = None) -> PaperDayResult:
+    def finish(reason: AbstainReason | None = None) -> PaperDayResult:
         if reason:
             proposal.abstain = True
             proposal.abstain_reason = reason
             proposal.size_ner_pct = 0.0
+        hooks = apply_promotion_hooks(proposal)
         audit.emit(
             kind="paper_day_complete",
             actor="orchestrator",
             proposal_id=proposal.proposal_id,
             payload={
                 "abstain": proposal.abstain,
-                "reason": proposal.abstain_reason,
+                "reason": None if proposal.abstain_reason is None else str(proposal.abstain_reason),
                 "dry_run": dry_run,
+                "citation_faithfulness": hooks["citation_faithfulness"],
+                "hindsight": hooks["hindsight"],
+                "replay_case_id": hooks["replay_case_id"],
+                **diagnostics,
             },
         )
-        return PaperDayResult(proposal, None, audit, None)
+        return PaperDayResult(proposal, None, audit, None, diagnostics)
 
     audit.emit(
         kind="paper_day_start",
@@ -93,14 +111,14 @@ def run_paper_day(
     )
 
     if settings.mode != "paper":
-        return finish("non_paper_mode")
+        return finish(AbstainReason.NON_PAPER_MODE)
 
     if not audit.available:
         proposal.risk_notes.append(audit.error or "missing_audit")
-        return finish("missing_audit")
+        return finish(AbstainReason.MISSING_AUDIT)
 
     if settings.kill_switch:
-        return finish("kill_switch")
+        return finish(AbstainReason.KILL_SWITCH_FAIL)
 
     retrieved = retrieve_with_precedence(
         index,
@@ -124,20 +142,20 @@ def run_paper_day(
     )
 
     if not retrieved.hits:
-        return finish("empty_retrieval")
+        return finish(AbstainReason.EMPTY_RETRIEVAL)
 
     newest = retrieved.newest_timestamp
     if newest is None:
-        return finish("stale_feed")
+        return finish(AbstainReason.STALE_FEED)
     age = clock - _aware(newest)
     if age > timedelta(hours=settings.retrieval.stale_after_hours):
         proposal.risk_notes.append(f"feed_age_hours={age.total_seconds()/3600:.2f}")
-        return finish("stale_feed")
+        return finish(AbstainReason.STALE_FEED)
 
     if retrieved.confidence < settings.retrieval.min_confidence:
         proposal.retrieval_confidence = retrieved.confidence
         proposal.confidence = retrieved.confidence
-        return finish("low_retrieval_confidence")
+        return finish(AbstainReason.LOW_RETRIEVAL_CONFIDENCE)
 
     proposal.regime = RegimeAgent().run(retrieved, audit, proposal_id)
     proposal = SetupAgent().run(retrieved, proposal=proposal, audit=audit)
@@ -150,16 +168,24 @@ def run_paper_day(
         bars = load_fixture_bars(bars_path)
     fill, receipt = ExecAgent().run(proposal, audit, settings=settings, bars=bars)
     proposal = AuditorAgent().run(proposal, audit, fill, receipt)
+    hooks = apply_promotion_hooks(
+        proposal,
+        fill_ts=None if receipt is None or not receipt.filled else receipt.fill_ts,
+    )
     audit.emit(
         kind="paper_day_complete",
         actor="orchestrator",
         proposal_id=proposal.proposal_id,
         payload={
             "abstain": proposal.abstain,
-            "reason": proposal.abstain_reason,
+            "reason": None if proposal.abstain_reason is None else str(proposal.abstain_reason),
             "dry_run": dry_run,
             "receipt_status": None if receipt is None else receipt.status,
             "receipt_filled": None if receipt is None else receipt.filled,
+            "citation_faithfulness": hooks["citation_faithfulness"],
+            "hindsight": hooks["hindsight"],
+            "replay_case_id": hooks["replay_case_id"],
+            **diagnostics,
         },
     )
-    return PaperDayResult(proposal, fill, audit, receipt)
+    return PaperDayResult(proposal, fill, audit, receipt, diagnostics)

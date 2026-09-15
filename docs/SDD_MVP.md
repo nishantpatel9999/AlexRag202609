@@ -111,7 +111,7 @@ Verifies required audit events exist, citations are present, and fill intent (if
 `Proposal` must include:
 
 - `citations` (each with `timestamp` when available)
-- `abstain` / `abstain_reason`
+- `abstain` / `abstain_reason` (closed `AbstainReason` enum; see `docs/RISK_GATES.md`)
 - `confidence`
 - `size_ner_pct`
 - `regime`

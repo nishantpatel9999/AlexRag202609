@@ -81,11 +81,13 @@ Exec consumes a cleared proposal and produces a `FillIntent(mode="paper")` plus 
 
 | Signal | Result |
 | --- | --- |
-| Stale feed | `abstain_reason=stale_feed` |
+| Stale feed | `abstain_reason=stale_feed` (orchestrator + **RiskAgent** vs `decision_clock`) |
 | Missing audit | `abstain_reason=missing_audit` |
 | Low retrieval confidence | `abstain_reason=low_retrieval_confidence` |
-| Kill switch | `abstain_reason=kill_switch` |
+| Kill switch | `abstain_reason=kill_switch_fail` |
 | Unconfigured hard limits | `abstain_reason=hard_limits_unconfigured` |
+| Daily loss / portfolio DD | `daily_loss_breach` / `portfolio_dd_breach` (Risk vs `paper_book`) |
+| Unexplained order | `unexplained_order` when sealed citations lack side |
 
 ## What is intentionally missing
 

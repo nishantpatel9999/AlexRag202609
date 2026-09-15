@@ -137,6 +137,7 @@ def replay_m0_case(case: M0ReplayCase, audit_path: Path) -> tuple[FillIntent, Pa
     )
     audit = AuditLog(audit_path)
     proposal = case.proposal.model_copy(deep=True)
+    proposal.replay_case_id = case.case_id
     audit.emit(
         kind="regime_classified",
         actor="regime",
@@ -157,7 +158,9 @@ def replay_m0_case(case: M0ReplayCase, audit_path: Path) -> tuple[FillIntent, Pa
         venue=case.expected_fill.venue,
         intent_id=case.intent.intent_id,
     )
-    proposal = AuditorAgent().run(proposal, audit, intent, receipt)
+    proposal = AuditorAgent().run(
+        proposal, audit, intent, receipt, replay_case_id=case.case_id
+    )
     return intent, receipt, proposal, audit
 
 
@@ -231,10 +234,19 @@ def score_m0_case(case: M0ReplayCase, audit_path: Path) -> M0CaseScore:
     missing = [k for k in AUDIT_REQUIRED if k not in kinds]
     if case.proposal.abstain and "exec_skipped_abstain" not in kinds:
         missing.append("exec_skipped_abstain")
+    auditor_payload = {}
+    for event in audit.events:
+        if event.kind == "auditor_complete" and event.proposal_id == case.proposal.proposal_id:
+            auditor_payload = event.payload
+    hooks_ok = (
+        "citation_faithfulness" in auditor_payload
+        and "hindsight" in auditor_payload
+        and auditor_payload.get("replay_case_id") == case.case_id
+    )
     checks.append(
         AxisCheck(
             name="audit_completeness",
-            passed=not missing,
+            passed=not missing and hooks_ok,
             detail="missing=" + ",".join(missing) if missing else "ok",
         )
     )

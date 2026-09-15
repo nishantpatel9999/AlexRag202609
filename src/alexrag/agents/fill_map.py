@@ -8,6 +8,7 @@ from alexrag.agents.extract import extract_invalidation, extract_limit_px, extra
 from alexrag.eval.cutoff import sealed_ok
 from alexrag.schemas.fill_intent import FillIntent
 from alexrag.schemas.proposal import Proposal
+from alexrag.schemas.reasons import AbstainReason
 
 
 def sealed_citation_text(proposal: Proposal) -> str:
@@ -83,19 +84,19 @@ def proposal_to_intent(
             ref_px=None,
             ref_px_source=None,
             abstain=True,
-            abstain_reason=proposal.abstain_reason or "proposal_abstain",
+            abstain_reason=proposal.abstain_reason or AbstainReason.PROPOSAL_ABSTAIN,
             notes=["exec_skipped_proposal_abstain"],
         )
 
-    reason: str | None = None
+    reason: AbstainReason | None = None
     if not ticker:
-        reason = "missing_ticker"
+        reason = AbstainReason.MISSING_TICKER
     elif side is None:
-        reason = "missing_side"
+        reason = AbstainReason.MISSING_SIDE
     elif notional <= 0:
-        reason = "cannot_size"
+        reason = AbstainReason.CANNOT_SIZE
     elif ref_px is None or qty is None or qty <= 0:
-        reason = "missing_ref_px"
+        reason = AbstainReason.MISSING_REF_PX
 
     if reason:
         return FillIntent(

@@ -37,6 +37,11 @@ def test_run_paper_day_emits_audited_proposal(fixtures_dir: Path, tmp_path: Path
     assert lines
     assert any("paper_day_start" in line for line in lines)
     assert any("paper_day_complete" in line for line in lines)
+    complete = [line for line in lines if "paper_day_complete" in line][-1]
+    assert "citation_faithfulness" in complete
+    assert "hindsight" in complete
+    assert "replay_case_id" in complete
+    assert "counters_are_diagnostics" in complete
 
 
 def test_kill_switch_abstains(fixtures_dir: Path, tmp_path: Path) -> None:
@@ -49,7 +54,7 @@ def test_kill_switch_abstains(fixtures_dir: Path, tmp_path: Path) -> None:
         audit_path=tmp_path / "a.jsonl",
     )
     assert result.proposal.abstain is True
-    assert result.proposal.abstain_reason == "kill_switch"
+    assert result.proposal.abstain_reason == "kill_switch_fail"
     assert result.fill is None
 
 

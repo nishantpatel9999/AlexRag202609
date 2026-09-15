@@ -33,6 +33,12 @@ paper:
   venue: paper_sim
   bars_path: tests/fixtures/m0/bars.json
 
+paper_book:
+  daily_loss: 0.0
+  portfolio_dd: 0.0
+  sessions: 0
+  decisions: 0
+
 paths:
   audit_log: data/audit/events.jsonl
   gitbook_snapshot: data/gitbook

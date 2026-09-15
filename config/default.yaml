@@ -34,6 +34,13 @@ paper:
   fill_model: M0
   venue: paper_sim
 
+paper_book:
+  # Diagnostics + Risk loss/DD snapshot. 0 is no breach; limits at 0 still fail-closed.
+  daily_loss: 0.0
+  portfolio_dd: 0.0
+  sessions: 0
+  decisions: 0
+
 paths:
   audit_log: data/audit/events.jsonl
   gitbook_snapshot: data/gitbook

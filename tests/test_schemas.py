@@ -20,7 +20,7 @@ def test_proposal_has_risk_mappable_fields() -> None:
         size_ner_pct=0.25,
         confidence=0.7,
         abstain=True,
-        abstain_reason="test",
+        abstain_reason="uninitialized",
         citations=[
             Citation(
                 source_id="tl",
@@ -42,6 +42,9 @@ def test_proposal_has_risk_mappable_fields() -> None:
         "tickers",
         "decision_clock",
         "conflict_labels",
+        "citation_faithfulness",
+        "hindsight",
+        "replay_case_id",
     ):
         assert key in dumped
     p2 = p.model_copy(update={"conflict_labels": ["no_trade_plan_then_entry"]})

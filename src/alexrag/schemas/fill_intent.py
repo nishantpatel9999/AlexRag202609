@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
+from alexrag.schemas.reasons import AbstainReason
+
 
 class FillIntent(BaseModel):
     """Paper-only order intent. Live routing is not implemented.
@@ -29,7 +31,7 @@ class FillIntent(BaseModel):
     ref_px: float | None = None
     ref_px_source: str | None = None
     abstain: bool = True
-    abstain_reason: str | None = None
+    abstain_reason: AbstainReason | None = None
     notes: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
