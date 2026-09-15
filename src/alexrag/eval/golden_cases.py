@@ -1,30 +1,24 @@
-"""Stub index of the 48 golden cases reserved for a later eval pack.
-
-These IDs are placeholders. They do not encode tickers, prices, or indicator
-values. Wire real cases in a future eval pack; see docs/CORPUS.md and
-docs/eval/golden_cases_stub.md.
-"""
+"""Golden-case pack loader. Canonical data is eval/golden_cases_v0.json."""
 
 from __future__ import annotations
 
-from alexrag.schemas.sources import CONFLICT_LABELS, GOLDEN_CASE_COUNT
+from pathlib import Path
 
-# Equal split across the six first-class conflict labels (8 each = 48).
-_CASES_PER_LABEL = GOLDEN_CASE_COUNT // len(CONFLICT_LABELS)
+from alexrag.eval.harness import GoldenPack, load_golden_pack
+from alexrag.schemas.sources import GOLDEN_CASE_COUNT
 
 
 def stub_golden_cases() -> list[dict]:
-    cases: list[dict] = []
-    n = 1
-    for label in CONFLICT_LABELS:
-        for _ in range(_CASES_PER_LABEL):
-            cases.append(
-                {
-                    "id": f"golden-{n:02d}",
-                    "conflict_label": label,
-                    "status": "stub",
-                    "notes": "Reserved for later eval pack; not implemented in MVP.",
-                }
-            )
-            n += 1
-    return cases
+    """Compatibility helper: 48 cases from the V0 pack."""
+
+    pack = load_golden_pack()
+    return [c.model_dump(mode="json") for c in pack.cases]
+
+
+def golden_pack_path() -> Path:
+    from alexrag.eval.harness import DEFAULT_PACK
+
+    return DEFAULT_PACK
+
+
+__all__ = ["GOLDEN_CASE_COUNT", "GoldenPack", "load_golden_pack", "stub_golden_cases", "golden_pack_path"]

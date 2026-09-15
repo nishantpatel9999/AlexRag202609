@@ -1,0 +1,929 @@
+{
+  "version": "v0",
+  "n_cases": 48,
+  "score_axes": [
+    "enter",
+    "abstain",
+    "size",
+    "manage",
+    "exit",
+    "citation"
+  ],
+  "sealed_cutoff": "timestamp < decision_ts",
+  "post_fill_enter_evidence": "banned",
+  "pnl_required": false,
+  "cases": [
+    {
+      "id": "golden-01",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-02",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-03",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "size",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-04",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "manage",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-05",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "exit",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-06",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "citation",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-07",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-08",
+      "conflict_label": "no_trade_plan_then_entry",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-09",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-10",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-11",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "size",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-12",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "manage",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-13",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "exit",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-14",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "citation",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-15",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-16",
+      "conflict_label": "short_vs_rulebook_default",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-17",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-18",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-19",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "size",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-20",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "manage",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-21",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "exit",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-22",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "citation",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-23",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-24",
+      "conflict_label": "fill_vs_same_time_journal",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-25",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-26",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-27",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "size",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-28",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "manage",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-29",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "exit",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-30",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "citation",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-31",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-32",
+      "conflict_label": "gameplan_vs_tape",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-33",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-34",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-35",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "size",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-36",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "manage",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-37",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "exit",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-38",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "citation",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-39",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-40",
+      "conflict_label": "evening_report_vs_intraday",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-41",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-42",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-43",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "size",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-44",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "manage",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-45",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "exit",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-46",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "citation",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-47",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "enter",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    },
+    {
+      "id": "golden-48",
+      "conflict_label": "doctrine_vs_tape",
+      "primary_axis": "abstain",
+      "expected": {
+        "enter": null,
+        "abstain": null,
+        "size_ner_pct": null,
+        "manage": null,
+        "exit": null,
+        "min_citations": 1,
+        "timestamped_citations": true
+      },
+      "decision_ts": null,
+      "fill_ts": null,
+      "ticker": null,
+      "status": "schema_v0",
+      "notes": "V0 schema reserved for research session IDs. Do not invent prices or indicators. Sealed cutoff: timestamp < decision_ts. Post-fill rationalization banned as enter-evidence."
+    }
+  ]
+}

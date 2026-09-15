@@ -2,7 +2,7 @@
 
 RAG + multi-agent system that reasons like Alex (Prime Trading). **MVP scaffold is paper-only.** There is no live trading path and no go-live date — promotion is gate-driven (`docs/RISK_GATES.md`).
 
-Locked spec: [`docs/SDD_MVP.md`](docs/SDD_MVP.md). Corpus inventory and conflict precedence: [`docs/CORPUS.md`](docs/CORPUS.md). Also [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/RUNBOOK.md`](docs/RUNBOOK.md) (Mac Studio vs npsecondbrain).
+Locked spec: [`docs/SDD_MVP.md`](docs/SDD_MVP.md). Corpus: [`docs/CORPUS.md`](docs/CORPUS.md). Eval: [`docs/EVAL_SPEC_V0.md`](docs/EVAL_SPEC_V0.md). Also [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
 
 ## Setup
 
@@ -37,6 +37,12 @@ uv run alexrag run-paper-day --dry-run --fixtures tests/fixtures --out /tmp/prop
 
 Prints an audited `Proposal` JSON (`mode=paper`). `abstain` may be `true` (default hard limits are fail-closed at 0). Audit JSONL defaults to `data/audit/events.jsonl`.
 
+Eval Spec V0 golden pack (offline, no P&L):
+
+```bash
+uv run alexrag eval-golden --pack eval/golden_cases_v0.json
+```
+
 Kill switch drill:
 
 ```bash
@@ -53,7 +59,9 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `src/alexrag/agents` | Regime, Setup, Risk, Exec paper stub, Auditor |
 | `src/alexrag/broker` | Alpaca paper stub (TODO: real paper API) |
 | `src/alexrag/notify` | Discord stub (TODO: bot token) |
-| `src/alexrag/eval` | Paper window, citation/abstain/conflict, 48 golden stubs |
+| `src/alexrag/eval` | Paper window, sealed cutoff, golden harness |
+| `eval/golden_cases_v0.json` | 48-case V0 pack |
+| `docs/EVAL_SPEC_V0.md` | Enter/abstain/size/manage/exit + citation scoring |
 | `src/alexrag/schemas` | `Proposal` (+ `conflict_labels`), `FillIntent`, `AuditEvent` |
 | `docs/CORPUS.md` | Channel counts, precedence, doctrine, golden-case pointer |
 

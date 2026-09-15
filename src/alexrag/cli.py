@@ -8,6 +8,7 @@ import typer
 
 from alexrag.config import load_settings
 from alexrag.agents.orchestrator import run_paper_day
+from alexrag.eval.harness import DEFAULT_PACK, load_golden_pack, score_pack
 from alexrag.ingest.discord_html import ingest_discord_html
 from alexrag.ingest.gitbook import ingest_gitbook_snapshot
 from alexrag.pipeline import load_fixture_messages, messages_to_index, newest_timestamp
@@ -80,6 +81,20 @@ def run_paper_day_cmd(
         out.write_text(payload + "\n", encoding="utf-8")
         typer.echo(f"wrote proposal to {out}")
     typer.echo(payload)
+
+
+@app.command("eval-golden")
+def eval_golden(
+    pack: Path = typer.Option(DEFAULT_PACK, "--pack", help="eval/golden_cases_v0.json"),
+) -> None:
+    """Load V0 golden cases and score offline (no P&L, no network)."""
+
+    loaded = load_golden_pack(pack)
+    summary = score_pack(loaded)
+    typer.echo(
+        f"loaded {summary['n_cases']} cases version={summary['version']} "
+        f"scored={summary['n_scored']} passed={summary['n_passed']} pnl={summary['pnl_scored']}"
+    )
 
 
 if __name__ == "__main__":

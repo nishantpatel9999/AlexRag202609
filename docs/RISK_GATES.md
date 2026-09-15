@@ -31,7 +31,7 @@ Implemented in `alexrag.eval.metrics.paper_window_met`. This is a **necessary** 
 | Replay | Same fixtures / session tapes produce stable abstain vs go (no silent drift) |
 | Citation | Share of decisions with at least one citation; share with **timestamped** citations |
 | Abstain | Abstain rate overall and by reason (`kill_switch`, `stale_feed`, `missing_audit`, `low_retrieval_confidence`, …) |
-| Conflict | Share of decisions with first-class `conflict_labels` (no-trade then entry; short vs rulebook default; …). 48 golden cases reserved; not scored in MVP. |
+| Conflict | Share of decisions with first-class `conflict_labels`. 48 golden cases: `eval/golden_cases_v0.json` / `docs/EVAL_SPEC_V0.md` (enter/abstain/size/manage/exit + citation; no P&L). Sealed cutoff: evidence `timestamp < decision_ts`; post-fill rationalization banned as enter-evidence. |
 
 Helpers live in `alexrag.eval`. Thresholds for “good enough” replay/citation/abstain are **not** invented here; a future eval spec must set them from observed paper data.
 

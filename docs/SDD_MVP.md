@@ -174,8 +174,8 @@ Details: `docs/RUNBOOK.md`. Secrets never go in git (`.env.example` only).
 - Real Alpaca **paper** client (`alexrag.broker.alpaca_paper`)
 - Discord bot token / webhook (`alexrag.notify.discord`)
 - Real embedding model (replace `FakeEmbeddingProvider`)
-- Ingest operator Mac DiscordChatExporter trees; score the 48 golden cases (`docs/eval/golden_cases_stub.md`)
+- Ingest operator Mac DiscordChatExporter trees; attach session IDs on the 48 golden cases (`eval/golden_cases_v0.json`)
 
 ## 14. Testing bar
 
-Offline unit tests must pass with **no network calls**. `run-paper-day --dry-run` on fixtures must print a valid `Proposal` JSON (may `abstain=true`) and write audit JSONL.
+Offline unit tests must pass with **no network calls**. `run-paper-day --dry-run` on fixtures must print a valid `Proposal` JSON (may `abstain=true`) and write audit JSONL. `eval-golden` must load 48 cases from `eval/golden_cases_v0.json` with no P&L. Retrieval uses sealed cutoff `timestamp < decision_clock`.

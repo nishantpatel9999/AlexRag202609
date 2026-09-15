@@ -1,15 +1,13 @@
-# Golden cases stub (48) — later eval pack
+# Golden cases V0
 
-Not scored in MVP. Eight placeholders per first-class conflict label.
-Real session IDs/citations will replace these; do not invent prices or indicators.
+Canonical pack: [`eval/golden_cases_v0.json`](../../eval/golden_cases_v0.json) (48 cases).
+Spec: [`docs/EVAL_SPEC_V0.md`](../EVAL_SPEC_V0.md).
 
-| ID | conflict_label | status |
-| --- | --- | --- |
-| golden-01 … golden-08 | no_trade_plan_then_entry | stub |
-| golden-09 … golden-16 | short_vs_rulebook_default | stub |
-| golden-17 … golden-24 | fill_vs_same_time_journal | stub |
-| golden-25 … golden-32 | gameplan_vs_tape | stub |
-| golden-33 … golden-40 | evening_report_vs_intraday | stub |
-| golden-41 … golden-48 | doctrine_vs_tape | stub |
+IDs `golden-01` … `golden-48` are grouped by conflict label (8 each). Expected
+enter/size/manage/exit values are left unset until research session IDs are
+attached. The harness still enforces **sealed cutoff** (`timestamp < decision_ts`)
+and **bans post-fill rationalization as enter-evidence**.
 
-See `docs/CORPUS.md` and `alexrag.eval.golden_cases`.
+```bash
+uv run alexrag eval-golden --pack eval/golden_cases_v0.json
+```

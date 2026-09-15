@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, Field
 
 from alexrag.config import PRECEDENCE_DEFAULT
+from alexrag.eval.cutoff import sealed_ok
 from alexrag.rag.chunking import Chunk
 from alexrag.rag.index import InMemoryIndex
 from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
@@ -74,8 +75,13 @@ def retrieve_with_precedence(
     top_k: int = 8,
     precedence: list[str] | tuple[str, ...] = PRECEDENCE_DEFAULT,
     per_source: int | None = None,
+    before: datetime | None = None,
 ) -> RetrievalResult:
-    """Fill slots by corpus precedence: fills > journal > gameplan > report > gitbook."""
+    """Fill slots by corpus precedence: fills > journal > gameplan > report > gitbook.
+
+    If ``before`` is set (decision_ts), only chunks with timestamp < before are used
+    (sealed chronological cutoff). Missing timestamps are excluded.
+    """
 
     if not index.chunks:
         return RetrievalResult(query=query, confidence=0.0, notes=["empty_index"])
@@ -85,7 +91,11 @@ def retrieve_with_precedence(
 
     by_source: dict[str, list[tuple[Chunk, float]]] = {name: [] for name in precedence}
     other: list[tuple[Chunk, float]] = []
+    skipped_unsealed = 0
     for chunk, vec in zip(index.chunks, index.vectors, strict=True):
+        if before is not None and not sealed_ok(chunk.timestamp, before):
+            skipped_unsealed += 1
+            continue
         score = cosine(q_vec, vec) + 0.25 * lexical_overlap(query, chunk.text)
         if chunk.source_type in by_source:
             by_source[chunk.source_type].append((chunk, score))
@@ -130,9 +140,15 @@ def retrieve_with_precedence(
     if hits and hits[0].chunk.source_type == "trade_log":
         confidence = min(1.0, confidence + 0.05)
     newest = _newest([h.chunk for h in hits])
+    notes = []
+    if before is not None:
+        notes.append("sealed_cutoff")
+        if skipped_unsealed:
+            notes.append(f"skipped_unsealed={skipped_unsealed}")
     return RetrievalResult(
         query=query,
         hits=hits,
         confidence=max(0.0, min(1.0, confidence)),
         newest_timestamp=newest,
+        notes=notes,
     )

@@ -42,3 +42,10 @@ def test_cli_ingest_and_paper_day(fixtures_dir, tmp_path) -> None:
     assert '"abstain"' in text
     assert '"decision_clock"' in text
     assert audit.is_file()
+
+
+def test_cli_eval_golden() -> None:
+    result = runner.invoke(app, ["eval-golden"])
+    assert result.exit_code == 0, result.output
+    assert "loaded 48 cases" in result.output
+    assert "pnl=False" in result.output

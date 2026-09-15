@@ -19,6 +19,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
                            │
                            ▼
               retrieve (fills > journal > gameplan > report > gitbook)
+              sealed: timestamp < decision_clock; no post-fill enter-evidence
                            │
                            ▼
          ┌─────────┐   ┌─────────┐   ┌─────────┐

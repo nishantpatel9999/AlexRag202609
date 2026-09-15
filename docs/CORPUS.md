@@ -70,6 +70,14 @@ Machine labels on `Proposal.conflict_labels` and eval notes:
 | `evening_report_vs_intraday` | Prime-report focuslist vs what traded |
 | `doctrine_vs_tape` | GitBook/ebook rule vs fills |
 
-## 48 golden cases (later eval pack)
+## 48 golden cases (Eval Spec V0)
 
-A 48-case eval pack is reserved. Stub IDs live in `docs/eval/golden_cases_stub.md` and `alexrag.eval.golden_cases.stub_golden_cases()` (`golden-01` … `golden-48`). MVP does not score them. Future work should attach real session dates and citations from the Discord exports — still without inventing indicator numbers.
+Canonical pack: [`eval/golden_cases_v0.json`](../eval/golden_cases_v0.json).
+Spec: [`docs/EVAL_SPEC_V0.md`](EVAL_SPEC_V0.md).
+
+MVP loads and validates all 48 offline and scores enter/abstain/size/manage/exit
+plus citation coverage when a prediction is supplied. **No P&L.** Evidence must
+have `timestamp < decision_ts`. Post-fill journal/doctrine cannot justify enter.
+
+Session dates and tickers are filled from Discord exports later — do not invent
+indicator numbers.

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from alexrag.agents.audit_log import AuditLog
 from alexrag.agents.auditor import AuditorAgent
@@ -11,10 +12,12 @@ from alexrag.agents.regime import RegimeAgent
 from alexrag.agents.risk import RiskAgent
 from alexrag.agents.setup import SetupAgent
 from alexrag.config import Settings
+from alexrag.eval.cutoff import aware
 from alexrag.rag.index import InMemoryIndex
 from alexrag.rag.retrieve import retrieve_with_precedence
 from alexrag.schemas.fill_intent import FillIntent
 from alexrag.schemas.proposal import Proposal
+from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
 
 
 class PaperDayResult:
@@ -28,9 +31,7 @@ class PaperDayResult:
 
 
 def _aware(dt: datetime) -> datetime:
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt
+    return aware(dt)
 
 
 def run_paper_day(
@@ -44,7 +45,7 @@ def run_paper_day(
 ) -> PaperDayResult:
     """Regime→Setup→Risk→(abstain or Exec paper stub)→Auditor. No network. No live path."""
 
-    clock = _aware(decision_clock or datetime.now(timezone.utc))
+    clock = aware(decision_clock or datetime.now(ZoneInfo(DEFAULT_DISCORD_TZ)))
     proposal_id = str(uuid.uuid4())
     path = Path(audit_path) if audit_path is not None else Path(settings.paths.audit_log)
     audit = AuditLog(path)
@@ -97,6 +98,7 @@ def run_paper_day(
         query,
         top_k=settings.retrieval.top_k,
         precedence=settings.retrieval.precedence,
+        before=clock,
     )
     audit.emit(
         kind="retrieved",

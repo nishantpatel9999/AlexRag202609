@@ -72,3 +72,29 @@ def test_precedence_prefers_trade_log() -> None:
     assert types.index("trade_log") < types.index("journal")
     assert types.index("journal") < types.index("gameplan")
     assert types.index("gameplan") < types.index("gitbook")
+
+
+def test_sealed_cutoff_excludes_at_or_after_decision() -> None:
+    index = InMemoryIndex(FakeEmbeddingProvider(dim=32))
+    before = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+    index.add(
+        chunk_text(
+            "Trade log: filled $NVDA long on trend day.",
+            source_id="tl-early",
+            source_type="trade_log",
+            timestamp=datetime(2026, 9, 15, 11, 0, tzinfo=timezone.utc),
+        )
+    )
+    index.add(
+        chunk_text(
+            "Trade log: later fill $NVDA.",
+            source_id="tl-late",
+            source_type="trade_log",
+            timestamp=datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc),
+        )
+    )
+    result = retrieve_with_precedence(index, "NVDA fill", top_k=8, before=before)
+    ids = [h.chunk.source_id for h in result.hits]
+    assert "tl-early" in ids
+    assert "tl-late" not in ids
+    assert "sealed_cutoff" in result.notes
