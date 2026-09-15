@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 from alexrag.config import Settings
@@ -18,6 +18,7 @@ from alexrag.vision_caption.stub import caption_paths
 SOURCE_FILES = {
     "trade_log": "trade_log.jsonl",
     "journal": "journal.jsonl",
+    "gameplan": "gameplan.jsonl",
     "report": "report.jsonl",
     "gitbook": "gitbook.jsonl",
 }
@@ -61,17 +62,22 @@ def messages_to_index(messages: list[IngestedMessage], settings: Settings) -> In
 
 
 def newest_timestamp(messages: list[IngestedMessage]) -> datetime | None:
+    from zoneinfo import ZoneInfo
+
+    from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
+
+    tz = ZoneInfo(DEFAULT_DISCORD_TZ)
     stamps = []
     for msg in messages:
         if msg.ts is None:
             continue
-        ts = msg.ts if msg.ts.tzinfo else msg.ts.replace(tzinfo=timezone.utc)
+        ts = msg.ts if msg.ts.tzinfo else msg.ts.replace(tzinfo=tz)
         stamps.append(ts)
     return max(stamps) if stamps else None
 
 
 def load_fixture_messages(fixtures: Path) -> list[IngestedMessage]:
-    """Load tests/fixtures layout: discord HTML, gitbook dir, optional corpus JSONL."""
+    """Load tests/fixtures only. Does not walk operator Mac corpus paths."""
 
     fixtures = Path(fixtures)
     messages: list[IngestedMessage] = []

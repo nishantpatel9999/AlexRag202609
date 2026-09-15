@@ -7,7 +7,7 @@ Paper-only MVP. Do not point this stack at live brokerage endpoints.
 | Host | Role |
 | --- | --- |
 | **Mac Studio** | Future local models (vision caption, embeddings). Cursor **API for Cursor** (Standard Agents) listening on **:8794**. Heavy GPU/NPU work stays here. |
-| **npsecondbrain (VPS)** | Orchestrator, Discord HTML ingest (large exports), GitBook snapshot path, `run-paper-day`, audit JSONL. Tunnel **VPS :8791 → Mac :8794** for Cursor API bridge. |
+| **npsecondbrain (VPS)** | Orchestrator, Discord HTML ingest of **fixtures** (large Mac exports later), paper loop, audit JSONL. Tunnel **VPS :8791 → Mac :8794** for Cursor API bridge. |
 
 Secrets stay in local `.env` on the host that needs them. **Never commit secrets.** Use `.env.example` as the template.
 
@@ -49,11 +49,12 @@ uv run alexrag ingest-discord /path/to/export.html --out data/ingest/discord.jso
 uv run alexrag ingest-discord /path/to/trade-log.html --out data/ingest/trade_log.jsonl --source-type trade_log
 ```
 
-GitBook/playbook snapshot (configurable path):
+GitBook/playbook snapshot stub:
 
 ```bash
-uv run alexrag ingest-gitbook --path /path/to/gitbook-snapshot --out data/ingest/gitbook.jsonl
-# or ALEXRAG_GITBOOK_PATH=/path/to/gitbook-snapshot
+uv run alexrag ingest-gitbook --path tests/fixtures/gitbook --out /tmp/gitbook.jsonl
+# Fixture only. No local GitBook mirror. Doctrine = live GitBook +
+# PRIMETRADING_RULEBOOK_DISTILLATION.md + PrimeTrading_Ebook.pdf (docs/CORPUS.md).
 ```
 
 ## Paper day dry run (fixtures, no network)

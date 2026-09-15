@@ -9,9 +9,11 @@ retrieval:
   min_confidence: 0.2
   stale_after_hours: 36
   top_k: 8
+  # equity fills/closes > same-time journal > morning gameplan > evening prime-report > GitBook doctrine
   precedence:
     - trade_log
     - journal
+    - gameplan
     - report
     - gitbook
 

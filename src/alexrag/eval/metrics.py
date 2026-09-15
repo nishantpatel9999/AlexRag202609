@@ -5,11 +5,15 @@ from dataclasses import dataclass
 
 @dataclass
 class PaperMetrics:
+    """Paper-window and citation/abstain/conflict rates. See docs/CORPUS.md and RISK_GATES.md."""
+
     sessions: int
     decisions: int
     abstain_count: int
     cited_decisions: int
     timestamped_citation_decisions: int
+    # First-class corpus conflicts (docs/CORPUS.md). Counted in a later eval pack.
+    conflict_decisions: int = 0
 
     @property
     def abstain_rate(self) -> float:
@@ -28,6 +32,12 @@ class PaperMetrics:
         if self.decisions == 0:
             return 0.0
         return self.timestamped_citation_decisions / self.decisions
+
+    @property
+    def conflict_rate(self) -> float:
+        if self.decisions == 0:
+            return 0.0
+        return self.conflict_decisions / self.decisions
 
 
 def paper_window_met(

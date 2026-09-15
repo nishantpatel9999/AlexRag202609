@@ -32,7 +32,7 @@ def ingest_gitbook(
     path: Optional[Path] = typer.Option(None, "--path", help="GitBook/playbook snapshot directory"),
     out: Path = typer.Option(..., "--out", "-o", help="JSONL output path"),
 ) -> None:
-    """Ingest a local GitBook/playbook snapshot (stub; no GitBook API)."""
+    """Ingest fixture/doctrine markdown. Not a GitBook mirror; see docs/CORPUS.md."""
 
     settings = load_settings()
     root = path or Path(settings.paths.gitbook_snapshot)

@@ -41,8 +41,11 @@ def test_proposal_has_risk_mappable_fields() -> None:
         "regime",
         "tickers",
         "decision_clock",
+        "conflict_labels",
     ):
         assert key in dumped
+    p2 = p.model_copy(update={"conflict_labels": ["no_trade_plan_then_entry"]})
+    assert p2.conflict_labels == ["no_trade_plan_then_entry"]
 
 
 def test_fill_intent_paper_only() -> None:

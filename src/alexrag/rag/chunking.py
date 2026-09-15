@@ -3,12 +3,10 @@ from __future__ import annotations
 import hashlib
 import re
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
-SOURCE_TYPES = ("trade_log", "journal", "report", "gitbook")
-SourceType = Literal["trade_log", "journal", "report", "gitbook"]
+from alexrag.schemas.sources import SourceType
 
 
 class Chunk(BaseModel):

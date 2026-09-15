@@ -2,7 +2,7 @@
 
 RAG + multi-agent system that reasons like Alex (Prime Trading). **MVP scaffold is paper-only.** There is no live trading path and no go-live date — promotion is gate-driven (`docs/RISK_GATES.md`).
 
-Locked spec: [`docs/SDD_MVP.md`](docs/SDD_MVP.md). Also see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/RUNBOOK.md`](docs/RUNBOOK.md) (Mac Studio vs npsecondbrain).
+Locked spec: [`docs/SDD_MVP.md`](docs/SDD_MVP.md). Corpus inventory and conflict precedence: [`docs/CORPUS.md`](docs/CORPUS.md). Also [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/RUNBOOK.md`](docs/RUNBOOK.md) (Mac Studio vs npsecondbrain).
 
 ## Setup
 
@@ -23,7 +23,7 @@ uv run pytest
 uv run alexrag ingest-discord tests/fixtures/discord/sample.html --out /tmp/discord.jsonl
 ```
 
-GitBook/playbook snapshot stub:
+GitBook/doctrine stub (fixtures only — **not** a GitBook mirror):
 
 ```bash
 uv run alexrag ingest-gitbook --path tests/fixtures/gitbook --out /tmp/gitbook.jsonl
@@ -47,15 +47,15 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 
 | Path | What |
 | --- | --- |
-| `src/alexrag/ingest` | Discord HTML (streaming) + GitBook stub |
+| `src/alexrag/ingest` | Discord HTML (streaming, PT, inherited timestamps) + doctrine stub |
 | `src/alexrag/vision_caption` | Vision stub (TODO: Mac Studio VLM) |
 | `src/alexrag/rag` | Chunking, fake embeddings, precedence retrieve |
 | `src/alexrag/agents` | Regime, Setup, Risk, Exec paper stub, Auditor |
 | `src/alexrag/broker` | Alpaca paper stub (TODO: real paper API) |
 | `src/alexrag/notify` | Discord stub (TODO: bot token) |
-| `src/alexrag/eval` | Paper window + citation/abstain helpers |
-| `src/alexrag/schemas` | `Proposal`, `FillIntent`, `AuditEvent` |
-| `config/default.yaml` | `mode=paper`, kill switch, hard limits |
+| `src/alexrag/eval` | Paper window, citation/abstain/conflict, 48 golden stubs |
+| `src/alexrag/schemas` | `Proposal` (+ `conflict_labels`), `FillIntent`, `AuditEvent` |
+| `docs/CORPUS.md` | Channel counts, precedence, doctrine, golden-case pointer |
 
 ## TODOs (not in MVP)
 

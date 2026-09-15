@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, Field
 
 from alexrag.config import PRECEDENCE_DEFAULT
 from alexrag.rag.chunking import Chunk
 from alexrag.rag.index import InMemoryIndex
+from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
 
 _TOK = re.compile(r"[a-z0-9$]+")
 
@@ -59,7 +61,7 @@ def _newest(chunks: list[Chunk]) -> datetime | None:
     aware = []
     for ts in stamps:
         if ts.tzinfo is None:
-            aware.append(ts.replace(tzinfo=timezone.utc))
+            aware.append(ts.replace(tzinfo=ZoneInfo(DEFAULT_DISCORD_TZ)))
         else:
             aware.append(ts)
     return max(aware)
@@ -73,7 +75,7 @@ def retrieve_with_precedence(
     precedence: list[str] | tuple[str, ...] = PRECEDENCE_DEFAULT,
     per_source: int | None = None,
 ) -> RetrievalResult:
-    """Fill slots by source precedence: trade_log > journal/report > gitbook."""
+    """Fill slots by corpus precedence: fills > journal > gameplan > report > gitbook."""
 
     if not index.chunks:
         return RetrievalResult(query=query, confidence=0.0, notes=["empty_index"])

@@ -4,7 +4,7 @@ Locked product/architecture spec for the **paper-only** scaffold. This document 
 
 ## 1. Purpose
 
-AlexRag202609 is a RAG + multi-agent system that **reasons like Alex (Prime Trading)**: it retrieves cited evidence from trade logs, journals/reports, and the GitBook/playbook, then runs a gated decision pipeline.
+AlexRag202609 is a RAG + multi-agent system that **reasons like Alex (Prime Trading)**: it retrieves cited evidence from equity tape, journals/gameplan/reports, and doctrine, then runs a gated decision pipeline. Corpus inventory: [`docs/CORPUS.md`](CORPUS.md).
 
 MVP goal: an **offline-runnable scaffold** that can ingest Discord HTML, index fixtures, run `run-paper-day`, and emit an audited `Proposal` JSON (often `abstain=true`). It is not a live system.
 
@@ -14,6 +14,8 @@ MVP goal: an **offline-runnable scaffold** that can ingest Discord HTML, index f
 - Do **not** invent trading indicator numbers (no synthesized RSI/VWAP/levels). Agents may only copy values that already appear in retrieved citations.
 - No Discord bot, no real Alpaca submit, no vision model, no TradingView MCP client.
 - No calendar “go-live” date. Paper→live is **gate-driven** (see `docs/RISK_GATES.md`).
+- No ingest of operator Mac Discord/GitBook trees in MVP (fixtures only).
+- No local GitBook mirror. Doctrine = live GitBook + `PRIMETRADING_RULEBOOK_DISTILLATION.md` + `PrimeTrading_Ebook.pdf`.
 
 ## 3. Operating modes
 
@@ -28,30 +30,31 @@ Kill switch: when engaged, the orchestrator abstains immediately and must not ca
 
 | Package | Role |
 | --- | --- |
-| `alexrag.ingest` | DiscordChatExporter HTML → JSONL; GitBook snapshot stub |
+| `alexrag.ingest` | DiscordChatExporter HTML → JSONL (timestamp inherit, PT default); doctrine stub |
 | `alexrag.vision_caption` | Image caption stub (TODO: Mac Studio VLM) |
 | `alexrag.rag` | Chunking, metadata tags, embedding provider interface, in-memory index |
 | `alexrag.agents` | Regime → Setup → Risk → Exec (paper stub) → Auditor |
 | `alexrag.broker.alpaca_paper` | Paper broker stub (TODO: real Alpaca paper API) |
 | `alexrag.notify.discord` | Notify stub (TODO: bot token / webhook) |
-| `alexrag.eval` | Replay/citation/abstain metrics; paper-window helper |
+| `alexrag.eval` | Replay/citation/abstain/conflict metrics; 48 golden-case stubs |
 | `alexrag.marketdata.tradingview_mcp` | Explicit NotImplemented stub |
-| `alexrag.schemas` | `Proposal`, `FillIntent`, `AuditEvent`, `IngestedMessage` |
+| `alexrag.schemas` | `Proposal` (incl. `conflict_labels`), `FillIntent`, `AuditEvent`, `IngestedMessage` |
 
 ## 5. Data flow
 
-1. **Ingest** Discord HTML (streaming) and optional GitBook snapshot directory → JSONL records `{id, ts, author, text, attachment_paths}`.
+1. **Ingest** Discord HTML (streaming; fixtures only) and optional doctrine/fixture markdown → JSONL `{id, ts, author, text, attachment_paths}`.
 2. **Caption stub** records a placeholder for each attachment path (no model, no network).
-3. **Chunk** text with source tags: `trade_log | journal | report | gitbook`.
+3. **Chunk** text with source tags: `trade_log | journal | gameplan | report | gitbook`.
 4. **Embed** with the `EmbeddingProvider` interface. MVP: deterministic **fake** in-memory vectors for tests.
-5. **Retrieve** with precedence **trade_log > journal/report > gitbook**.
+5. **Retrieve** with conflict precedence **fills/closes → same-time journal → morning gameplan → evening prime-report → GitBook doctrine-only**.
 6. **Agents:** Regime → Setup → Risk → (if not abstain) Exec paper stub → Auditor.
 7. **Audit log** JSONL. If the audit sink is missing or unwritable → **fail-closed abstain**.
-8. Emit `Proposal` JSON. Exec never runs in live mode (there is no live mode).
+8. Emit `Proposal` JSON (includes `conflict_labels`). Exec never runs in live mode (there is no live mode).
 
 ## 6. Retrieval rules
 
-- Cascading fill: take hits from `trade_log` first, then `journal`, then `report`, then `gitbook`.
+- Cascading fill by corpus precedence: `trade_log` → `journal` → `gameplan` → `report` → `gitbook` (see `docs/CORPUS.md`).
+- Conflicts (no-trade then entries; shorts vs rulebook default) are **first-class** `conflict_labels` on `Proposal`, not silent merges.
 - `retrieval_confidence` below `min_confidence` (default `0.2` for the fake embedding provider) → abstain (`low_retrieval_confidence`).
 - Newest citation timestamp older than `stale_after_hours` relative to `decision_clock`, or **no timestamps** → abstain (`stale_feed`).
 - Empty index / no hits → abstain.
@@ -71,6 +74,7 @@ Builds a `Proposal` from retrieved chunks:
 - `citations[]` — excerpt, `source_type`, `source_id`, **timestamp**, path
 - `confidence` / `retrieval_confidence`
 - `decision_clock`
+- `conflict_labels` (first-class; empty unless a later eval/agent fills them)
 
 ### Risk
 
@@ -113,6 +117,7 @@ Verifies required audit events exist, citations are present, and fill intent (if
 - `regime`
 - `tickers`
 - `decision_clock`
+- `conflict_labels` (first-class corpus disagreements; see `docs/CORPUS.md`)
 
 `FillIntent` allows `mode="paper"` only. `AuditEvent` is append-only JSONL.
 
@@ -128,11 +133,14 @@ CLI consumes **DiscordChatExporter-style** HTML:
 - `.chatlog__content` / `.chatlog__markdown-preserve`
 - `.chatlog__attachment` `href` / `img src`
 
-The parser is **large-file friendly**: it feeds the HTML parser in chunks and writes JSONL incrementally. It must not download remote attachments.
+- Follow-on messages often omit `<time datetime>`; **timestamps inherit across messages and message groups**.
+- Naive / missing-offset timestamps are treated as **America/Los_Angeles** unless the export already includes an offset.
+
+The parser is **large-file friendly**: it feeds the HTML parser in chunks and writes JSONL incrementally. It must not download remote attachments. Operator Mac exports (equity-trades ~6664, alex-journal ~5471, prime-report ~3062) are **not** ingested in MVP.
 
 ### GitBook / playbook
 
-Configurable local snapshot path (`paths.gitbook_snapshot` / `ALEXRAG_GITBOOK_PATH`). Walks `.md`/`.html`/`.txt`. Stub for a future export sync. No GitBook API in MVP.
+**There is no local GitBook mirror.** Doctrine is live GitBook + `PRIMETRADING_RULEBOOK_DISTILLATION.md` + `PrimeTrading_Ebook.pdf`. `ingest-gitbook` walks a tiny fixture/doctrine directory only (`tests/fixtures/gitbook`). PDF parse and live GitBook fetch are out of MVP.
 
 ## 10. Fail-closed policy
 
@@ -166,6 +174,7 @@ Details: `docs/RUNBOOK.md`. Secrets never go in git (`.env.example` only).
 - Real Alpaca **paper** client (`alexrag.broker.alpaca_paper`)
 - Discord bot token / webhook (`alexrag.notify.discord`)
 - Real embedding model (replace `FakeEmbeddingProvider`)
+- Ingest operator Mac DiscordChatExporter trees; score the 48 golden cases (`docs/eval/golden_cases_stub.md`)
 
 ## 14. Testing bar
 

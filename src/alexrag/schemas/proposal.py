@@ -5,12 +5,14 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from alexrag.schemas.sources import CONFLICT_LABELS, SourceType
+
 
 class Citation(BaseModel):
     """Retrieved evidence Risk can map. Timestamps are required for go-decisions."""
 
     source_id: str
-    source_type: Literal["trade_log", "journal", "report", "gitbook"]
+    source_type: SourceType
     chunk_id: str
     excerpt: str
     timestamp: datetime | None = None
@@ -37,3 +39,8 @@ class Proposal(BaseModel):
     hard_limits_snapshot: dict[str, Any] = Field(default_factory=dict)
     retrieval_confidence: float = 0.0
     fill_intent_id: str | None = None
+    # First-class corpus conflict labels (see docs/CORPUS.md). Empty in MVP agents.
+    conflict_labels: list[str] = Field(
+        default_factory=list,
+        description="Subset of " + ",".join(CONFLICT_LABELS),
+    )

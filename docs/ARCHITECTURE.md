@@ -3,10 +3,11 @@
 AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh, no live broker adapter, and no calendar-driven promotion.
 
 ```text
- DiscordChatExporter HTML          GitBook/playbook snapshot
+ DiscordChatExporter HTML (fixtures)     doctrine files (not a GitBook mirror)
             │                                  │
             ▼                                  ▼
    ingest.discord_html                 ingest.gitbook (stub)
+   PT + inherited timestamps           live GitBook later; MVP fixtures
             │                                  │
             └──────────── JSONL ───────────────┘
                            │
@@ -17,7 +18,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
               chunk + source tags + FakeEmbeddingProvider
                            │
                            ▼
-              retrieve (trade_log > journal/report > gitbook)
+              retrieve (fills > journal > gameplan > report > gitbook)
                            │
                            ▼
          ┌─────────┐   ┌─────────┐   ┌─────────┐
@@ -69,6 +70,7 @@ Risk does not call the broker. It only maps a `Proposal`:
 - regime
 - tickers
 - decision_clock
+- conflict_labels
 - hard_limits_snapshot
 
 Exec consumes a cleared proposal and produces a `FillIntent(mode="paper")`.

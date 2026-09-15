@@ -18,11 +18,13 @@ def evaluate_promotion_readiness(metrics: PaperMetrics, settings: Settings) -> d
         "kill_switch": settings.kill_switch,
         "live_allowed": False,
         "reason": "MVP has no live trading path; promotion is documented in docs/RISK_GATES.md",
+        "golden_cases_reserved": 48,
         "metrics": {
             "sessions": metrics.sessions,
             "decisions": metrics.decisions,
             "abstain_rate": metrics.abstain_rate,
             "citation_rate": metrics.citation_rate,
             "timestamped_citation_rate": metrics.timestamped_citation_rate,
+            "conflict_rate": metrics.conflict_rate,
         },
     }

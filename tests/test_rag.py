@@ -51,15 +51,24 @@ def test_precedence_prefers_trade_log() -> None:
     )
     index.add(
         chunk_text(
+            "Morning gameplan: wait, no trade unless reclaim.",
+            source_id="gp",
+            source_type="gameplan",
+            timestamp=ts,
+        )
+    )
+    index.add(
+        chunk_text(
             "Trade log: filled $NVDA long on trend day.",
             source_id="tl",
             source_type="trade_log",
             timestamp=ts,
         )
     )
-    result = retrieve_with_precedence(index, "NVDA trend day fill", top_k=3)
+    result = retrieve_with_precedence(index, "NVDA trend day fill", top_k=4)
     assert result.hits
     assert result.hits[0].chunk.source_type == "trade_log"
     types = [h.chunk.source_type for h in result.hits]
     assert types.index("trade_log") < types.index("journal")
-    assert types.index("journal") < types.index("gitbook")
+    assert types.index("journal") < types.index("gameplan")
+    assert types.index("gameplan") < types.index("gitbook")

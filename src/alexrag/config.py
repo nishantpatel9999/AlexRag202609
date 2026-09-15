@@ -8,11 +8,10 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field, field_validator
 
 from alexrag import envutil
+from alexrag.schemas.sources import PRECEDENCE_DEFAULT
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = ROOT / "config" / "default.yaml"
-
-PRECEDENCE_DEFAULT = ("trade_log", "journal", "report", "gitbook")
 
 
 class RetrievalSettings(BaseModel):
@@ -38,6 +37,7 @@ class HardLimits(BaseModel):
 
 class PathSettings(BaseModel):
     audit_log: str = "data/audit/events.jsonl"
+    # Fixture/doctrine files only — not a local GitBook mirror (see docs/CORPUS.md).
     gitbook_snapshot: str = "data/gitbook"
 
 

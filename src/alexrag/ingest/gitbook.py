@@ -1,16 +1,28 @@
-"""GitBook / playbook snapshot ingest stub (configurable local path)."""
+"""Doctrine ingest stub — fixtures only. Not a local GitBook mirror.
+
+Production doctrine (docs/CORPUS.md):
+  live GitBook + PRIMETRADING_RULEBOOK_DISTILLATION.md + PrimeTrading_Ebook.pdf
+MVP walks a tiny local directory (tests/fixtures/gitbook). Do not point this
+at a GitBook clone or Mac export paths.
+"""
 
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterator
 from datetime import datetime, timezone
 from pathlib import Path
-from collections.abc import Iterator
 
 from alexrag.schemas.message import IngestedMessage
 
 SUPPORTED_SUFFIXES = {".md", ".markdown", ".txt", ".html", ".htm"}
+
+# Operator doctrine filenames (not ingested from Mac paths in this run).
+DOCTRINE_FILENAMES = (
+    "PRIMETRADING_RULEBOOK_DISTILLATION.md",
+    "PrimeTrading_Ebook.pdf",
+)
 
 
 def _file_id(path: Path) -> str:
@@ -19,7 +31,7 @@ def _file_id(path: Path) -> str:
 
 
 def iter_gitbook_snapshot(root: Path, *, source_type: str = "gitbook") -> Iterator[IngestedMessage]:
-    """Walk a local GitBook/playbook snapshot. No GitBook API / network."""
+    """Walk a fixture/doctrine directory. No GitBook API, no network, no Mac corpus."""
 
     root = Path(root)
     if not root.exists():
@@ -27,7 +39,9 @@ def iter_gitbook_snapshot(root: Path, *, source_type: str = "gitbook") -> Iterat
     if root.is_file():
         files = [root]
     else:
-        files = sorted(p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in SUPPORTED_SUFFIXES)
+        files = sorted(
+            p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in SUPPORTED_SUFFIXES
+        )
     for path in files:
         text = path.read_text(encoding="utf-8", errors="replace")
         mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
@@ -43,7 +57,7 @@ def iter_gitbook_snapshot(root: Path, *, source_type: str = "gitbook") -> Iterat
 
 
 def ingest_gitbook_snapshot(root: Path, out_path: Path, *, source_type: str = "gitbook") -> int:
-    """TODO: replace with GitBook export sync when the snapshot pipeline is wired."""
+    """Fixture stub. TODO: live GitBook + distillation/ebook — not a local mirror."""
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)

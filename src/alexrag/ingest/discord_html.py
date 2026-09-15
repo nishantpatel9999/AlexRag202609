@@ -1,16 +1,27 @@
-"""DiscordChatExporter-style HTML → JSONL ingest (streaming / large-file friendly)."""
+"""DiscordChatExporter-style HTML → JSONL ingest (streaming / large-file friendly).
+
+Corpus notes (see docs/CORPUS.md):
+- Operator Mac HTML (equity-trades ~6664, alex-journal ~5471, prime-report ~3062)
+  is NOT ingested in MVP — fixtures only.
+- Follow-on messages often omit <time datetime>; timestamps inherit across
+  messages AND message groups from the last seen datetime.
+- Naive timestamps are America/Los_Angeles unless the export already has an offset.
+"""
 
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Iterator
+from datetime import datetime
 from html.parser import HTMLParser
 from pathlib import Path
-from collections.abc import Callable, Iterator
-from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from alexrag.schemas.message import IngestedMessage
+from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
 
 CHUNK_SIZE = 64 * 1024
+DISCORD_TZ = ZoneInfo(DEFAULT_DISCORD_TZ)
 
 
 def parse_ts(value: str | None) -> datetime | None:
@@ -26,7 +37,7 @@ def parse_ts(value: str | None) -> datetime | None:
     except ValueError:
         return None
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=DISCORD_TZ)
     return dt
 
 
@@ -37,7 +48,11 @@ def _has_class(class_attr: str | None, token: str) -> bool:
 
 
 class DiscordHTMLParser(HTMLParser):
-    """Incremental parser for DiscordChatExporter HTML exports."""
+    """Incremental parser for DiscordChatExporter HTML exports.
+
+    `_carry_ts` survives message groups so follow-on / next-group messages
+    without a datetime inherit the last seen timestamp.
+    """
 
     def __init__(self, on_message: Callable[[dict], None]) -> None:
         super().__init__(convert_charrefs=True)
@@ -48,15 +63,24 @@ class DiscordHTMLParser(HTMLParser):
         self._attach_depth = 0
         self._author_buf: list[str] = []
         self._text_buf: list[str] = []
+        self._carry_ts: str | None = None
 
     def _emit(self) -> None:
         if not self._msg:
             return
         text = " ".join("".join(self._text_buf).split())
         author = " ".join("".join(self._author_buf).split())
+        raw_ts = self._msg.get("ts")
+        inherited = False
+        if not raw_ts and self._carry_ts:
+            raw_ts = self._carry_ts
+            inherited = True
+        elif raw_ts:
+            self._carry_ts = raw_ts
         rec = {
             "id": self._msg.get("id") or "",
-            "ts": self._msg.get("ts"),
+            "ts": raw_ts,
+            "ts_inherited": inherited,
             "author": author,
             "text": text,
             "attachment_paths": list(self._msg.get("attachment_paths") or []),
@@ -92,10 +116,6 @@ class DiscordHTMLParser(HTMLParser):
 
         if _has_class(classes, "chatlog__author"):
             self._author_depth = 1
-            title = ad.get("title")
-            if title and not self._author_buf:
-                # title is often username#discrim; display name is in data
-                pass
         elif self._author_depth:
             self._author_depth += 1
 
@@ -161,7 +181,10 @@ def iter_discord_html(
     source_type: str = "journal",
     chunk_size: int = CHUNK_SIZE,
 ) -> Iterator[IngestedMessage]:
-    """Stream messages from a DiscordChatExporter HTML file without slurping it."""
+    """Stream messages from a DiscordChatExporter HTML file without slurping it.
+
+    Do not point this at Mac corpus trees in MVP; fixtures only.
+    """
 
     html_path = Path(html_path)
     pending: list[IngestedMessage] = []
@@ -171,6 +194,7 @@ def iter_discord_html(
             IngestedMessage(
                 id=raw["id"] or f"anon-{len(pending)+1}",
                 ts=parse_ts(raw.get("ts")),
+                ts_inherited=bool(raw.get("ts_inherited")),
                 author=raw.get("author") or "",
                 text=raw.get("text") or "",
                 attachment_paths=_resolve_attachments(html_path, raw.get("attachment_paths") or []),
@@ -180,7 +204,7 @@ def iter_discord_html(
         )
 
     parser = DiscordHTMLParser(on_message)
-    with html_path.open("r", encoding="utf-8", errors="replace") as fh:
+    with html_path.open("r", encoding="utf-8") as fh:
         while True:
             chunk = fh.read(chunk_size)
             if not chunk:
