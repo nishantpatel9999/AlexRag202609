@@ -31,15 +31,16 @@ When `proposal.abstain=false`, Exec must not leave `side=None` / `notional=0` / 
 - `ticker` required (first proposal ticker)
 - `side` / optional `limit_px` / optional `invalidation` copied **only** from citations with `timestamp < decision_clock`
 - `order_type=limit` iff a sealed limit px is present; otherwise `market`
-- `size_ner_pct → notional = min(paper_nav * ner/100, max_notional)`; `qty = notional / ref_px`
+- `size_ner_pct → notional = min(paper_nav * ner/100, max_notional_dollars)`; `qty = notional / ref_px`
+- `max_notional_dollars = paper.nav * max_notional_pct` (operator lock: 100% of paper equity)
 - `ref_px` = sealed limit if present, else next fixture mid
 - copy `decision_clock`
 - if any required field is missing, Exec **skips** (`intent.abstain=true`) rather than emitting a holey go intent
 
 ## Fixture config
 
-`config/default.yaml` keeps `hard_limits.* = 0` and `paper.nav = 0` (fail-closed).
+`config/default.yaml` locks operator pcts (`max_positions=15`, `max_daily_loss_pct=0.10`, `max_portfolio_dd=0.25`, `max_notional_pct=1.0`) and keeps `paper.nav = 0` (fail-closed dollar derivation).
 
-`config/fixture.yaml` sets operator-owned non-zero limits + `paper.nav` and points `paper.bars_path` at `tests/fixtures/m0/bars.json` so cleared proposals can exercise Exec **without live keys**.
+`config/fixture.yaml` uses the same pcts with `paper.nav` set and points `paper.bars_path` at `tests/fixtures/m0/bars.json` so cleared proposals can exercise Exec **without live keys**.
 
 Sealed replay cases: `tests/fixtures/m0/cases/*.json` (decision_ts, proposal snapshot, FillIntent, expected PaperFill). Offline scorer: `alexrag.eval.fill_m0` (intent↔receipt, sealed clock, audit completeness). **P&L is not scored.**

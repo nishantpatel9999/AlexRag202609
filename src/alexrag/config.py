@@ -13,6 +13,13 @@ from alexrag.schemas.sources import PRECEDENCE_DEFAULT
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = ROOT / "config" / "default.yaml"
 
+# Nishant-locked operator paper limits. Dollar notional / daily-loss are derived
+# from paper.nav at runtime — never stored as secrets or as live sizes.
+OPERATOR_MAX_POSITIONS = 15
+OPERATOR_MAX_DAILY_LOSS_PCT = 0.10
+OPERATOR_MAX_PORTFOLIO_DD = 0.25
+OPERATOR_MAX_NOTIONAL_PCT = 1.0
+
 
 class RetrievalSettings(BaseModel):
     min_confidence: float = 0.2
@@ -27,12 +34,16 @@ class PaperGateSettings(BaseModel):
 
 
 class HardLimits(BaseModel):
-    """Coded hard limits. Present even while Exec is a stub. Operator-owned values."""
+    """Coded hard limits. Operator-owned percents + position cap.
 
-    max_notional: float = 0.0
-    max_positions: int = 0
-    max_daily_loss: float = 0.0
-    max_portfolio_dd: float = 0.0
+    Dollar notional and dollar daily-loss are **not** stored here; Settings
+    derives them from ``paper.nav`` at runtime.
+    """
+
+    max_notional_pct: float = OPERATOR_MAX_NOTIONAL_PCT
+    max_positions: int = OPERATOR_MAX_POSITIONS
+    max_daily_loss_pct: float = OPERATOR_MAX_DAILY_LOSS_PCT
+    max_portfolio_dd: float = OPERATOR_MAX_PORTFOLIO_DD
 
 
 class PathSettings(BaseModel):
@@ -44,6 +55,13 @@ class PathSettings(BaseModel):
 class EmbeddingSettings(BaseModel):
     provider: Literal["fake"] = "fake"
     dim: int = 32
+
+
+class LlmSettings(BaseModel):
+    """Always-on LLM. API key is env-only (INFERHUB_API_KEY); never a field here."""
+
+    provider: Literal["inferhub.dev"] = "inferhub.dev"
+    model: Literal["GLM 5.3-flash"] = "GLM 5.3-flash"
 
 
 class PaperSimSettings(BaseModel):
@@ -58,7 +76,8 @@ class PaperSimSettings(BaseModel):
 class PaperBook(BaseModel):
     """Operator/fixture snapshot of the paper book. Risk enforces loss/DD against this.
 
-    ``sessions`` / ``decisions`` are diagnostics, not a promotion hard floor.
+    ``daily_loss`` is dollars of paper loss. ``portfolio_dd`` is a fraction of equity
+    (0.25 = 25%). ``sessions`` / ``decisions`` are diagnostics, not a promotion hard floor.
     """
 
     daily_loss: float = 0.0
@@ -80,6 +99,7 @@ class Settings(BaseModel):
     paper_book: PaperBook = Field(default_factory=PaperBook)
     paths: PathSettings = Field(default_factory=PathSettings)
     embedding: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
+    llm: LlmSettings = Field(default_factory=LlmSettings)
 
     @field_validator("mode")
     @classmethod
@@ -90,8 +110,48 @@ class Settings(BaseModel):
             )
         return v
 
+    def paper_equity(self) -> float:
+        return self.paper.nav
+
+    def max_notional_dollars(self) -> float:
+        """100% of paper equity when ``max_notional_pct`` is 1.0. 0 if nav/pct unconfigured."""
+
+        nav = self.paper.nav
+        pct = self.hard_limits.max_notional_pct
+        if nav <= 0 or pct <= 0:
+            return 0.0
+        return nav * pct
+
+    def max_daily_loss_dollars(self) -> float:
+        """10% of paper equity when ``max_daily_loss_pct`` is 0.10. 0 if nav/pct unconfigured."""
+
+        nav = self.paper.nav
+        pct = self.hard_limits.max_daily_loss_pct
+        if nav <= 0 or pct <= 0:
+            return 0.0
+        return nav * pct
+
+    def hard_limits_ready(self) -> bool:
+        """Operator pcts/positions plus paper equity must all be positive to size a go."""
+
+        limits = self.hard_limits
+        return (
+            limits.max_positions > 0
+            and limits.max_notional_pct > 0
+            and limits.max_daily_loss_pct > 0
+            and limits.max_portfolio_dd > 0
+            and self.paper.nav > 0
+        )
+
     def hard_limits_snapshot(self) -> dict[str, Any]:
-        return self.hard_limits.model_dump()
+        """Pcts as configured plus dollar notional/daily-loss derived from paper equity."""
+
+        return {
+            **self.hard_limits.model_dump(),
+            "paper_equity": self.paper_equity(),
+            "max_notional": self.max_notional_dollars(),
+            "max_daily_loss": self.max_daily_loss_dollars(),
+        }
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -148,9 +208,9 @@ def _env_overlay() -> dict[str, Any]:
 
     limits: dict[str, Any] = {}
     for env_name, key, caster in (
-        ("ALEXRAG_MAX_NOTIONAL", "max_notional", envutil.get_float),
+        ("ALEXRAG_MAX_NOTIONAL_PCT", "max_notional_pct", envutil.get_float),
         ("ALEXRAG_MAX_POSITIONS", "max_positions", envutil.get_int),
-        ("ALEXRAG_MAX_DAILY_LOSS", "max_daily_loss", envutil.get_float),
+        ("ALEXRAG_MAX_DAILY_LOSS_PCT", "max_daily_loss_pct", envutil.get_float),
         ("ALEXRAG_MAX_PORTFOLIO_DD", "max_portfolio_dd", envutil.get_float),
     ):
         val = caster(env_name)
@@ -158,6 +218,13 @@ def _env_overlay() -> dict[str, Any]:
             limits[key] = val
     if limits:
         overlay["hard_limits"] = limits
+
+    paper: dict[str, Any] = {}
+    nav = envutil.get_float("ALEXRAG_PAPER_NAV")
+    if nav is not None:
+        paper["nav"] = nav
+    if paper:
+        overlay["paper"] = paper
 
     paths: dict[str, Any] = {}
     audit = envutil.get_str("ALEXRAG_AUDIT_LOG_PATH")

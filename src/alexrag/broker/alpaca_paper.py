@@ -4,14 +4,28 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from alexrag import envutil
 from alexrag.schemas.fill_intent import FillIntent
 from alexrag.schemas.paper_fill import STUBBED_SCAR_LABEL, PaperFill, make_paper_fill
+
+ALPACA_KEY_ID_ENV = "ALPACA_API_KEY_ID"
+ALPACA_SECRET_KEY_ENV = "ALPACA_API_SECRET_KEY"
+
+
+def alpaca_paper_credentials_present() -> bool:
+    """True when both paper key env vars are set. Does not return or store secrets."""
+
+    return (
+        envutil.get_str(ALPACA_KEY_ID_ENV) is not None
+        and envutil.get_str(ALPACA_SECRET_KEY_ENV) is not None
+    )
 
 
 class AlpacaPaperBroker:
     """TODO: real Alpaca paper API (keys via env, never git). Paper endpoint only.
 
-    Without keys / network, submits are ``stubbed``. Stubbed is not filled.
+    Without network, submits are ``stubbed``. Stubbed is not filled. Live trading
+    is not implemented.
     """
 
     name = "alpaca_paper_stub"
@@ -31,6 +45,10 @@ class AlpacaPaperBroker:
                 scar_label=STUBBED_SCAR_LABEL,
                 notes=["alpaca_paper skipped abstain intent; not submitted"],
             )
+        keys_present = alpaca_paper_credentials_present()
+        skip_reason = (
+            "alpaca_paper_stub_no_network" if keys_present else "alpaca_paper_no_keys"
+        )
         return make_paper_fill(
             intent=intent,
             status="stubbed",
@@ -39,10 +57,11 @@ class AlpacaPaperBroker:
             fill_px=None,
             qty_filled=0.0,
             qty_left=intent.qty or 0.0,
-            skip_reason="alpaca_paper_no_keys",
+            skip_reason=skip_reason,
             scar_label=STUBBED_SCAR_LABEL,
             notes=[
                 "TODO: real Alpaca paper submit; no network in MVP",
                 "stubbed ≠ filled",
+                "paper only; ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY env, never git",
             ],
         )

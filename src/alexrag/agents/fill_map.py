@@ -25,7 +25,7 @@ def notional_from_ner(
     paper_nav: float,
     max_notional: float,
 ) -> float:
-    """Map citation NER percent to notional, clipped to operator max_notional."""
+    """Map citation NER percent to notional, clipped to derived dollar max_notional."""
 
     if size_ner_pct <= 0 or paper_nav <= 0 or max_notional <= 0:
         return 0.0

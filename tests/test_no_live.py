@@ -41,6 +41,17 @@ def test_broker_rejects_non_paper(monkeypatch) -> None:
     assert result.filled is False
     assert result.qty_filled == 0
     assert result.venue == "alpaca_paper"
+    assert result.skip_reason == "alpaca_paper_no_keys"
+
+
+def test_alpaca_src_uses_paper_key_pair_env_names() -> None:
+    text = Path(__file__).resolve().parents[1].joinpath(
+        "src", "alexrag", "broker", "alpaca_paper.py"
+    ).read_text(encoding="utf-8")
+    assert "ALPACA_API_KEY_ID" in text
+    assert "ALPACA_API_SECRET_KEY" in text
+    assert "ALPACA_API_KEY=" not in text
+    assert "ALPACA_API_SECRET=" not in text
 
 
 def test_tradingview_mcp_is_stub() -> None:

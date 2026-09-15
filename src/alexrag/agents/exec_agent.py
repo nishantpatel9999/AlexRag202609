@@ -41,7 +41,7 @@ class ExecAgent:
             raise RuntimeError("exec refused non-paper mode")
 
         paper_nav = settings.paper.nav if settings is not None else 0.0
-        max_notional = settings.hard_limits.max_notional if settings is not None else 0.0
+        max_notional = settings.max_notional_dollars() if settings is not None else 0.0
         chosen: FillVenue = venue or (
             settings.paper.venue if settings is not None else "paper_sim"
         )

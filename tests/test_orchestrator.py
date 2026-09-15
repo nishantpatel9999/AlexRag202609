@@ -100,12 +100,17 @@ def test_missing_audit_abstains(fixtures_dir: Path, tmp_path: Path) -> None:
     assert result.proposal.abstain_reason == "missing_audit"
 
 
-def test_hard_limits_present_and_block_when_zero(fixtures_dir: Path, tmp_path: Path) -> None:
+def test_hard_limits_present_and_block_when_nav_zero(
+    fixtures_dir: Path, tmp_path: Path
+) -> None:
     settings = load_settings()
-    assert settings.hard_limits.max_notional == 0.0
-    assert settings.hard_limits.max_positions == 0
-    assert settings.hard_limits.max_daily_loss == 0.0
-    assert settings.hard_limits.max_portfolio_dd == 0.0
+    assert settings.hard_limits.max_notional_pct == 1.0
+    assert settings.hard_limits.max_positions == 15
+    assert settings.hard_limits.max_daily_loss_pct == 0.10
+    assert settings.hard_limits.max_portfolio_dd == 0.25
+    assert settings.paper.nav == 0.0
+    assert settings.max_notional_dollars() == 0.0
+    assert settings.max_daily_loss_dollars() == 0.0
     index, messages = _index(fixtures_dir, settings)
     result = run_paper_day(
         settings,
@@ -114,23 +119,21 @@ def test_hard_limits_present_and_block_when_zero(fixtures_dir: Path, tmp_path: P
         audit_path=tmp_path / "a.jsonl",
     )
     snap = result.proposal.hard_limits_snapshot
-    assert "max_notional" in snap
-    assert "max_positions" in snap
-    assert "max_daily_loss" in snap
-    assert "max_portfolio_dd" in snap
-    # Default unconfigured limits fail-closed (may also abstain earlier).
+    assert snap["max_notional_pct"] == 1.0
+    assert snap["max_positions"] == 15
+    assert snap["max_daily_loss_pct"] == 0.10
+    assert snap["max_portfolio_dd"] == 0.25
+    assert snap["max_notional"] == 0.0
+    assert snap["max_daily_loss"] == 0.0
+    assert snap["paper_equity"] == 0.0
+    # Operator pcts are locked; nav 0 still fail-closes dollar derivation.
     assert result.proposal.abstain is True
 
 
 def test_configured_limits_can_clear_risk(fixtures_dir: Path, tmp_path: Path) -> None:
     settings = load_settings(
         overrides={
-            "hard_limits": {
-                "max_notional": 1000.0,
-                "max_positions": 1,
-                "max_daily_loss": 50.0,
-                "max_portfolio_dd": 0.02,
-            }
+            "paper": {"nav": 100000.0},
         }
     )
     index, messages = _index(fixtures_dir, settings)
@@ -161,7 +164,7 @@ def test_fixture_config_exercises_m0_exec(fixtures_dir: Path, tmp_path: Path) ->
         decision_clock=clock,
         audit_path=tmp_path / "m0.jsonl",
     )
-    assert settings.hard_limits.max_notional > 0
+    assert settings.max_notional_dollars() == 100000.0
     assert result.proposal.abstain is False
     assert result.fill is not None
     assert result.fill.abstain is False

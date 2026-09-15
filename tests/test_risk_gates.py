@@ -44,12 +44,7 @@ def _go_proposal(**kwargs) -> Proposal:
 def _cleared_settings(**book) -> Settings:
     return load_settings(
         overrides={
-            "hard_limits": {
-                "max_notional": 1000.0,
-                "max_positions": 1,
-                "max_daily_loss": 50.0,
-                "max_portfolio_dd": 0.02,
-            },
+            "paper": {"nav": 100000.0},
             "paper_book": {
                 "daily_loss": 0.0,
                 "portfolio_dd": 0.0,
@@ -78,7 +73,7 @@ def test_risk_enforces_daily_loss_and_portfolio_dd(tmp_path: Path) -> None:
     audit = AuditLog(tmp_path / "a.jsonl")
     loss = RiskAgent().run(
         _go_proposal(),
-        _cleared_settings(daily_loss=50.0),
+        _cleared_settings(daily_loss=10000.0),
         audit,
     )
     assert loss.abstain is True
@@ -86,7 +81,7 @@ def test_risk_enforces_daily_loss_and_portfolio_dd(tmp_path: Path) -> None:
 
     dd = RiskAgent().run(
         _go_proposal(proposal_id="p-dd"),
-        _cleared_settings(portfolio_dd=0.02),
+        _cleared_settings(portfolio_dd=0.25),
         AuditLog(tmp_path / "b.jsonl"),
     )
     assert dd.abstain is True
@@ -128,7 +123,21 @@ def test_risk_unexplained_order_without_side(tmp_path: Path) -> None:
     assert out.abstain_reason == AbstainReason.UNEXPLAINED_ORDER
 
 
-def test_risk_clears_when_book_inside_limits(tmp_path: Path) -> None:
+def test_risk_nav_zero_is_unconfigured(tmp_path: Path) -> None:
+    settings = load_settings()
+    assert settings.paper.nav == 0.0
+    out = RiskAgent().run(_go_proposal(), settings, AuditLog(tmp_path / "z.jsonl"))
+    assert out.abstain is True
+    assert out.abstain_reason == AbstainReason.HARD_LIMITS_UNCONFIGURED
+
+
+def test_risk_daily_loss_below_ten_percent_clears(tmp_path: Path) -> None:
+    out = RiskAgent().run(
+        _go_proposal(),
+        _cleared_settings(daily_loss=9999.0, portfolio_dd=0.249),
+        AuditLog(tmp_path / "under.jsonl"),
+    )
+    assert out.abstain is False
     out = RiskAgent().run(
         _go_proposal(),
         _cleared_settings(daily_loss=1.0, portfolio_dd=0.001),

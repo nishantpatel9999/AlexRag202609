@@ -9,7 +9,7 @@ There is **no target go-live date** in this project.
 | Control | Behavior |
 | --- | --- |
 | Kill switch | `ALEXRAG_KILL_SWITCH=true` → `abstain_reason=kill_switch_fail`, Exec skipped |
-| Coded hard limits | `max_notional`, `max_positions`, `max_daily_loss`, `max_portfolio_dd` must be operator-set (`≤0` → `hard_limits_unconfigured`). Risk **enforces** daily loss and portfolio DD against `paper_book` (`daily_loss_breach` / `portfolio_dd_breach`) — not snapshot-only. |
+| Coded hard limits | Nishant-locked: `max_positions=15`, `max_daily_loss_pct=0.10`, `max_portfolio_dd=0.25`, `max_notional_pct=1.0`. Dollar notional/daily-loss = `paper.nav * pct` at runtime. `paper.nav` ≤ 0 or pcts/positions ≤ 0 → `hard_limits_unconfigured`. Risk **enforces** daily loss (dollars vs 10% equity) and portfolio DD (fraction vs 25%) against `paper_book` (`daily_loss_breach` / `portfolio_dd_breach`) — not snapshot-only. |
 | Fail-closed stale feed | Newest citation vs `decision_clock` older than `stale_after_hours` → `stale_feed` (orchestrator **and** RiskAgent) |
 | Fail-closed missing audit | Audit path missing or unwritable → `missing_audit` (no Exec) |
 | Fail-closed retrieval | Confidence `< min_confidence` → `low_retrieval_confidence` |
@@ -41,7 +41,7 @@ Helpers live in `alexrag.eval`. Thresholds for “good enough” replay/citation
 
 ## Paper fill fidelity (M0, not a P&L gate)
 
-Offline paper fills use model **M0**: mark-to-next-available fixture bar/mid, **0bps** scar labeled (`docs/FILL_FIDELITY_M0.md`). `stubbed` (Alpaca paper without keys) is **not** `filled`. Default `hard_limits` stay `0` (fail-closed); `config/fixture.yaml` is the non-zero operator file for Exec replay. **No P&L gate.** **No live path.**
+Offline paper fills use model **M0**: mark-to-next-available fixture bar/mid, **0bps** scar labeled (`docs/FILL_FIDELITY_M0.md`). `stubbed` (Alpaca paper without keys/network) is **not** `filled`. Operator pcts are locked in `config/default.yaml`; `paper.nav` defaults to `0` (fail-closed dollar derivation). `config/fixture.yaml` sets `paper.nav` for Exec replay. **No P&L gate.** **No live path.**
 
 ## What does *not* satisfy a gate
 

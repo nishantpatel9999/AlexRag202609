@@ -4,10 +4,10 @@
   "scar_bps": 0.0,
   "paper_nav": 100000.0,
   "hard_limits": {
-    "max_notional": 1000.0,
-    "max_positions": 1,
-    "max_daily_loss": 50.0,
-    "max_portfolio_dd": 0.02
+    "max_notional_pct": 1.0,
+    "max_positions": 15,
+    "max_daily_loss_pct": 0.10,
+    "max_portfolio_dd": 0.25
   },
   "bars": [
     {
@@ -38,10 +38,13 @@
     "thesis": "sealed M0 replay: abstain must skip, not fill",
     "setup_summary": "no go",
     "hard_limits_snapshot": {
-      "max_notional": 1000.0,
-      "max_positions": 1,
-      "max_daily_loss": 50.0,
-      "max_portfolio_dd": 0.02
+      "max_notional_pct": 1.0,
+      "max_positions": 15,
+      "max_daily_loss_pct": 0.10,
+      "max_portfolio_dd": 0.25,
+      "paper_equity": 100000.0,
+      "max_notional": 100000.0,
+      "max_daily_loss": 10000.0
     }
   },
   "intent": {

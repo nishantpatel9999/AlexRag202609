@@ -34,7 +34,8 @@ Kill switch: when engaged, the orchestrator abstains immediately and must not ca
 | `alexrag.vision_caption` | Image caption stub (TODO: Mac Studio VLM) |
 | `alexrag.rag` | Chunking, metadata tags, embedding provider interface, in-memory index |
 | `alexrag.agents` | Regime → Setup → Risk → Exec (paper stub) → Auditor |
-| `alexrag.broker.alpaca_paper` | Paper broker stub (TODO: real Alpaca paper API) |
+| `alexrag.llm.inferhub` | Inferhub.dev GLM 5.3-flash stub (key: `INFERHUB_API_KEY` env only) |
+| `alexrag.broker.alpaca_paper` | Paper broker stub (TODO: real Alpaca paper API; `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY`) |
 | `alexrag.notify.discord` | Notify stub (TODO: bot token / webhook) |
 | `alexrag.eval` | Replay/citation/abstain/conflict metrics; 48 golden-case stubs |
 | `alexrag.marketdata.tradingview_mcp` | Explicit NotImplemented stub |
@@ -86,17 +87,17 @@ Maps the proposal onto coded hard limits and fail-closed gates. Abstains on:
 - low retrieval confidence
 - no tickers in citations
 - unknown regime
-- unconfigured hard limits (`max_notional` or `max_positions` ≤ 0)
+- unconfigured hard limits (`paper.nav` ≤ 0, or positions/pcts ≤ 0 — dollar notional/daily-loss cannot be derived)
 - missing audit (orchestrator-level)
 
-Hard-limit fields (present even while Exec is a stub):
+Hard-limit fields (Nishant-locked operator values; present even while Exec is a stub):
 
-- `max_notional`
-- `max_positions`
-- `max_daily_loss`
-- `max_portfolio_dd`
+- `max_notional_pct` = 1.0 (100% of paper equity; **dollars = `paper.nav * pct` at runtime**)
+- `max_positions` = 15
+- `max_daily_loss_pct` = 0.10 (10% of equity; dollars derived the same way)
+- `max_portfolio_dd` = 0.25 (25% of equity)
 
-Values are **operator-owned**. Defaults of `0` block any go-decision. They are not research outputs.
+Values are **operator-owned**, not research outputs. `paper.nav` defaults to `0` so go-decisions fail-closed until equity is set (`config/fixture.yaml` for M0). Snapshot includes both pcts and derived dollar `max_notional` / `max_daily_loss`.
 
 ### Exec
 
@@ -171,7 +172,8 @@ Details: `docs/RUNBOOK.md`. Secrets never go in git (`.env.example` only).
 
 - Vision model on Mac Studio (`alexrag.vision_caption`)
 - TradingView MCP (`alexrag.marketdata.tradingview_mcp`)
-- Real Alpaca **paper** client (`alexrag.broker.alpaca_paper`)
+- Real Inferhub.dev GLM 5.3-flash client (`alexrag.llm.inferhub`; key via `INFERHUB_API_KEY`)
+- Real Alpaca **paper** client (`alexrag.broker.alpaca_paper`; `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY`, never git)
 - Discord bot token / webhook (`alexrag.notify.discord`)
 - Real embedding model (replace `FakeEmbeddingProvider`)
 - Ingest operator Mac DiscordChatExporter trees; attach session IDs on the 48 golden cases (`eval/golden_cases_v0.json`)

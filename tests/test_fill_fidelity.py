@@ -14,20 +14,27 @@ from alexrag.schemas.paper_fill import FillReceipt, PaperFill
 from alexrag.schemas.proposal import Citation, Proposal
 
 
-def test_default_yaml_fail_closed_zero_limits() -> None:
+def test_default_yaml_fail_closed_zero_nav() -> None:
     settings = load_settings()
-    assert settings.hard_limits.max_notional == 0.0
-    assert settings.hard_limits.max_positions == 0
+    assert settings.hard_limits.max_notional_pct == 1.0
+    assert settings.hard_limits.max_positions == 15
+    assert settings.hard_limits.max_daily_loss_pct == 0.10
+    assert settings.hard_limits.max_portfolio_dd == 0.25
     assert settings.paper.nav == 0.0
+    assert settings.max_notional_dollars() == 0.0
+    assert settings.hard_limits_ready() is False
 
 
-def test_fixture_yaml_nonzero_operator_limits() -> None:
+def test_fixture_yaml_operator_limits_derive_dollars() -> None:
     settings = load_settings(config_path=ROOT / "config" / "fixture.yaml")
-    assert settings.hard_limits.max_notional == 1000.0
-    assert settings.hard_limits.max_positions == 1
-    assert settings.hard_limits.max_daily_loss == 50.0
-    assert settings.hard_limits.max_portfolio_dd == 0.02
+    assert settings.hard_limits.max_notional_pct == 1.0
+    assert settings.hard_limits.max_positions == 15
+    assert settings.hard_limits.max_daily_loss_pct == 0.10
+    assert settings.hard_limits.max_portfolio_dd == 0.25
     assert settings.paper.nav == 100000.0
+    assert settings.max_notional_dollars() == 100000.0
+    assert settings.max_daily_loss_dollars() == 10000.0
+    assert settings.hard_limits_ready() is True
     assert settings.paper.fill_model == "M0"
     assert settings.paper.venue == "paper_sim"
     assert settings.paper.bars_path == "tests/fixtures/m0/bars.json"

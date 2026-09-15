@@ -81,3 +81,11 @@ def test_paper_fill_acked_roundtrip() -> None:
 def test_settings_reject_live_mode() -> None:
     with pytest.raises(ValidationError):
         Settings.model_validate({"mode": "live"})
+
+
+def test_settings_lock_inferhub_llm() -> None:
+    s = Settings.model_validate({})
+    assert s.llm.provider == "inferhub.dev"
+    assert s.llm.model == "GLM 5.3-flash"
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"llm": {"model": "other"}})

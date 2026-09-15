@@ -83,20 +83,20 @@ class RiskAgent:
             notes.append("regime unknown from citations")
             return abstain(AbstainReason.UNKNOWN_REGIME)
 
-        limits = settings.hard_limits
-        if (
-            limits.max_notional <= 0
-            or limits.max_positions <= 0
-            or limits.max_daily_loss <= 0
-            or limits.max_portfolio_dd <= 0
-        ):
-            notes.append("hard limits unconfigured (notional/positions/daily_loss/dd <= 0)")
+        if not settings.hard_limits_ready():
+            notes.append(
+                "hard limits unconfigured (positions/pcts <= 0 or paper.nav <= 0; "
+                "dollar notional/daily_loss are derived from equity at runtime)"
+            )
             return abstain(AbstainReason.HARD_LIMITS_UNCONFIGURED)
 
+        limits = settings.hard_limits
         book = settings.paper_book
-        if book.daily_loss >= limits.max_daily_loss:
+        max_daily_loss = settings.max_daily_loss_dollars()
+        if book.daily_loss >= max_daily_loss:
             notes.append(
-                f"paper daily_loss={book.daily_loss} >= max_daily_loss={limits.max_daily_loss}"
+                f"paper daily_loss={book.daily_loss} >= max_daily_loss={max_daily_loss} "
+                f"({limits.max_daily_loss_pct:.0%} of equity {settings.paper_equity()})"
             )
             return abstain(AbstainReason.DAILY_LOSS_BREACH)
         if book.portfolio_dd >= limits.max_portfolio_dd:

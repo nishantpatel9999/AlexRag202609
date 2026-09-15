@@ -1,6 +1,6 @@
 # Fixture operator config for offline Exec / M0 replay. Not for production.
-# Non-zero hard_limits + paper.nav let a cleared proposal exercise Exec without live keys.
-# config/default.yaml stays at 0 (fail-closed).
+# Same Nishant-locked pcts as default.yaml; paper.nav lets dollars derive at runtime.
+# config/default.yaml keeps paper.nav at 0 (fail-closed dollar derivation).
 
 mode: paper
 kill_switch: false
@@ -23,10 +23,10 @@ paper_gates:
   min_decisions: 100
 
 hard_limits:
-  max_notional: 1000.0
-  max_positions: 1
-  max_daily_loss: 50.0
-  max_portfolio_dd: 0.02
+  max_notional_pct: 1.0
+  max_positions: 15
+  max_daily_loss_pct: 0.10
+  max_portfolio_dd: 0.25
 
 paper:
   nav: 100000.0
@@ -47,3 +47,7 @@ paths:
 embedding:
   provider: fake
   dim: 32
+
+llm:
+  provider: inferhub.dev
+  model: GLM 5.3-flash

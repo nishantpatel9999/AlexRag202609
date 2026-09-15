@@ -35,7 +35,7 @@ uv run alexrag ingest-gitbook --path tests/fixtures/gitbook --out /tmp/gitbook.j
 uv run alexrag run-paper-day --dry-run --fixtures tests/fixtures --out /tmp/proposal.json
 ```
 
-Prints an audited `Proposal` JSON (`mode=paper`). `abstain` may be `true` (default hard limits are fail-closed at 0). Audit JSONL defaults to `data/audit/events.jsonl`. To exercise Exec/M0 without live keys, pass `--config config/fixture.yaml` (non-zero operator limits; `config/default.yaml` stays at 0).
+Prints an audited `Proposal` JSON (`mode=paper`). `abstain` may be `true` (`paper.nav` defaults to 0 so dollar limits cannot be derived). Audit JSONL defaults to `data/audit/events.jsonl`. To exercise Exec/M0 without live keys, pass `--config config/fixture.yaml` (same operator pcts + `paper.nav`).
 
 Eval Spec V0 golden pack (offline, no P&L):
 
@@ -58,12 +58,13 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `src/alexrag/rag` | Chunking, fake embeddings, precedence retrieve |
 | `src/alexrag/agents` | Regime, Setup, Risk, Exec paper stub, Auditor |
 | `src/alexrag/broker` | `paper_sim` M0 + Alpaca paper stub (`stubbed` ≠ filled) |
+| `src/alexrag/llm` | Inferhub.dev GLM 5.3-flash stub (`INFERHUB_API_KEY` env only) |
 | `src/alexrag/notify` | Discord stub (TODO: bot token) |
 | `src/alexrag/eval` | Paper window, sealed cutoff, golden harness, M0 fill scorer |
 | `eval/golden_cases_v0.json` | 48-case V0 pack |
 | `docs/EVAL_SPEC_V0.md` | Enter/abstain/size/manage/exit + citation scoring |
 | `docs/FILL_FIDELITY_M0.md` | PaperFill / FillIntent / M0 (0bps fixture mid) |
-| `config/fixture.yaml` | Non-zero hard_limits + `paper.nav` for offline Exec |
+| `config/fixture.yaml` | Locked operator pcts + `paper.nav` for offline Exec |
 | `src/alexrag/schemas` | `Proposal`, `FillIntent`, `PaperFill`/`FillReceipt`, `AuditEvent` |
 | `docs/CORPUS.md` | MVP channels (incl. pf-update snapshots), PT timestamps, doctrine, precedence |
 
@@ -71,6 +72,7 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 
 - Vision model
 - TradingView MCP
-- Real Alpaca **paper** client
+- Real Inferhub.dev GLM 5.3-flash client (`INFERHUB_API_KEY`)
+- Real Alpaca **paper** client (`ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY`)
 - Discord bot token / webhook
 - Real embedding model (replace in-memory/fake)

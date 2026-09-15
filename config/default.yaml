@@ -1,6 +1,8 @@
 # AlexRag202609 default config. Mode is paper-only.
-# Hard-limit values are operator-owned placeholders, not research outputs.
-# Keep hard_limits and paper.nav at 0 (fail-closed). Use config/fixture.yaml for M0 replay.
+# Nishant-locked operator hard limits (pcts of paper equity). Dollar notional
+# and dollar daily-loss are derived from paper.nav at runtime.
+# paper.nav 0 fail-closes go-decisions (cannot derive dollars). Use
+# config/fixture.yaml (same pcts + nav) for M0 replay. Secrets stay in env.
 
 mode: paper
 kill_switch: false
@@ -26,10 +28,10 @@ paper_gates:
   min_decisions: 100
 
 hard_limits:
-  max_notional: 0.0
-  max_positions: 0
-  max_daily_loss: 0.0
-  max_portfolio_dd: 0.0
+  max_notional_pct: 1.0      # 100% of paper equity (dollars = nav * pct)
+  max_positions: 15
+  max_daily_loss_pct: 0.10   # 10% of paper equity (dollars = nav * pct)
+  max_portfolio_dd: 0.25     # 25% of paper equity
 
 paper:
   nav: 0.0
@@ -37,7 +39,8 @@ paper:
   venue: paper_sim
 
 paper_book:
-  # Diagnostics + Risk loss/DD snapshot. 0 is no breach; limits at 0 still fail-closed.
+  # daily_loss is dollars; portfolio_dd is a fraction of equity.
+  # 0 is no breach; nav 0 still fail-closes dollar derivation.
   daily_loss: 0.0
   portfolio_dd: 0.0
   sessions: 0
@@ -50,3 +53,8 @@ paths:
 embedding:
   provider: fake
   dim: 32
+
+# Always-on LLM. Key via INFERHUB_API_KEY env only — never in this file.
+llm:
+  provider: inferhub.dev
+  model: GLM 5.3-flash

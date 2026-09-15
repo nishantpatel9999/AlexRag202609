@@ -75,13 +75,30 @@ Expect `abstain=true` and `abstain_reason=kill_switch_fail`. Exec must not run.
 
 ## Hard limits
 
-Operator-set in config/env: `max_notional`, `max_positions`, `max_daily_loss`, `max_portfolio_dd`. Defaults of `0` fail-closed (no go-decision). Risk enforces daily loss and portfolio DD against `paper_book`. These are not model-suggested sizes. `sessions`/`decisions` are diagnostics, not a hard floor (`docs/RISK_GATES.md`). Offline Exec/M0 replay uses `config/fixture.yaml` (non-zero limits + `paper.nav`); see `docs/FILL_FIDELITY_M0.md`.
+Nishant-locked operator values (config/env):
+
+| Limit | Value | Runtime dollars |
+| --- | --- | --- |
+| `max_positions` | 15 | n/a |
+| `max_daily_loss_pct` | 10% of equity | `paper.nav * 0.10` |
+| `max_portfolio_dd` | 25% of equity | compared as a fraction against `paper_book.portfolio_dd` |
+| `max_notional_pct` | 100% of paper equity | `paper.nav * 1.0` |
+
+`paper.nav` defaults to `0` (cannot derive dollars → `hard_limits_unconfigured`). Risk enforces daily loss and portfolio DD against `paper_book`. These are not model-suggested sizes. `sessions`/`decisions` are diagnostics, not a hard floor (`docs/RISK_GATES.md`). Offline Exec/M0 replay uses `config/fixture.yaml` (same pcts + `paper.nav`); see `docs/FILL_FIDELITY_M0.md`.
+
+## LLM (always-on)
+
+Provider **Inferhub.dev**, model **GLM 5.3-flash**. Stub client: `alexrag.llm.inferhub.InferhubClient`. Secret via `INFERHUB_API_KEY` env only — never in git.
+
+## Alpaca (paper only)
+
+Env: `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY` (operator key pair #2 — do not hardcode). Broker remains a stub (no network); `stubbed ≠ filled`. Live endpoints are not implemented.
 
 ## What not to run
 
 - Anything that would set `ALEXRAG_MODE=live` (config will reject it).
-- Real Alpaca/Discord/TradingView clients — stubs only; TODOs are in code.
-- Committing `.env`, paper keys, or Discord tokens.
+- Real Alpaca/Discord/Inferhub/TradingView clients — stubs only; TODOs are in code.
+- Committing `.env`, Inferhub/Alpaca paper keys, or Discord tokens.
 
 ## Tests
 
