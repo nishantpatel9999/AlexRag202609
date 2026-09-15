@@ -58,7 +58,7 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `src/alexrag/rag` | Chunking, fake embeddings, precedence retrieve |
 | `src/alexrag/agents` | Regime, Setup, Risk, Exec paper stub, Auditor |
 | `src/alexrag/broker` | `paper_sim` M0 + Alpaca paper stub (`stubbed` ≠ filled) |
-| `src/alexrag/llm` | Inferhub.dev GLM 5.3-flash stub (`INFERHUB_API_KEY` env only) |
+| `src/alexrag/llm` | Inferhub stub (`https://api.inferhub.dev/v1`, provider `cbcn`, GLM-5.3-flash; `INFERHUB_API_KEY` env only) |
 | `src/alexrag/notify` | Discord stub (TODO: bot token) |
 | `src/alexrag/eval` | Paper window, sealed cutoff, golden harness, M0 fill scorer |
 | `eval/golden_cases_v0.json` | 48-case V0 pack |
@@ -72,7 +72,7 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 
 - Vision model
 - TradingView MCP
-- Real Inferhub.dev GLM 5.3-flash client (`INFERHUB_API_KEY`)
+- Real Inferhub GLM-5.3-flash client (`https://api.inferhub.dev/v1`, `INFERHUB_PROVIDER=cbcn`, `INFERHUB_API_KEY`)
 - Real Alpaca **paper** client (`ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY`)
 - Discord bot token / webhook
 - Real embedding model (replace in-memory/fake)

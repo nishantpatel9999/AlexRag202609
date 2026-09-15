@@ -19,6 +19,7 @@ from alexrag.llm.inferhub import (
     INFERHUB_API_KEY_ENV,
     INFERHUB_MODEL,
     INFERHUB_PROVIDER,
+    INFERHUB_PROVIDER_ENV,
     InferhubClient,
 )
 from alexrag.schemas.fill_intent import FillIntent
@@ -76,34 +77,52 @@ def test_nav_zero_cannot_derive_dollars(tmp_path: Path) -> None:
     assert out.abstain_reason == AbstainReason.HARD_LIMITS_UNCONFIGURED
 
 
-def test_llm_locked_to_inferhub_glm() -> None:
+def test_llm_locked_to_inferhub_cbcn() -> None:
     settings = load_settings()
-    assert settings.llm.provider == "inferhub.dev"
-    assert settings.llm.model == "GLM 5.3-flash"
+    assert settings.llm.base_url == "https://api.inferhub.dev/v1"
+    assert settings.llm.provider == "cbcn"
+    assert settings.llm.model == "GLM-5.3-flash"
     with pytest.raises(ValidationError):
         Settings.model_validate({"llm": {"provider": "openai"}})
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"llm": {"provider": "inferhub.dev"}})
 
 
 def test_inferhub_stub_presence_only_never_returns_key(monkeypatch) -> None:
     monkeypatch.delenv(INFERHUB_API_KEY_ENV, raising=False)
+    monkeypatch.delenv(INFERHUB_PROVIDER_ENV, raising=False)
     cold = InferhubClient()
     assert cold.configured is False
+    assert cold.provider == INFERHUB_PROVIDER
     payload = cold.complete([{"role": "user", "content": "hello"}])
     assert payload["status"] == "stubbed"
-    assert payload["provider"] == INFERHUB_PROVIDER
+    assert payload["provider"] == "cbcn"
+    assert payload["request"]["provider"] == "cbcn"
+    assert payload["base_url"] == "https://api.inferhub.dev/v1"
     assert payload["model"] == INFERHUB_MODEL
     assert payload["text"] is None
     blob = str(payload)
     assert "sk-" not in blob
     assert INFERHUB_API_KEY_ENV in blob  # env *name* is documented
+    assert INFERHUB_PROVIDER_ENV in blob
 
     monkeypatch.setenv(INFERHUB_API_KEY_ENV, "secret-must-not-leak")
     hot = InferhubClient()
     assert hot.configured is True
     hot_payload = hot.complete()
     assert hot_payload["configured"] is True
+    assert hot_payload["request"]["provider"] == "cbcn"
     assert "secret-must-not-leak" not in str(hot_payload)
     assert "secret-must-not-leak" not in repr(hot)
+
+    with pytest.raises(ValueError, match="cbcn"):
+        InferhubClient(provider="other-upstream")
+    with pytest.raises(ValueError, match="cbcn"):
+        cold.complete(provider="openai")
+
+    monkeypatch.setenv(INFERHUB_PROVIDER_ENV, "not-cbcn")
+    with pytest.raises(ValueError, match="cbcn"):
+        InferhubClient()
 
 
 def test_alpaca_paper_env_names_presence_only(monkeypatch) -> None:
@@ -140,6 +159,15 @@ def test_alpaca_paper_env_names_presence_only(monkeypatch) -> None:
     dumped = present.model_dump()
     assert "id-must-not-leak" not in str(dumped)
     assert "secret-must-not-leak" not in str(dumped)
+
+
+def test_inferhub_provider_env_must_be_cbcn(monkeypatch) -> None:
+    monkeypatch.setenv("INFERHUB_PROVIDER", "cbcn")
+    settings = load_settings(load_env_file=False)
+    assert settings.llm.provider == "cbcn"
+    monkeypatch.setenv("INFERHUB_PROVIDER", "other")
+    with pytest.raises(ValidationError):
+        load_settings(load_env_file=False)
 
 
 def test_paper_nav_env_derives_dollars(monkeypatch) -> None:

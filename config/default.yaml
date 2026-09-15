@@ -55,7 +55,8 @@ embedding:
   provider: fake
   dim: 32
 
-# Always-on LLM. Key via INFERHUB_API_KEY env only — never in this file.
+# Always-on LLM. Inferhub host + cbcn upstream only. Key via INFERHUB_API_KEY env.
 llm:
-  provider: inferhub.dev
-  model: GLM 5.3-flash
+  base_url: https://api.inferhub.dev/v1
+  provider: cbcn
+  model: GLM-5.3-flash

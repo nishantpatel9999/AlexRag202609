@@ -50,5 +50,6 @@ embedding:
   dim: 32
 
 llm:
-  provider: inferhub.dev
-  model: GLM 5.3-flash
+  base_url: https://api.inferhub.dev/v1
+  provider: cbcn
+  model: GLM-5.3-flash

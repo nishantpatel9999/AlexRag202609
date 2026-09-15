@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field, field_validator
 
 from alexrag import envutil
+from alexrag.llm.inferhub import INFERHUB_BASE_URL, INFERHUB_MODEL, INFERHUB_PROVIDER, require_cbcn_provider
 from alexrag.schemas.sources import PRECEDENCE_DEFAULT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -65,10 +66,20 @@ class EmbeddingSettings(BaseModel):
 
 
 class LlmSettings(BaseModel):
-    """Always-on LLM. API key is env-only (INFERHUB_API_KEY); never a field here."""
+    """Always-on LLM via Inferhub. API key is env-only (INFERHUB_API_KEY).
 
-    provider: Literal["inferhub.dev"] = "inferhub.dev"
-    model: Literal["GLM 5.3-flash"] = "GLM 5.3-flash"
+    Calls go to ``https://api.inferhub.dev/v1`` with upstream ``provider=cbcn``
+    only — no other Inferhub routes. Model is GLM-5.3-flash.
+    """
+
+    base_url: Literal["https://api.inferhub.dev/v1"] = INFERHUB_BASE_URL
+    provider: Literal["cbcn"] = INFERHUB_PROVIDER
+    model: Literal["GLM-5.3-flash"] = INFERHUB_MODEL
+
+    @field_validator("provider")
+    @classmethod
+    def _cbcn_only(cls, v: str) -> str:
+        return require_cbcn_provider(v)
 
 
 class PaperSimSettings(BaseModel):
@@ -243,6 +254,13 @@ def _env_overlay() -> dict[str, Any]:
         paths["gitbook_snapshot"] = gitbook
     if paths:
         overlay["paths"] = paths
+
+    llm: dict[str, Any] = {}
+    inferhub_provider = envutil.get_str("INFERHUB_PROVIDER")
+    if inferhub_provider is not None:
+        llm["provider"] = inferhub_provider
+    if llm:
+        overlay["llm"] = llm
     return overlay
 
 
