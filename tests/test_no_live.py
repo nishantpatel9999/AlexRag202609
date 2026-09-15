@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -23,10 +22,25 @@ def test_broker_rejects_non_paper(monkeypatch) -> None:
     broker = AlpacaPaperBroker()
     with pytest.raises(Exception):
         FillIntent(intent_id="i", proposal_id="p", mode="live")  # type: ignore[arg-type]
-    intent = FillIntent(intent_id="i", proposal_id="p", mode="paper")
+    clock = datetime(2026, 9, 15, 18, 15, tzinfo=timezone.utc)
+    intent = FillIntent(
+        intent_id="i",
+        proposal_id="p",
+        mode="paper",
+        ticker="NVDA",
+        side="buy",
+        order_type="market",
+        notional=250.0,
+        qty=2.0,
+        size_ner_pct=0.25,
+        decision_clock=clock,
+        abstain=False,
+    )
     result = broker.submit_paper(intent)
-    assert result["submitted"] is False
-    assert result["status"] == "stubbed"
+    assert result.status == "stubbed"
+    assert result.filled is False
+    assert result.qty_filled == 0
+    assert result.venue == "alpaca_paper"
 
 
 def test_tradingview_mcp_is_stub() -> None:

@@ -142,6 +142,37 @@ def test_configured_limits_can_clear_risk(fixtures_dir: Path, tmp_path: Path) ->
         assert result.fill.mode == "paper"
 
 
+def test_fixture_config_exercises_m0_exec(fixtures_dir: Path, tmp_path: Path) -> None:
+    from datetime import timezone
+
+    from alexrag.config import ROOT
+
+    settings = load_settings(config_path=ROOT / "config" / "fixture.yaml")
+    index, _messages = _index(fixtures_dir, settings)
+    clock = datetime(2026, 9, 15, 18, 15, tzinfo=timezone.utc)
+    result = run_paper_day(
+        settings,
+        index,
+        decision_clock=clock,
+        audit_path=tmp_path / "m0.jsonl",
+    )
+    assert settings.hard_limits.max_notional > 0
+    assert result.proposal.abstain is False
+    assert result.fill is not None
+    assert result.fill.abstain is False
+    assert result.fill.ticker == "NVDA"
+    assert result.fill.side == "buy"
+    assert result.fill.notional == 250.0
+    assert result.fill.qty == 2.0
+    assert result.receipt is not None
+    assert result.receipt.status == "acked"
+    assert result.receipt.filled is True
+    assert result.receipt.venue == "paper_sim"
+    assert result.receipt.scar_bps == 0
+    assert result.receipt.fill_px == 125.0
+    assert result.receipt.qty_filled == 2.0
+
+
 def test_paper_window_is_or_not_calendar() -> None:
     assert paper_window_met(60, 0) is True
     assert paper_window_met(0, 100) is True

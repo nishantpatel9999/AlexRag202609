@@ -75,7 +75,7 @@ Expect `abstain=true` and `abstain_reason=kill_switch`. Exec must not run.
 
 ## Hard limits
 
-Operator-set in config/env: `max_notional`, `max_positions`, `max_daily_loss`, `max_portfolio_dd`. Defaults of `0` fail-closed (no go-decision). These are not model-suggested sizes.
+Operator-set in config/env: `max_notional`, `max_positions`, `max_daily_loss`, `max_portfolio_dd`. Defaults of `0` fail-closed (no go-decision). These are not model-suggested sizes. Offline Exec/M0 replay uses `config/fixture.yaml` (non-zero limits + `paper.nav`); see `docs/FILL_FIDELITY_M0.md`.
 
 ## What not to run
 

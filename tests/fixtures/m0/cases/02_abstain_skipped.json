@@ -1,0 +1,82 @@
+{
+  "case_id": "m0_abstain_skipped",
+  "fill_model": "M0",
+  "scar_bps": 0.0,
+  "paper_nav": 100000.0,
+  "hard_limits": {
+    "max_notional": 1000.0,
+    "max_positions": 1,
+    "max_daily_loss": 50.0,
+    "max_portfolio_dd": 0.02
+  },
+  "bars": [
+    {
+      "ts": "2026-09-15T18:16:00+00:00",
+      "ticker": "NVDA",
+      "mid": 125.0
+    }
+  ],
+  "proposal": {
+    "proposal_id": "prop-m0-abstain",
+    "decision_clock": "2026-09-15T18:15:00+00:00",
+    "mode": "paper",
+    "tickers": ["NVDA"],
+    "regime": "unknown",
+    "size_ner_pct": 0.0,
+    "confidence": 0.7,
+    "abstain": true,
+    "abstain_reason": "unknown_regime",
+    "citations": [
+      {
+        "source_id": "j-1",
+        "source_type": "journal",
+        "chunk_id": "c-abstain",
+        "excerpt": "Journal: waiting. Mentions $NVDA but no go.",
+        "timestamp": "2026-09-15T18:10:00+00:00"
+      }
+    ],
+    "thesis": "sealed M0 replay: abstain must skip, not fill",
+    "setup_summary": "no go",
+    "hard_limits_snapshot": {
+      "max_notional": 1000.0,
+      "max_positions": 1,
+      "max_daily_loss": 50.0,
+      "max_portfolio_dd": 0.02
+    }
+  },
+  "intent": {
+    "intent_id": "intent-m0-abstain",
+    "proposal_id": "prop-m0-abstain",
+    "mode": "paper",
+    "ticker": "NVDA",
+    "side": null,
+    "order_type": null,
+    "limit_px": null,
+    "invalidation": null,
+    "notional": 0.0,
+    "qty": null,
+    "size_ner_pct": 0.0,
+    "decision_clock": "2026-09-15T18:15:00+00:00",
+    "ref_px": null,
+    "ref_px_source": null,
+    "abstain": true,
+    "abstain_reason": "unknown_regime"
+  },
+  "expected_fill": {
+    "fill_ts": "2026-09-15T18:15:00+00:00",
+    "fill_px": null,
+    "qty_filled": 0.0,
+    "qty_left": 0.0,
+    "status": "skipped",
+    "venue": "paper_sim",
+    "latency_ms": 0.0,
+    "intent_id": "intent-m0-abstain",
+    "proposal_id": "prop-m0-abstain",
+    "filled": false,
+    "fill_model": "M0",
+    "scar_bps": 0.0,
+    "scar_label": "fixture_mid_0bps_not_alex_slippage",
+    "skip_reason": "unknown_regime"
+  },
+  "notes": "Abstain proposal → skipped receipt. Skipped is not filled. Next bar is ignored."
+}

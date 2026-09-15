@@ -11,20 +11,29 @@ from alexrag.agents.exec_agent import ExecAgent
 from alexrag.agents.regime import RegimeAgent
 from alexrag.agents.risk import RiskAgent
 from alexrag.agents.setup import SetupAgent
-from alexrag.config import Settings
+from alexrag.config import ROOT, Settings
 from alexrag.eval.cutoff import aware
+from alexrag.marketdata.fixture_bars import load_fixture_bars
 from alexrag.rag.index import InMemoryIndex
 from alexrag.rag.retrieve import retrieve_with_precedence
 from alexrag.schemas.fill_intent import FillIntent
+from alexrag.schemas.paper_fill import PaperFill
 from alexrag.schemas.proposal import Proposal
 from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
 
 
 class PaperDayResult:
-    def __init__(self, proposal: Proposal, fill: FillIntent | None, audit: AuditLog) -> None:
+    def __init__(
+        self,
+        proposal: Proposal,
+        fill: FillIntent | None,
+        audit: AuditLog,
+        receipt: PaperFill | None = None,
+    ) -> None:
         self.proposal = proposal
         self.fill = fill
         self.audit = audit
+        self.receipt = receipt
 
     def proposal_json(self) -> str:
         return self.proposal.model_dump_json(indent=2)
@@ -43,7 +52,7 @@ def run_paper_day(
     audit_path: Path | None = None,
     dry_run: bool = True,
 ) -> PaperDayResult:
-    """Regime→Setup→Risk→(abstain or Exec paper stub)→Auditor. No network. No live path."""
+    """Regime→Setup→Risk→Exec (M0 paper_sim / alpaca stub)→Auditor. No network. No live path."""
 
     clock = aware(decision_clock or datetime.now(ZoneInfo(DEFAULT_DISCORD_TZ)))
     proposal_id = str(uuid.uuid4())
@@ -73,7 +82,7 @@ def run_paper_day(
                 "dry_run": dry_run,
             },
         )
-        return PaperDayResult(proposal, None, audit)
+        return PaperDayResult(proposal, None, audit, None)
 
     audit.emit(
         kind="paper_day_start",
@@ -133,8 +142,14 @@ def run_paper_day(
     proposal.regime = RegimeAgent().run(retrieved, audit, proposal_id)
     proposal = SetupAgent().run(retrieved, proposal=proposal, audit=audit)
     proposal = RiskAgent().run(proposal, settings, audit)
-    fill = ExecAgent().run(proposal, audit)
-    proposal = AuditorAgent().run(proposal, audit, fill)
+    bars = []
+    if settings.paper.bars_path:
+        bars_path = Path(settings.paper.bars_path)
+        if not bars_path.is_absolute():
+            bars_path = ROOT / bars_path
+        bars = load_fixture_bars(bars_path)
+    fill, receipt = ExecAgent().run(proposal, audit, settings=settings, bars=bars)
+    proposal = AuditorAgent().run(proposal, audit, fill, receipt)
     audit.emit(
         kind="paper_day_complete",
         actor="orchestrator",
@@ -143,6 +158,8 @@ def run_paper_day(
             "abstain": proposal.abstain,
             "reason": proposal.abstain_reason,
             "dry_run": dry_run,
+            "receipt_status": None if receipt is None else receipt.status,
+            "receipt_filled": None if receipt is None else receipt.filled,
         },
     )
-    return PaperDayResult(proposal, fill, audit)
+    return PaperDayResult(proposal, fill, audit, receipt)

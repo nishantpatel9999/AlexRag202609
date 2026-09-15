@@ -29,8 +29,9 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
                           abstain? ──yes──┤── Proposal JSON + AuditEvent
                                           │ no
                                           ▼
-                                 Exec paper stub
-                                 (Alpaca TODO)
+                                 Exec → FillIntent
+                                 paper_sim M0 or alpaca_paper stub
+                                 (stubbed ≠ filled; 0bps fixture mid)
                                           │
                                           ▼
                                       Auditor
@@ -43,7 +44,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
 | Config | `config/default.yaml` + `ALEXRAG_*` env | same, still paper-only until a future spec |
 | Embeddings | `FakeEmbeddingProvider` (hash vectors) | local model on Mac Studio |
 | Index | in-memory | durable vector store |
-| Broker | `AlpacaPaperBroker.submit_paper` stub | Alpaca **paper** API only |
+| Broker | `paper_sim` M0 (fixture bars) + `AlpacaPaperBroker` stub | Alpaca **paper** API only; stubbed ≠ filled |
 | Notify | log stub | Discord webhook/bot |
 | Charts | `TradingViewMCP` raises `NotImplementedError` | MCP client; still no invented numbers |
 | Audit | JSONL file sink | same contract, maybe append-only store |
@@ -56,7 +57,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
 4. Retrieve with source precedence.
 5. Stale / low-confidence / empty → abstain.
 6. Regime → Setup → Risk.
-7. Exec paper stub only when `abstain=false`.
+7. Exec maps a cleared proposal to a complete `FillIntent` and a `PaperFill` (`paper_sim` M0 or `alpaca_paper` stub). See `docs/FILL_FIDELITY_M0.md`.
 8. Auditor may force abstain if the trail is incomplete.
 9. Write `Proposal` JSON.
 
@@ -74,7 +75,7 @@ Risk does not call the broker. It only maps a `Proposal`:
 - conflict_labels
 - hard_limits_snapshot
 
-Exec consumes a cleared proposal and produces a `FillIntent(mode="paper")`.
+Exec consumes a cleared proposal and produces a `FillIntent(mode="paper")` plus a `PaperFill`/`FillReceipt`. Go intents must include ticker, side, order_type, notional, qty, and `decision_clock`.
 
 ## Fail-closed surfaces
 

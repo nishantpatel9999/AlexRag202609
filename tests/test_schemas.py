@@ -54,6 +54,27 @@ def test_fill_intent_paper_only() -> None:
         FillIntent(intent_id="i", proposal_id="p", mode="live")  # type: ignore[arg-type]
 
 
+def test_paper_fill_acked_roundtrip() -> None:
+    from alexrag.schemas.paper_fill import PaperFill
+
+    clock = datetime(2026, 9, 15, 18, 16, tzinfo=timezone.utc)
+    fill = PaperFill(
+        fill_ts=clock,
+        fill_px=125.0,
+        qty_filled=2.0,
+        qty_left=0.0,
+        status="acked",
+        venue="paper_sim",
+        latency_ms=60000.0,
+        intent_id="i",
+        proposal_id="p",
+        filled=True,
+        scar_bps=0.0,
+    )
+    assert fill.filled is True
+    assert fill.status != "stubbed"
+
+
 def test_settings_reject_live_mode() -> None:
     with pytest.raises(ValidationError):
         Settings.model_validate({"mode": "live"})

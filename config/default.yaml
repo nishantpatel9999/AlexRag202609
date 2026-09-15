@@ -1,5 +1,6 @@
 # AlexRag202609 default config. Mode is paper-only.
 # Hard-limit values are operator-owned placeholders, not research outputs.
+# Keep hard_limits and paper.nav at 0 (fail-closed). Use config/fixture.yaml for M0 replay.
 
 mode: paper
 kill_switch: false
@@ -27,6 +28,11 @@ hard_limits:
   max_positions: 0
   max_daily_loss: 0.0
   max_portfolio_dd: 0.0
+
+paper:
+  nav: 0.0
+  fill_model: M0
+  venue: paper_sim
 
 paths:
   audit_log: data/audit/events.jsonl

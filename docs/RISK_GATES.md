@@ -35,6 +35,10 @@ Implemented in `alexrag.eval.metrics.paper_window_met`. This is a **necessary** 
 
 Helpers live in `alexrag.eval`. Thresholds for “good enough” replay/citation/abstain are **not** invented here; a future eval spec must set them from observed paper data.
 
+## Paper fill fidelity (M0, not a promotion metric)
+
+Offline paper fills use model **M0**: mark-to-next-available fixture bar/mid, **0bps** scar labeled (`docs/FILL_FIDELITY_M0.md`). `stubbed` (Alpaca paper without keys) is **not** `filled`. Default `hard_limits` stay `0` (fail-closed); `config/fixture.yaml` is the non-zero operator file for Exec replay. **No P&L gate.** **No live path.**
+
 ## What does *not* satisfy a gate
 
 - A calendar reminder or “we have been in paper for N weeks”

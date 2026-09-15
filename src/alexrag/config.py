@@ -46,6 +46,15 @@ class EmbeddingSettings(BaseModel):
     dim: int = 32
 
 
+class PaperSimSettings(BaseModel):
+    """Offline paper sizing + M0 venue. ``nav`` 0 fail-closes Exec sizing."""
+
+    nav: float = 0.0
+    fill_model: Literal["M0"] = "M0"
+    venue: Literal["paper_sim", "alpaca_paper"] = "paper_sim"
+    bars_path: str | None = None
+
+
 class Settings(BaseModel):
     """Runtime settings. Live mode is rejected at parse time — no live trading path."""
 
@@ -55,6 +64,7 @@ class Settings(BaseModel):
     retrieval: RetrievalSettings = Field(default_factory=RetrievalSettings)
     paper_gates: PaperGateSettings = Field(default_factory=PaperGateSettings)
     hard_limits: HardLimits = Field(default_factory=HardLimits)
+    paper: PaperSimSettings = Field(default_factory=PaperSimSettings)
     paths: PathSettings = Field(default_factory=PathSettings)
     embedding: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
 

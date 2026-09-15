@@ -11,6 +11,12 @@ from alexrag.rag.retrieve import RetrievalResult
 
 TICKER_RE = re.compile(r"\$([A-Z]{1,5})\b")
 NER_RE = re.compile(r"(?i)(?:ner\s*[:=]?\s*(\d+(?:\.\d+)?)\s*%|(\d+(?:\.\d+)?)\s*%\s*ner)")
+SIDE_RE = re.compile(r"(?i)\b(long|buy|short|sell)\b")
+LIMIT_RE = re.compile(r"(?i)\blimit\b\s*(?:px|price|@|:|=)?\s*(\d+(?:\.\d+)?)")
+INVALIDATION_NUM_RE = re.compile(
+    r"(?i)\binvalidation\b\s*(?:at|below|above|:|=)\s*(\d+(?:\.\d+)?)"
+)
+INVALIDATION_TEXT_RE = re.compile(r"(?i)\binvalidation\s*:\s*([^\n.]{1,80})")
 
 # Qualitative labels only — used if the word already appears in citations.
 REGIME_LABELS = (
@@ -50,6 +56,38 @@ def extract_regime(text: str) -> str:
         if label != "unknown" and label in lowered:
             return label.replace(" ", "_")
     return "unknown"
+
+
+def extract_side(text: str) -> str | None:
+    match = SIDE_RE.search(text or "")
+    if not match:
+        return None
+    word = match.group(1).lower()
+    if word in {"long", "buy"}:
+        return "buy"
+    return "sell"
+
+
+def extract_limit_px(text: str) -> float | None:
+    match = LIMIT_RE.search(text or "")
+    if not match:
+        return None
+    try:
+        return float(match.group(1))
+    except ValueError:
+        return None
+
+
+def extract_invalidation(text: str) -> str | None:
+    text = text or ""
+    numbered = INVALIDATION_NUM_RE.search(text)
+    if numbered:
+        return numbered.group(1)
+    prose = INVALIDATION_TEXT_RE.search(text)
+    if not prose:
+        return None
+    snippet = prose.group(1).strip()
+    return snippet or None
 
 
 def combined_text(result: RetrievalResult) -> str:
