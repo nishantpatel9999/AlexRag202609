@@ -100,15 +100,17 @@ def build_model_context(
     banned = set(case.banned_same_day_ids)
     target_id = case.target_action.message_id
     target_text = (case.target_action.text or "").strip()
-    eligible_by_id = {m.message_id: m for m in eligible}
-
-    for msg in eligible:
-        if msg.message_id in banned or msg.message_id == target_id:
-            raise GroundTruthLeakError(
-                f"eligible set contains banned/GT id {msg.message_id} for {case.case_id}"
-            )
-        if target_text and msg.text.strip() == target_text and msg.message_id == target_id:
-            raise GroundTruthLeakError("eligible set contains GT fill body")
+    # Drop GT target + banned rows if present. For abstain goldens, decision_ts is
+    # often plan_ts+1s so the plan id is time-eligible but must not enter model context.
+    filtered = [
+        m
+        for m in eligible
+        if m.message_id not in banned
+        and m.message_id != target_id
+        and not (target_text and m.text.strip() == target_text and m.message_id == target_id)
+    ]
+    eligible_by_id = {m.message_id: m for m in filtered}
+    eligible = filtered
 
     hint_ids = [i for i in case.key_evidence_ids if i in eligible_by_id and i not in banned]
     if retrieved_ids is None:
