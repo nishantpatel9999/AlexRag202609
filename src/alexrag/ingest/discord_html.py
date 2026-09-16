@@ -6,6 +6,8 @@ Corpus notes (see docs/CORPUS.md):
 - pf-update is portfolio/state only, not fills ground truth (equity-trades remains #1).
 - Follow-on messages often omit <time datetime>; timestamps inherit across
   messages AND message groups from the last seen datetime.
+- Current DiscordChatExporter HTML may use title= on chatlog__timestamp /
+  chatlog__short-timestamp instead of <time datetime>.
 - Naive timestamps are America/Los_Angeles; ingest is labeled **PT**.
 """
 
@@ -26,16 +28,41 @@ DISCORD_TZ = ZoneInfo(DEFAULT_DISCORD_TZ)
 
 
 def parse_ts(value: str | None) -> datetime | None:
+    """Parse ISO datetime or DiscordChatExporter title strings.
+
+    Real exporter HTML often uses:
+      title="Monday, October 3, 2022 6:37\u202fAM"
+    on chatlog__timestamp / chatlog__short-timestamp (no <time datetime>).
+    Naive values are America/Los_Angeles (PT).
+    """
     if not value:
         return None
     text = value.strip()
     if not text:
         return None
+    # Normalize narrow/no-break spaces common in exporter titles.
+    for ch in (" ", " ", " "):
+        text = text.replace(ch, " ")
+    text = " ".join(text.split())
     if text.endswith("Z"):
         text = text[:-1] + "+00:00"
     try:
         dt = datetime.fromisoformat(text)
     except ValueError:
+        dt = None
+    if dt is None:
+        for fmt in (
+            "%A, %B %d, %Y %I:%M %p",
+            "%A, %B %d, %Y %H:%M",
+            "%m/%d/%Y %I:%M %p",
+            "%m/%d/%Y %H:%M",
+        ):
+            try:
+                dt = datetime.strptime(text, fmt)
+                break
+            except ValueError:
+                continue
+    if dt is None:
         return None
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=DISCORD_TZ)
@@ -137,6 +164,14 @@ class DiscordHTMLParser(HTMLParser):
 
         if tag == "time" and ad.get("datetime"):
             self._msg["ts"] = ad.get("datetime")
+
+        # DiscordChatExporter (current): timestamps live in title= on
+        # chatlog__timestamp / chatlog__short-timestamp, not <time datetime>.
+        if ad.get("title") and (
+            _has_class(classes, "chatlog__timestamp")
+            or _has_class(classes, "chatlog__short-timestamp")
+        ):
+            self._msg["ts"] = ad.get("title")
 
         if self._attach_depth and tag in {"a", "img"}:
             src = ad.get("href") or ad.get("src")
