@@ -1,0 +1,215 @@
+{
+  "run_id": "inferhub-cbcn-v0",
+  "model_id": "cbcn/glm-5.3-flash",
+  "dry_run": false,
+  "live_llm": true,
+  "repo_tip": "8960118",
+  "fixture_sha256_16": "1a3cb17781211ad0",
+  "lock_version": "MODEL_EVAL_LOCK_V0",
+  "capital": 0,
+  "paper_authority": false,
+  "paper_unlocked": false,
+  "model_eval_clear": false,
+  "summary": {
+    "n_cases": 48,
+    "n_scored": 48,
+    "n_pass": 4,
+    "n_fail": 28,
+    "n_ambiguous": 16,
+    "n_missing": 0,
+    "behavioral_action_match": 0.125,
+    "no_trade_precision": 0.09090909090909091,
+    "no_trade_recall": 1.0,
+    "cfp_count": 0,
+    "citation_coverage_non_abstain": 1.0,
+    "run_valid": true,
+    "kill_scars": [],
+    "paper_authority": false,
+    "capital": 0,
+    "pnl_scored": false,
+    "gates": {
+      "behavioral_action_match_ok": false,
+      "no_trade_recall_ok": true,
+      "no_trade_precision_ok": false,
+      "cfp_ok": true,
+      "citation_coverage_ok": true,
+      "kill_scars_clear": true,
+      "model_eval_clear": false,
+      "paper_authority": false,
+      "capital": 0
+    }
+  },
+  "manifest": {
+    "run_id": "inferhub-cbcn-v0",
+    "lock_version": "MODEL_EVAL_LOCK_V0",
+    "fixture_sha256_16": "1a3cb17781211ad0",
+    "fixture_path": "eval/golden_cases_v0_frozen.json",
+    "created_at": "2026-09-16T03:58:56.658072+00:00",
+    "paper_authority": false,
+    "capital": 0,
+    "run_valid": true,
+    "kill_scars": [],
+    "cfp_count": 0,
+    "pnl_scored": false,
+    "orthogonal_to": "Quant_M0_fill_receipts",
+    "live_llm": false,
+    "broker": false
+  },
+  "emit_meta": {
+    "run_id": "inferhub-cbcn-v0",
+    "model_id": "cbcn/glm-5.3-flash",
+    "dry_run": false,
+    "n_cases": 48,
+    "n_abstain": 44,
+    "paper_authority": false,
+    "capital": 0,
+    "fixture_sha256_16": "1a3cb17781211ad0",
+    "lock_version": "MODEL_EVAL_LOCK_V0",
+    "ingest": "data/ingest",
+    "predictions_path": "results/model_eval_runs/inferhub-cbcn-v0/predictions.jsonl",
+    "sealed_cutoff_rule": "only artifacts with timestamp < decision_ts",
+    "live_llm": true,
+    "broker": false,
+    "model_eval_clear": false,
+    "orthogonal_to": "Quant_M0_fill_receipts",
+    "created_at": "2026-09-16T03:58:47.776869+00:00",
+    "max_messages": 32
+  },
+  "by_primary_question": {
+    "abstain": {
+      "PASS": 4
+    },
+    "enter": {
+      "AMBIGUOUS": 11,
+      "FAIL": 15
+    },
+    "exit": {
+      "FAIL": 5
+    },
+    "manage": {
+      "FAIL": 6
+    },
+    "size": {
+      "FAIL": 2,
+      "AMBIGUOUS": 5
+    }
+  },
+  "pass_case_ids": [
+    "GC-04-2022-12-09",
+    "GC-09-2023-03-19",
+    "GC-28-2025-03-04",
+    "GC-30-2025-03-07"
+  ],
+  "ambiguous_case_ids": [
+    "GC-02-2022-11-03",
+    "GC-05-2023-01-05",
+    "GC-10-2023-04-21",
+    "GC-17-2024-01-29",
+    "GC-18-2024-03-06",
+    "GC-19-2024-03-15",
+    "GC-20-2024-07-30",
+    "GC-23-2024-09-25",
+    "GC-26-2025-01-06",
+    "GC-31-2025-03-10",
+    "GC-33-2025-03-17",
+    "GC-34-2025-04-11",
+    "GC-35-2025-04-17",
+    "GC-36-2025-04-22",
+    "GC-40-2026-03-26",
+    "GC-42-2026-08-25"
+  ],
+  "cfp_case_ids": [],
+  "gc15": {
+    "case_id": "GC-15-2023-09-21",
+    "status": "FAIL",
+    "raw_status": "FAIL",
+    "fixture_tag": null,
+    "primary_question": "enter",
+    "cfp": false,
+    "citation_ok": true,
+    "notes": [
+      "ticker_mismatch pred='' gt='STRL'",
+      "side_mismatch pred=n/a gt=short",
+      "action_mismatch pred=abstain gt=enter"
+    ],
+    "gt": {
+      "action": "enter",
+      "side": "short",
+      "ticker": "STRL",
+      "size_pct": 10.0,
+      "management": null,
+      "exit": null,
+      "abstain_ticker": null
+    },
+    "predicted": {
+      "action": "abstain",
+      "side": "n/a",
+      "ticker": "",
+      "size_pct": null,
+      "management": null,
+      "exit": null
+    }
+  },
+  "gc29": {
+    "case_id": "GC-29-2025-03-05",
+    "status": "FAIL",
+    "raw_status": "FAIL",
+    "fixture_tag": null,
+    "primary_question": "enter",
+    "cfp": false,
+    "citation_ok": true,
+    "notes": [
+      "ticker_mismatch pred='' gt='NFLX'",
+      "side_mismatch pred=n/a gt=long",
+      "action_mismatch pred=abstain gt=enter"
+    ],
+    "gt": {
+      "action": "enter",
+      "side": "long",
+      "ticker": "NFLX",
+      "size_pct": 23.0,
+      "management": null,
+      "exit": null,
+      "abstain_ticker": null
+    },
+    "predicted": {
+      "action": "abstain",
+      "side": "n/a",
+      "ticker": "",
+      "size_pct": null,
+      "management": null,
+      "exit": null
+    }
+  },
+  "prediction_action_counts": {
+    "abstain": 44,
+    "manage": 4
+  },
+  "parse_failure_case_ids": [
+    "GC-12-2023-06-22",
+    "GC-13-2023-07-28",
+    "GC-16-2023-11-09",
+    "GC-17-2024-01-29",
+    "GC-18-2024-03-06",
+    "GC-20-2024-07-30",
+    "GC-21-2024-08-01",
+    "GC-22-2024-08-30",
+    "GC-38-2025-08-05",
+    "GC-39-2025-11-06",
+    "GC-43-2026-08-28",
+    "GC-45-2026-09-03"
+  ],
+  "thin_evidence_case_ids": [
+    "GC-15-2023-09-21",
+    "GC-29-2025-03-05"
+  ],
+  "notes": [
+    "Live Inferhub emit used API model id cbcn/glm-5.3-flash (API 404s on code pin cbcn/GLM-5.3-flash).",
+    "Emitter patched locally to coerce rejected_alternatives objects\u2192strings (else ValidationError\u2192parse_failure).",
+    "max_tokens=4096 on chat.completions to avoid finish_reason=length truncating JSON.",
+    "12 remaining parse_failure abstains are honest emitter fallbacks, not invented actions.",
+    "CLEAR not claimed: gates.model_eval_clear=false under MODEL_EVAL_LOCK_V0."
+  ],
+  "generated_at_pt": "2026-09-15 08:59:34 PM PT",
+  "generated_at_utc": "2026-09-16T03:59:34.798539+00:00"
+}

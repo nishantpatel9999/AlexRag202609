@@ -43,7 +43,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
 | --- | --- | --- |
 | Config | `config/default.yaml` + `ALEXRAG_*` env | same, still paper-only until a future spec |
 | Embeddings | `FakeEmbeddingProvider` (hash vectors) | local model on Mac Studio |
-| LLM | `InferhubClient` OpenAI-compatible chat (`LLM_PROVIDER=inferhub`, model **`cbcn/GLM-5.3-flash`**, `INFERHUB_PROVIDER=cbcn`; stub if no key) | live Inferhub on Mac via `INFERHUB_API_KEY`; no non-cbcn upstreams |
+| LLM | `InferhubClient` OpenAI-compatible chat (`LLM_PROVIDER=inferhub`, model **`cbcn/glm-5.3-flash`** (case-insensitive accept of `cbcn/GLM-5.3-flash`), `INFERHUB_PROVIDER=cbcn`; stub if no key) | live Inferhub on Mac via `INFERHUB_API_KEY`; no non-cbcn upstreams |
 | Index | in-memory | durable vector store |
 | Broker | `paper_sim` M0 (fixture bars) + `AlpacaPaperBroker` stub | Alpaca **paper** API only; stubbed ≠ filled; `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY` |
 | Notify | log stub | Discord webhook/bot |

@@ -16,6 +16,7 @@ from alexrag.eval.frozen_pack import EligibleFilter, FrozenCase, TargetAction, l
 from alexrag.eval.model_context import build_model_context
 from alexrag.eval.model_emit import (
     DRY_RUN_MODEL_ID,
+    EmitParseStats,
     emit_model_predictions,
     emit_one_case,
     extract_json_object,
@@ -232,6 +233,13 @@ def test_prediction_from_model_drops_banned_cites() -> None:
 def test_extract_json_object_strips_fence() -> None:
     obj = extract_json_object("```json\n{\"action\": \"abstain\"}\n```")
     assert obj["action"] == "abstain"
+    # Prose before fence + trailing junk after closing brace.
+    obj2 = extract_json_object(
+        'Here you go:\n```JSON\n{"action": "enter", "side": "long"}\n```\nthanks'
+    )
+    assert obj2["action"] == "enter"
+    obj3 = extract_json_object('prefix {"action": "abstain", "x": 1} trailing prose')
+    assert obj3["action"] == "abstain"
 
 
 def test_inferhub_complete_posts_chat_completions(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -347,3 +355,145 @@ def test_thin_evidence_gc15_with_fixture_ingest() -> None:
     reason = thin_evidence_reason(case, ctx)
     assert reason == "thin_evidence_no_eligible_messages"
     assert "gc15-banned" not in ctx.retrieved_ids
+
+
+def test_rejected_alternatives_dict_coerce() -> None:
+    """Model often returns rejected_alternatives as objects; lock schema is list[str]."""
+
+    pack = load_frozen_pack()
+    corpus = load_mvp_ingest(FIXTURE_INGEST)
+    case = next(c for c in pack.cases if c.case_id == "GC-02-2022-11-03")
+    eligible = eligible_messages(case, corpus)
+    retrieved = select_retrieved_ids(case, eligible)
+    ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+    mid = retrieved[0] if retrieved else None
+    cites: list[dict[str, str]] = []
+    if mid:
+        msg = next(m for m in ctx.messages if m.message_id == mid)
+        cites = [
+            {
+                "source": msg.channel or "equity-trades",
+                "message_id": mid,
+                "ts": msg.ts.isoformat() if msg.ts else case.decision_ts.isoformat(),
+                "quote_span": (msg.text or "")[:20],
+            }
+        ]
+    obj = {
+        "action": "abstain",
+        "side": "n/a",
+        "ticker": "",
+        "citations": cites,
+        "confidence": 0.1,
+        "abstain_reason": "unsure",
+        "rejected_alternatives": [
+            {"alternative": "enter", "reason": "thin priors"},
+            {"action": "size", "why": "no size cue"},
+            "plain-string-alt",
+            {"alt": "exit"},
+        ],
+    }
+    pred = prediction_from_model_obj(obj, case, ctx, run_id="rej", model_id="t")
+    assert pred.rejected_alternatives == [
+        "enter: thin priors",
+        "size: no size cue",
+        "plain-string-alt",
+        "exit",
+    ]
+
+
+def test_parse_retry_recovers_then_counts(tmp_path: Path) -> None:
+    """One repair complete() recovers bad first response; metadata counts recovery."""
+
+    pt = ZoneInfo("America/Los_Angeles")
+    decision = datetime(2024, 1, 15, 10, 0, tzinfo=pt)
+    case = FrozenCase(
+        case_id="SYN-RETRY",
+        date_pt="2024-01-15",
+        tickers=["AAA"],
+        primary_question="enter",
+        decision_ts=decision,
+        fill_ts=decision,
+        target_action=TargetAction(
+            message_id="ban-fill",
+            channel="equity-trades",
+            ts=decision,
+            text="Long 10% AAA @ 12.00 (SL @ 11.80)",
+            action_classes=["enter"],
+            primary_question="enter",
+        ),
+        eligible_filter=EligibleFilter(
+            channels=["equity-trades", "alex-journal", "prime-report", "pf-update"],
+            ts_lt=decision,
+            tz="America/Los_Angeles",
+        ),
+        banned_same_day_ids=["ban-fill", "ban-journal"],
+        key_evidence_ids=["eq-ok", "j-ok"],
+    )
+    lock = load_model_eval_lock()
+    corpus = load_mvp_ingest(FIXTURE_INGEST)
+    good = json.dumps(
+        {
+            "action": "abstain",
+            "side": "n/a",
+            "ticker": "",
+            "citations": [],
+            "confidence": 0.0,
+            "abstain_reason": "model_abstain",
+            "rejected_alternatives": [],
+        }
+    )
+
+    class RetryClient:
+        configured = True
+        calls = 0
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            self.calls += 1
+            if self.calls == 1:
+                return {"status": "ok", "text": "not json at all", "model": INFERHUB_MODEL}
+            assert any(m.get("role") == "user" and "JSON object" in m.get("content", "") for m in messages)
+            return {"status": "ok", "text": good, "model": INFERHUB_MODEL}
+
+    stats = EmitParseStats()
+    client = RetryClient()
+    pred, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="retry",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=client,  # type: ignore[arg-type]
+        parse_stats=stats,
+    )
+    assert client.calls == 2
+    assert pred.action == "abstain"
+    assert pred.abstain_reason == "model_abstain"
+    assert stats.n_parse_retry_recovered == 1
+    assert stats.n_parse_failure == 0
+
+    class AlwaysBad:
+        configured = True
+        calls = 0
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            self.calls += 1
+            return {"status": "ok", "text": "still not json", "model": INFERHUB_MODEL}
+
+    stats2 = EmitParseStats()
+    bad = AlwaysBad()
+    pred2, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="retry-fail",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=bad,  # type: ignore[arg-type]
+        parse_stats=stats2,
+    )
+    assert bad.calls == 2
+    assert pred2.action == "abstain"
+    assert pred2.abstain_reason == "parse_failure"
+    assert stats2.n_parse_failure == 1
+    assert stats2.n_parse_retry_recovered == 0

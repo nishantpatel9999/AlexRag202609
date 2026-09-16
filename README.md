@@ -58,7 +58,7 @@ uv run alexrag emit-model-predictions \
   --out results/model_eval_runs
 ```
 
-Live Inferhub (operator Mac; `INFERHUB_API_KEY` in env only — never committed/logged). Locked route is `cbcn` / `cbcn/GLM-5.3-flash` at `https://api.inferhub.dev/v1`. Parse failure or thin sealed evidence fail-closed to `abstain`:
+Live Inferhub (operator Mac; `INFERHUB_API_KEY` in env only — never committed/logged). Locked route is `cbcn` / `cbcn/glm-5.3-flash` (case-insensitive accept of `cbcn/GLM-5.3-flash`) at `https://api.inferhub.dev/v1`. Parse failure or thin sealed evidence fail-closed to `abstain`:
 
 ```bash
 uv run alexrag emit-model-predictions \
@@ -104,7 +104,7 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `src/alexrag/rag` | Chunking, fake embeddings, precedence retrieve |
 | `src/alexrag/agents` | Regime, Setup, Risk, Exec paper stub, Auditor |
 | `src/alexrag/broker` | `paper_sim` M0 + Alpaca paper stub (`stubbed` ≠ filled) |
-| `src/alexrag/llm` | Inferhub OpenAI-compatible client (`LLM_PROVIDER=inferhub`, `LLM_MODEL=cbcn/GLM-5.3-flash`, `INFERHUB_PROVIDER=cbcn`; `INFERHUB_API_KEY` env only; `--dry-run` skips HTTP) |
+| `src/alexrag/llm` | Inferhub OpenAI-compatible client (`LLM_PROVIDER=inferhub`, `LLM_MODEL=cbcn/glm-5.3-flash`, `INFERHUB_PROVIDER=cbcn`; `INFERHUB_API_KEY` env only; `--dry-run` skips HTTP) |
 | `src/alexrag/notify` | Discord stub (TODO: bot token) |
 | `src/alexrag/eval` | Paper window, sealed cutoff, golden harness, M0 fill scorer, model-eval lock scorer + sealed emitter |
 | `eval/golden_cases_v0.json` | 48-case V0 pack |

@@ -77,13 +77,14 @@ class EmbeddingSettings(BaseModel):
 class LlmSettings(BaseModel):
     """Always-on LLM via Inferhub. API key is env-only (INFERHUB_API_KEY).
 
-    ``LLM_PROVIDER=inferhub``, model id ``cbcn/GLM-5.3-flash``, host
+    ``LLM_PROVIDER=inferhub``, canonical model id ``cbcn/glm-5.3-flash``
+    (accepts ``cbcn/GLM-5.3-flash`` case-insensitively), host
     ``https://api.inferhub.dev/v1``, upstream ``INFERHUB_PROVIDER=cbcn``.
     No other Inferhub routes.
     """
 
     provider: Literal["inferhub"] = LLM_PROVIDER
-    model: Literal["cbcn/GLM-5.3-flash"] = INFERHUB_MODEL
+    model: Literal["cbcn/glm-5.3-flash"] = INFERHUB_MODEL
     base_url: Literal["https://api.inferhub.dev/v1"] = INFERHUB_BASE_URL
     inferhub_provider: Literal["cbcn"] = INFERHUB_PROVIDER
 
@@ -97,9 +98,11 @@ class LlmSettings(BaseModel):
     def _cbcn_only(cls, v: str) -> str:
         return require_cbcn_provider(v)
 
-    @field_validator("model")
+    @field_validator("model", mode="before")
     @classmethod
-    def _cbcn_prefixed_model(cls, v: str) -> str:
+    def _cbcn_prefixed_model(cls, v: Any) -> str:
+        if not isinstance(v, str):
+            raise TypeError("llm.model must be a string")
         return require_cbcn_model(v)
 
     @field_validator("base_url")
