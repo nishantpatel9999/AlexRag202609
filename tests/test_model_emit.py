@@ -17,12 +17,14 @@ from alexrag.cli import app
 from alexrag.eval.frozen_pack import EligibleFilter, FrozenCase, TargetAction, load_frozen_pack
 from alexrag.eval.model_context import build_model_context
 from alexrag.eval.model_emit import (
+    CONFLICT_NO_TRADE_STALE_REASON,
     DEFAULT_MAX_MESSAGES,
     DRY_RUN_MODEL_ID,
     QUALITY_DELTA,
     SUGGESTED_LIVE_RUN_ID,
     EmitParseStats,
     build_prompt_messages,
+    conflict_no_trade_plan_vs_stale_setup,
     emit_model_predictions,
     emit_one_case,
     extract_json_object,
@@ -137,6 +139,84 @@ def _syn_manage_case() -> FrozenCase:
     )
 
 
+def _syn_gc29_case() -> FrozenCase:
+    """GC-29 analog: C1 same-morning no-trade vs stale NFLX chart alerts."""
+
+    pt = ZoneInfo("America/Los_Angeles")
+    decision = datetime(2025, 3, 5, 11, 5, tzinfo=pt)
+    return FrozenCase(
+        case_id="SYN-GC29",
+        date_pt="2025-03-05",
+        tickers=["NFLX"],
+        primary_question="enter",
+        decision_ts=decision,
+        fill_ts=decision,
+        target_action=TargetAction(
+            message_id="ban-nflx-fill",
+            channel="equity-trades",
+            ts=decision,
+            text="@everyone Long 23% NFLX @ 991.43 (SSL @ 969.48)",
+            action_classes=["enter"],
+            primary_question="enter",
+        ),
+        eligible_filter=EligibleFilter(
+            channels=["equity-trades", "alex-journal", "prime-report", "pf-update"],
+            ts_lt=decision,
+            tz="America/Los_Angeles",
+        ),
+        banned_same_day_ids=["ban-nflx-fill", "ban-journal-rationalize"],
+        key_evidence_ids=["j-no-trade", "rpt-no-fl", "rpt-stale-nflx"],
+    )
+
+
+def _gc29_like_messages() -> list[CorpusMessage]:
+    pt = ZoneInfo("America/Los_Angeles")
+    return [
+        CorpusMessage(
+            message_id="j-no-trade",
+            channel="alex-journal",
+            ts=datetime(2025, 3, 5, 4, 53, tzinfo=pt),
+            text="03-05 Good morning everyone! No trades planned for today again.",
+            source_type="journal",
+        ),
+        CorpusMessage(
+            message_id="rpt-no-fl",
+            channel="prime-report",
+            ts=datetime(2025, 3, 4, 18, 46, tzinfo=pt),
+            text="FOCUSLIST 03/04 No Focuslist for me tomorrow. QQQE below 10<21dma.",
+            source_type="report",
+        ),
+        CorpusMessage(
+            message_id="rpt-stale-nflx",
+            channel="prime-report",
+            ts=datetime(2025, 1, 15, 18, 12, tzinfo=pt),
+            text="NFLX chart alert — watching NFLX into HWM; long setup if 10dma holds.",
+            source_type="report",
+        ),
+        CorpusMessage(
+            message_id="rpt-stale-nflx-feb",
+            channel="prime-report",
+            ts=datetime(2025, 2, 12, 17, 40, tzinfo=pt),
+            text="FOCUSLIST names: NFLX still on the chart watch from January.",
+            source_type="report",
+        ),
+        CorpusMessage(
+            message_id="ban-nflx-fill",
+            channel="equity-trades",
+            ts=datetime(2025, 3, 5, 11, 5, tzinfo=pt),
+            text="@everyone Long 23% NFLX @ 991.43 (SSL @ 969.48)",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="ban-journal-rationalize",
+            channel="alex-journal",
+            ts=datetime(2025, 3, 5, 11, 6, tzinfo=pt),
+            text="NFLX long position Ok guys, I didn't plan to take trade on this bounce",
+            source_type="journal",
+        ),
+    ]
+
+
 def _model_abstain_payload() -> str:
     return json.dumps(
         {
@@ -190,7 +270,7 @@ def test_cli_dry_run_emits_48_matching_case_ids(tmp_path: Path) -> None:
     assert meta["max_messages"] == DEFAULT_MAX_MESSAGES
     assert meta["temperature"] == INFERHUB_TEMPERATURE
     assert meta["max_tokens"] == INFERHUB_MAX_TOKENS
-    assert "suggested_live_run_id=inferhub-cbcn-v4-quality" in result.output
+    assert f"suggested_live_run_id={SUGGESTED_LIVE_RUN_ID}" in result.output
 
 
 def test_dry_run_context_never_contains_target_action(tmp_path: Path) -> None:
@@ -917,6 +997,124 @@ def test_v4_prompt_abstain_discipline_invariants() -> None:
         else:
             assert "primary_question: abstain" in user
             assert "if primary_question is abstain, abstain" in lowered
+        assert "conflict_no_trade_plan_vs_stale_setup" in lowered
+        assert "stale" in lowered
+        assert "no-trade" in lowered or "no trades" in lowered
+
+
+def test_gc29_stale_alert_vs_same_morning_no_trade_abstains() -> None:
+    """GC-29-like: stale NFLX chart alert + same-morning no trades → honest abstain.
+
+    Model enter (and banned fill) must not win. Fail-closed before Inferhub.
+    """
+
+    case = _syn_gc29_case()
+    lock = load_model_eval_lock()
+    corpus = SealedCorpus(_gc29_like_messages())
+
+    class BoomClient:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            raise AssertionError("conflict rule must fail-closed before Inferhub")
+
+    pred, prompts = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="gc29-scar",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=BoomClient(),  # type: ignore[arg-type]
+    )
+    blob = "\n".join(p["content"] for p in prompts)
+    assert pred.action == "abstain"
+    assert pred.ticker == ""
+    assert pred.side == "n/a"
+    assert pred.abstain_reason == CONFLICT_NO_TRADE_STALE_REASON
+    assert "ban-nflx-fill" not in pred.retrieved_ids
+    assert "ban-journal-rationalize" not in pred.retrieved_ids
+    assert all(c.message_id != "ban-nflx-fill" for c in pred.citations)
+    assert "target_action" not in blob
+    assert "action_classes" not in blob
+    assert f"id={case.target_action.message_id} " not in blob
+    assert "Long 23% NFLX @ 991.43" not in blob
+    assert "I didn't plan to take trade on this bounce" not in blob
+    assert "conflict_no_trade_plan_vs_stale_setup" in blob.casefold() or (
+        "no trades" in blob.casefold() and "stale" in blob.casefold()
+    )
+
+    eligible = eligible_messages(case, corpus)
+    retrieved = select_retrieved_ids(case, eligible)
+    ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+    assert thin_evidence_reason(case, ctx) is None
+    assert conflict_no_trade_plan_vs_stale_setup(case, ctx, extra_messages=eligible) == (
+        CONFLICT_NO_TRADE_STALE_REASON
+    )
+    obj = {
+        "action": "enter",
+        "side": "long",
+        "ticker": "NFLX",
+        "citations": [{"message_id": "rpt-stale-nflx", "quote_span": "NFLX chart alert"}],
+        "confidence": 0.8,
+        "abstain_reason": None,
+    }
+    parsed = prediction_from_model_obj(obj, case, ctx, run_id="gc29-parse", model_id="t")
+    assert parsed.action == "abstain"
+    assert parsed.abstain_reason == CONFLICT_NO_TRADE_STALE_REASON
+    assert parsed.ticker == ""
+    assert all(c.message_id != "ban-nflx-fill" for c in parsed.citations)
+
+
+def test_no_trade_plan_does_not_block_contemporaneous_enter() -> None:
+    """Same-morning no-trade + same-session Long listed ticker must still enter."""
+
+    case = _syn_enter_case()
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="j-no-trade",
+            channel="alex-journal",
+            ts=datetime(2024, 1, 15, 6, 30, tzinfo=pt),
+            text="No trades planned for today again.",
+            source_type="journal",
+        ),
+        CorpusMessage(
+            message_id="eq-long-aaa",
+            channel="equity-trades",
+            ts=datetime(2024, 1, 14, 12, 0, tzinfo=pt),
+            text="Long 6% AAA @ 11.50 (SL @ 11.20)",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+    eligible = eligible_messages(case, corpus)
+    retrieved = select_retrieved_ids(case, eligible)
+    ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+    assert conflict_no_trade_plan_vs_stale_setup(case, ctx, extra_messages=eligible) is None
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            blob = "\n".join(m["content"] for m in messages)
+            assert "target_action" not in blob
+            return {"status": "ok", "text": _model_abstain_payload(), "model": INFERHUB_MODEL}
+
+    pred, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="gc29-neg-contemporaneous",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert pred.action == "enter"
+    assert pred.ticker == "AAA"
+    assert pred.citations[0].message_id == "eq-long-aaa"
+    assert "ban-fill" not in pred.retrieved_ids
 
 
 def test_false_abstain_coerced_when_sealed_long_language() -> None:

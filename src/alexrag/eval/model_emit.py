@@ -6,7 +6,7 @@ MODEL_EVAL_LOCK_V0 prediction per frozen case.
 
 ``--dry-run`` skips Inferhub and emits honest abstains (``model_id=dry_run_abstain``).
 Live Inferhub needs ``INFERHUB_API_KEY`` on the operator Mac; pytest stays offline.
-Next live ``run_id`` is ``inferhub-cbcn-v4-quality`` (decision-quality V4 delta).
+Next live ``run_id`` is ``inferhub-cbcn-v5-gc29`` (GC-29 stale-alert vs no-trade scar).
 Does not claim model CLEAR; capital 0; paper stays KILL.
 """
 
@@ -15,9 +15,10 @@ from __future__ import annotations
 import json
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Sequence
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -32,6 +33,7 @@ from alexrag.eval.model_lock import (
     load_model_eval_lock,
 )
 from alexrag.eval.model_prediction import ACTIONS, SIDES, ModelCitation, ModelPrediction
+from alexrag.eval.cutoff import aware
 from alexrag.eval.sealed_corpus import CorpusMessage, SealedCorpus, eligible_messages, load_mvp_ingest
 from alexrag.llm.inferhub import (
     INFERHUB_MAX_TOKENS,
@@ -45,8 +47,12 @@ DRY_RUN_MODEL_ID = "dry_run_abstain"
 DEFAULT_MAX_MESSAGES = 48
 DEFAULT_MAX_TEXT_CHARS = 480
 DEFAULT_OUT_ROOT = Path("results/model_eval_runs")
-SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v4-quality"
-QUALITY_DELTA = "decision_quality_v4"
+SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v5-gc29"
+QUALITY_DELTA = "decision_quality_v5_gc29"
+STALE_SETUP_MAX_AGE_DAYS = 1
+CONFLICT_NO_TRADE_STALE_REASON = "conflict_no_trade_plan_vs_stale_setup"
+# Previous calendar-day 16:00 PT: evening report / sealed same-morning for next session.
+_PLAN_WINDOW_PREV_EVENING_HOUR = 16
 PARSE_REPAIR_USER = (
     "Your previous reply was not valid JSON. Reply with a single JSON object "
     "matching the required schema and nothing else. No markdown fences, no "
@@ -286,6 +292,13 @@ def _schema_instruction(lock: ModelEvalLock) -> str:
         "When primary_question is abstain you MUST abstain; do not invent a fill "
         "for the listed ticker. Same-day Long/Short tape in other names is not a "
         "reason to enter the rejected ticker. "
+        "CONFLICT: if decision-day or sealed same-morning context "
+        "has explicit no-trade / no-focuslist language, and the only enter "
+        "support is older-than-1-day (or older-than-same-session) ticker alerts "
+        "without a same-day Long/Short/bought/filled setup naming a listed "
+        "ticker, you MUST action=abstain with "
+        "abstain_reason=conflict_no_trade_plan_vs_stale_setup. Do not enter from "
+        "stale chart alerts. Enter only with contemporaneous enter evidence. "
         "ACTION MAP: enter → action=enter, ticker+side from sealed 'Long TICKER' / "
         "'Short TICKER' / bought / filled / entered; cite that retrieved_id. "
         "size → action=size (or enter); copy size_pct from the percentage beside "
@@ -332,7 +345,12 @@ def build_prompt_messages(ctx: ModelContext, lock: ModelEvalLock) -> list[dict[s
         "and name the ticker (or leave ticker empty on manage if unclear). "
         "For exit/manage, an open Long/Short on a listed ticker is enough — do "
         "not abstain waiting for a post-cutoff Sold/Closed/ADD fill. "
-        "Abstain only if primary_question is abstain or that evidence is thin."
+        "If decision-day or same-morning sealed_context says no trades / no "
+        "focuslist and listed-ticker alerts are older than the same session "
+        "(no same-day enter setup), abstain "
+        "(abstain_reason=conflict_no_trade_plan_vs_stale_setup). "
+        "Abstain only if primary_question is abstain, that evidence is thin, "
+        "or that no-trade vs stale-setup conflict holds."
     )
     user = "\n".join(lines)
     payload = {"system": _schema_instruction(lock), "user": user}
@@ -636,6 +654,127 @@ _EXIT_INTENT = re.compile(
 )
 _LONG_SIDE = re.compile(r"\b(long|bought|buy|filled)\b", re.IGNORECASE)
 _SHORT_SIDE = re.compile(r"\bshort\b", re.IGNORECASE)
+_NO_TRADE_OR_NO_FOCUSLIST = re.compile(
+    r"("
+    r"no\s+trades?\s+planned"
+    r"|no\s+trades?\s+for\s+(?:today|tomorrow)"
+    r"|no\s+trades?\s+today"
+    r"|no\s+trades?\s+again"
+    r"|no\s+focuslists?"
+    r")",
+    re.IGNORECASE,
+)
+
+
+def _case_tz(case: FrozenCase) -> ZoneInfo:
+    return ZoneInfo(case.eligible_filter.tz or "America/Los_Angeles")
+
+
+def _local_ts(ts: datetime | None, case: FrozenCase) -> datetime | None:
+    if ts is None:
+        return None
+    tz = _case_tz(case)
+    return aware(ts, str(tz)).astimezone(tz)
+
+
+def _plan_window_start(case: FrozenCase) -> datetime:
+    """Sealed same-morning: previous calendar day 16:00 local through decision_ts."""
+
+    local = _local_ts(case.decision_ts, case)
+    if local is None:
+        tz = _case_tz(case)
+        return datetime(1970, 1, 1, tzinfo=tz)
+    day_start = local.replace(hour=0, minute=0, second=0, microsecond=0)
+    return day_start - timedelta(hours=24 - _PLAN_WINDOW_PREV_EVENING_HOUR)
+
+
+def _in_plan_window(ts: datetime | None, case: FrozenCase) -> bool:
+    local = _local_ts(ts, case)
+    decision = _local_ts(case.decision_ts, case)
+    if local is None or decision is None:
+        return False
+    return _plan_window_start(case) <= local < decision
+
+
+def _age_before_decision(ts: datetime | None, case: FrozenCase) -> timedelta | None:
+    local = _local_ts(ts, case)
+    decision = _local_ts(case.decision_ts, case)
+    if local is None or decision is None:
+        return None
+    if local >= decision:
+        return None
+    return decision - local
+
+
+def _is_contemporaneous_setup(ts: datetime | None, case: FrozenCase) -> bool:
+    age = _age_before_decision(ts, case)
+    if age is None:
+        return False
+    return age < timedelta(days=STALE_SETUP_MAX_AGE_DAYS)
+
+
+def _is_stale_vs_decision(ts: datetime | None, case: FrozenCase) -> bool:
+    age = _age_before_decision(ts, case)
+    if age is None:
+        return False
+    return age >= timedelta(days=STALE_SETUP_MAX_AGE_DAYS)
+
+
+def _iter_conflict_messages(
+    ctx: ModelContext,
+    extra_messages: Sequence[Any] | None = None,
+) -> list[Any]:
+    """Retrieved context plus optional eligible rows. Deduped; no GT injection."""
+
+    out: list[Any] = []
+    seen: set[str] = set()
+    for msg in list(ctx.messages) + list(extra_messages or []):
+        mid = str(getattr(msg, "message_id", "") or "")
+        if not mid or mid in seen:
+            continue
+        seen.add(mid)
+        out.append(msg)
+    return out
+
+
+def conflict_no_trade_plan_vs_stale_setup(
+    case: FrozenCase,
+    ctx: ModelContext,
+    extra_messages: Sequence[Any] | None = None,
+) -> str | None:
+    """GC-29 C1: same-morning no-trade/no-focuslist vs stale ticker alerts.
+
+    Fires only on enter/size when plan-window text is explicit no-trade /
+    no-focuslist, there is no contemporaneous (age < STALE_SETUP_MAX_AGE_DAYS)
+    Long/Short/bought/filled setup on a listed ticker, and the only enter
+    support is older ticker alerts. Does not read target_action / banned ids /
+    conflict_class. Does not fire on thin priors with no ticker at all (GC-15).
+    """
+
+    if case.primary_question not in {"enter", "size"}:
+        return None
+    tickers = list(case.tickers)
+    if not tickers:
+        return None
+    has_plan_no_trade = False
+    has_contemporaneous_enter = False
+    has_stale_ticker_alert = False
+    for msg in _iter_conflict_messages(ctx, extra_messages):
+        text = getattr(msg, "text", "") or ""
+        ts = getattr(msg, "ts", None)
+        if _in_plan_window(ts, case) and _NO_TRADE_OR_NO_FOCUSLIST.search(text):
+            has_plan_no_trade = True
+        ticker_hit = any(ticker_mentioned(text, t) for t in tickers)
+        if not ticker_hit:
+            continue
+        enter_intent = _ENTER_SIZE_INTENT.search(text) is not None
+        if enter_intent and _is_contemporaneous_setup(ts, case):
+            has_contemporaneous_enter = True
+        elif _is_stale_vs_decision(ts, case):
+            has_stale_ticker_alert = True
+    if has_plan_no_trade and has_stale_ticker_alert and not has_contemporaneous_enter:
+        return CONFLICT_NO_TRADE_STALE_REASON
+    return None
 
 
 def _quote_around_ticker(text: str, ticker: str, max_len: int = 80) -> str:
@@ -846,6 +985,10 @@ def prediction_from_model_obj(
         raise ValueError(f"invalid side {cleaned.get('side')!r}")
 
     support = sealed_primary_support(case, ctx)
+    conflict = conflict_no_trade_plan_vs_stale_setup(case, ctx)
+    if conflict:
+        # Stale alerts are not contemporaneous enter evidence — do not coerce.
+        support = None
     asked = case.primary_question
     if (
         support is not None
@@ -873,12 +1016,19 @@ def prediction_from_model_obj(
             citations.append(cite)
 
     abstain_reason = _coerce_optional_str(cleaned.get("abstain_reason"))
+    if conflict and action in {"enter", "size"}:
+        action = "abstain"
+        side = "n/a"
+        citations = []
+        abstain_reason = conflict
     if action != "abstain" and not citations:
         action = "abstain"
         side = "n/a"
         abstain_reason = "thin_evidence_no_eligible_citations"
     if action != "abstain":
         abstain_reason = None
+    elif conflict:
+        abstain_reason = conflict
     elif not (abstain_reason or "").strip():
         abstain_reason = "model_abstain"
 
@@ -1018,6 +1168,10 @@ def emit_one_case(
     thin = thin_evidence_reason(case, ctx)
     if thin:
         return sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason=thin), prompts
+
+    conflict = conflict_no_trade_plan_vs_stale_setup(case, ctx, extra_messages=eligible)
+    if conflict:
+        return sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason=conflict), prompts
 
     if client is None:
         return (
