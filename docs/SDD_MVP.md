@@ -34,7 +34,7 @@ Kill switch: when engaged, the orchestrator abstains immediately and must not ca
 | `alexrag.vision_caption` | Image caption stub (TODO: Mac Studio VLM) |
 | `alexrag.rag` | Chunking, metadata tags, embedding provider interface, in-memory index |
 | `alexrag.agents` | Regime → Setup → Risk → Exec (paper stub) → Auditor |
-| `alexrag.llm.inferhub` | Inferhub stub; **`INFERHUB_PROVIDER=cbcn` only**; model id `cbcn/GLM-5.3-flash`; `INFERHUB_API_KEY` env only |
+| `alexrag.llm.inferhub` | Inferhub OpenAI-compatible chat; **`INFERHUB_PROVIDER=cbcn` only**; model id `cbcn/GLM-5.3-flash`; `INFERHUB_API_KEY` env only (stub if unset) |
 | `alexrag.broker.alpaca_paper` | Paper broker stub (TODO: real Alpaca paper API; `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY`) |
 | `alexrag.notify.discord` | Notify stub (TODO: bot token / webhook) |
 | `alexrag.eval` | Replay/citation/abstain/conflict metrics; 48 golden-case stubs |
@@ -173,7 +173,7 @@ Details: `docs/RUNBOOK.md`. Secrets never go in git (`.env.example` only).
 
 - Vision model on Mac Studio (`alexrag.vision_caption`)
 - TradingView MCP (`alexrag.marketdata.tradingview_mcp`)
-- Real Inferhub client (`alexrag.llm.inferhub`; `LLM_PROVIDER=inferhub`, `LLM_MODEL=cbcn/GLM-5.3-flash`, `INFERHUB_BASE_URL=https://api.inferhub.dev/v1`, `INFERHUB_PROVIDER=cbcn`; key via `INFERHUB_API_KEY`)
+- Real Inferhub client (`alexrag.llm.inferhub`; `LLM_PROVIDER=inferhub`, `LLM_MODEL=cbcn/GLM-5.3-flash`, `INFERHUB_BASE_URL=https://api.inferhub.dev/v1`, `INFERHUB_PROVIDER=cbcn`; key via `INFERHUB_API_KEY`) — used by `emit-model-predictions --no-dry-run`; `--dry-run` stays offline
 - Real Alpaca **paper** client (`alexrag.broker.alpaca_paper`; `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY`, never git)
 - Discord bot token / webhook (`alexrag.notify.discord`)
 - Real embedding model (replace `FakeEmbeddingProvider`)

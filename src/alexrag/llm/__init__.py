@@ -9,6 +9,8 @@ from alexrag.llm.inferhub import (
     LLM_PROVIDER,
     LLM_PROVIDER_ENV,
     InferhubClient,
+    InferhubError,
+    inferhub_key_present,
     require_cbcn_model,
     require_cbcn_provider,
 )
@@ -24,6 +26,8 @@ __all__ = [
     "LLM_PROVIDER",
     "LLM_PROVIDER_ENV",
     "InferhubClient",
+    "InferhubError",
+    "inferhub_key_present",
     "require_cbcn_model",
     "require_cbcn_provider",
 ]

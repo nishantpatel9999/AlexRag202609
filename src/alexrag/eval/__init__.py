@@ -5,6 +5,7 @@ from alexrag.eval.golden_cases import stub_golden_cases
 from alexrag.eval.harness import Prediction, load_golden_pack, score_case, score_pack
 from alexrag.eval.metrics import PaperMetrics, paper_run_diagnostics, paper_window_met
 from alexrag.eval.model_context import GroundTruthLeakError, build_model_context
+from alexrag.eval.model_emit import DRY_RUN_MODEL_ID, emit_model_predictions
 from alexrag.eval.model_lock import load_model_eval_lock
 from alexrag.eval.model_prediction import ModelPrediction, load_predictions
 from alexrag.eval.model_scorer import KillScarError, score_model_run, score_prediction
@@ -31,6 +32,8 @@ __all__ = [
     "eligible_messages",
     "build_model_context",
     "GroundTruthLeakError",
+    "emit_model_predictions",
+    "DRY_RUN_MODEL_ID",
     "ModelPrediction",
     "load_predictions",
     "score_prediction",
