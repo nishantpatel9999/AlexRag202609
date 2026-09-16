@@ -31,8 +31,8 @@ INFERHUB_PROVIDER_ENV = "INFERHUB_PROVIDER"
 INFERHUB_MODEL = "cbcn/glm-5.3-flash"
 INFERHUB_API_KEY_ENV = "INFERHUB_API_KEY"
 
-# Decision-quality V2 decode knobs (MODEL_EVAL_LOCK_V0 still binds; still cbcn).
-INFERHUB_TEMPERATURE = 0.15
+# Decision-quality V3 decode knobs (MODEL_EVAL_LOCK_V0 still binds; still cbcn).
+INFERHUB_TEMPERATURE = 0.1
 INFERHUB_MAX_TOKENS = 8192
 INFERHUB_RESPONSE_FORMAT: dict[str, str] = {"type": "json_object"}
 

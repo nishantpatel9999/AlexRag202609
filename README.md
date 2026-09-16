@@ -58,26 +58,27 @@ uv run alexrag emit-model-predictions \
   --out results/model_eval_runs
 ```
 
-Live Inferhub (operator Mac; `INFERHUB_API_KEY` in env only — never committed/logged). Locked route is `cbcn` / `cbcn/glm-5.3-flash` (case-insensitive accept of `cbcn/GLM-5.3-flash`) at `https://api.inferhub.dev/v1`. Decode: `temperature=0.15`, `max_tokens=8192`, `response_format=json_object` (HTTP 400 drops the format field and retries). Parse failure or thin sealed evidence fail-closed to `abstain`. **Do not claim CLEAR.** Next live audit `run_id` **must** be `inferhub-cbcn-v2-quality` (v0/v1 identical re-scores are banned):
+Live Inferhub (operator Mac; `INFERHUB_API_KEY` in env only — never committed/logged). Locked route is `cbcn` / `cbcn/glm-5.3-flash` (case-insensitive accept of `cbcn/GLM-5.3-flash`) at `https://api.inferhub.dev/v1`. Decode: `temperature=0.1`, `max_tokens=8192`, `response_format=json_object` (HTTP 400 drops the format field and retries). Parse failure or thin sealed evidence fail-closed to `abstain`. **Do not claim CLEAR.** Next live audit `run_id` **must** be `inferhub-cbcn-v3-quality` (v0/v1/v2 identical re-scores are banned):
 
 ```bash
 uv run alexrag emit-model-predictions \
   --no-dry-run \
   --ingest data/ingest \
   --out results/model_eval_runs \
-  --run-id inferhub-cbcn-v2-quality
+  --run-id inferhub-cbcn-v3-quality
 ```
 
 Then score (offline):
 
 ```bash
 uv run alexrag score-model \
-  --predictions results/model_eval_runs/inferhub-cbcn-v2-quality/predictions.jsonl \
+  --predictions results/model_eval_runs/inferhub-cbcn-v3-quality/predictions.jsonl \
   --ingest data/ingest \
-  --frozen eval/golden_cases_v0_frozen.json
+  --frozen eval/golden_cases_v0_frozen.json \
+  --out results/model_score_runs
 ```
 
-See `docs/DECISION_QUALITY_V2_QUALITY_DELTA.md` for the emitter delta vs `DECISION_QUALITY_PASS_V1_LOCK`. Flags: `--ingest`, `--frozen`, `--lock`, `--out` (run dir root), `--dry-run/--no-dry-run`, `--run-id`, `--max-messages`. Writes `results/model_eval_runs/<run_id>/predictions.jsonl` plus `run_metadata.json` (`paper_authority=false`, `capital=0`, `model_eval_clear=false`).
+See `docs/DECISION_QUALITY_V3_QUALITY_DELTA.md` for the emitter delta vs V2 (`inferhub-cbcn-v2-quality` A–F HIT / CLEAR KILL). Flags: `--ingest`, `--frozen`, `--lock`, `--out` (run dir root), `--dry-run/--no-dry-run`, `--run-id`, `--max-messages`. Writes `results/model_eval_runs/<run_id>/predictions.jsonl` plus `run_metadata.json` (`paper_authority=false`, `capital=0`, `model_eval_clear=false`).
 
 Smoke baseline (abstain-everywhere, no emitter):
 
@@ -111,7 +112,8 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `eval/golden_cases_v0.json` | 48-case V0 pack |
 | `eval/golden_cases_v0_frozen.json` | Frozen Golden-48 (sha256[:16]=`1a3cb17781211ad0`) |
 | `docs/DECISION_QUALITY_PASS_V1_LOCK.md` | Research re-score gate (MVP bars A–F) |
-| `docs/DECISION_QUALITY_V2_QUALITY_DELTA.md` | Emitter delta + live `run_id=inferhub-cbcn-v2-quality` |
+| `docs/DECISION_QUALITY_V2_QUALITY_DELTA.md` | V2 emitter delta (formal pack `inferhub-cbcn-v2-quality`; CLEAR KILL) |
+| `docs/DECISION_QUALITY_V3_QUALITY_DELTA.md` | V3 emitter delta + next live `run_id=inferhub-cbcn-v3-quality` |
 | `eval/baselines/abstain_everywhere_v0.jsonl` | Smoke predictions (abstain all 48) |
 | `docs/EVAL_SPEC_V0.md` | Enter/abstain/size/manage/exit + citation scoring |
 | `docs/FILL_FIDELITY_M0.md` | PaperFill / FillIntent / M0 (legacy 0bps fixture mid) |

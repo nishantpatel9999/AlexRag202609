@@ -9,7 +9,12 @@ import typer
 from alexrag.config import load_settings
 from alexrag.agents.orchestrator import run_paper_day
 from alexrag.eval.harness import DEFAULT_PACK, load_golden_pack, score_pack
-from alexrag.eval.model_emit import DEFAULT_OUT_ROOT, SUGGESTED_LIVE_RUN_ID, emit_model_predictions
+from alexrag.eval.model_emit import (
+    DEFAULT_MAX_MESSAGES,
+    DEFAULT_OUT_ROOT,
+    SUGGESTED_LIVE_RUN_ID,
+    emit_model_predictions,
+)
 from alexrag.eval.model_lock import DEFAULT_FROZEN_PACK, DEFAULT_LOCK_PATH
 from alexrag.eval.model_scorer import KillScarError, run_score_model
 from alexrag.llm.inferhub import InferhubClient, inferhub_key_present
@@ -126,7 +131,11 @@ def emit_model_predictions_cmd(
             f"{SUGGESTED_LIVE_RUN_ID} (not a v0/v1 identical re-score)."
         ),
     ),
-    max_messages: int = typer.Option(32, "--max-messages", help="Max sealed context messages per case"),
+    max_messages: int = typer.Option(
+        DEFAULT_MAX_MESSAGES,
+        "--max-messages",
+        help="Max sealed context messages per case (ticker-aware ranking).",
+    ),
 ) -> None:
     """Emit sealed-cutoff MODEL_EVAL_LOCK_V0 predictions.jsonl. Capital 0; no paper unlock.
 
@@ -134,7 +143,7 @@ def emit_model_predictions_cmd(
     (excludes banned_same_day_ids), never injects target_action / GT fill bodies,
     and writes one JSON object per case_id. Default --dry-run is offline CI.
     Live Inferhub (--no-dry-run) needs INFERHUB_API_KEY (Mac); never logged.
-    Next live run_id: inferhub-cbcn-v2-quality. Capital 0; does not claim CLEAR.
+    Next live run_id: inferhub-cbcn-v3-quality. Capital 0; does not claim CLEAR.
     """
 
     if not dry_run and not inferhub_key_present():
