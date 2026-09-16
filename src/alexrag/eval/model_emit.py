@@ -6,7 +6,7 @@ MODEL_EVAL_LOCK_V0 prediction per frozen case.
 
 ``--dry-run`` skips Inferhub and emits honest abstains (``model_id=dry_run_abstain``).
 Live Inferhub needs ``INFERHUB_API_KEY`` on the operator Mac; pytest stays offline.
-Next live ``run_id`` is ``inferhub-cbcn-v3-quality`` (decision-quality V3 delta).
+Next live ``run_id`` is ``inferhub-cbcn-v4-quality`` (decision-quality V4 delta).
 Does not claim model CLEAR; capital 0; paper stays KILL.
 """
 
@@ -45,8 +45,8 @@ DRY_RUN_MODEL_ID = "dry_run_abstain"
 DEFAULT_MAX_MESSAGES = 48
 DEFAULT_MAX_TEXT_CHARS = 480
 DEFAULT_OUT_ROOT = Path("results/model_eval_runs")
-SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v3-quality"
-QUALITY_DELTA = "decision_quality_v3"
+SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v4-quality"
+QUALITY_DELTA = "decision_quality_v4"
 PARSE_REPAIR_USER = (
     "Your previous reply was not valid JSON. Reply with a single JSON object "
     "matching the required schema and nothing else. No markdown fences, no "
@@ -291,10 +291,14 @@ def _schema_instruction(lock: ModelEvalLock) -> str:
         "size → action=size (or enter); copy size_pct from the percentage beside "
         "that ticker; ticker+side as enter. "
         "manage → action=manage (not abstain); management add|trim|move_sl|reopen|"
-        "close_all when ADD/trim/SL/reopen/closed language is present; ticker from "
-        "that language or empty string if unclear — never guess a wrong ticker. "
-        "exit → action=exit (not abstain); ticker MUST be the Closed/Sold/stopped "
-        "name; exit close|sold|stopped matching that language. "
+        "close_all when ADD/trim/SL/reopen/closed/Sold language is present, or when "
+        "a listed ticker already has sealed Long/Short tape; ticker from that "
+        "language or empty string if unclear — never guess a wrong ticker. "
+        "exit → action=exit (not abstain). Prefer ticker from sealed Closed/Sold/"
+        "stopped language when present (exit close|sold|stopped). If that close is "
+        "not in sealed_context but a listed ticker has sealed Long/Short/bought/"
+        "filled tape (open position), still emit action=exit citing that "
+        "retrieved_id — do not abstain waiting for a post-cutoff Sold/Closed fill. "
         "Do not invent fills, prices, or message ids. Do not use information "
         "after the sealed cutoff. Do not echo labels that are not in sealed_context."
     )
@@ -326,6 +330,8 @@ def build_prompt_messages(ctx: ModelContext, lock: ModelEvalLock) -> list[dict[s
         "sealed_context has a listed ticker with Long/Short/Closed/ADD/trim/"
         "Sold language, emit that asked action (not abstain), cite retrieved_ids, "
         "and name the ticker (or leave ticker empty on manage if unclear). "
+        "For exit/manage, an open Long/Short on a listed ticker is enough — do "
+        "not abstain waiting for a post-cutoff Sold/Closed/ADD fill. "
         "Abstain only if primary_question is abstain or that evidence is thin."
     )
     user = "\n".join(lines)
@@ -612,11 +618,20 @@ _ENTER_SIZE_INTENT = re.compile(
     re.IGNORECASE,
 )
 _MANAGE_INTENT = re.compile(
-    r"\b(add(?:ed)?(?:#\d+)?|trim(?:med)?|reopen(?:ed)?|ssl|(?:move[_\s-]?)?sl|stop(?:ped)?)\b",
+    r"\b("
+    r"add(?:ed|ing)?(?:#\s*\d+)?"
+    r"|trim(?:med|ming)?"
+    r"|reopen(?:ed)?"
+    r"|ssl"
+    r"|(?:move[_\s-]?)?sl"
+    r"|stop(?:ped)?"
+    r"|closed"
+    r"|sold"
+    r")\b",
     re.IGNORECASE,
 )
 _EXIT_INTENT = re.compile(
-    r"\b(closed|sold|stopped|taking my sl)\b",
+    r"\b(closed|close|sold|selling|stopped(?:\s+out)?|taking my sl)\b",
     re.IGNORECASE,
 )
 _LONG_SIDE = re.compile(r"\b(long|bought|buy|filled)\b", re.IGNORECASE)
@@ -668,14 +683,66 @@ def _size_near_ticker(text: str, ticker: str) -> float | None:
     return None
 
 
-def _intent_ok_for_primary(primary: str, text: str) -> bool:
+def _msg_ts_epoch(msg: Any) -> float:
+    ts = getattr(msg, "ts", None)
+    if ts is None:
+        return 0.0
+    try:
+        return float(ts.timestamp())
+    except (OSError, OverflowError, TypeError, ValueError):
+        return 0.0
+
+
+def _exit_label(text: str) -> str | None:
+    lowered = (text or "").lower()
+    if "closed" in lowered or re.search(r"\bclose\b", lowered):
+        return "close"
+    if re.search(r"\bsold\b", lowered):
+        return "sold"
+    if "stopped" in lowered:
+        return "stopped"
+    return None
+
+
+def _management_label(text: str) -> str | None:
+    lowered = (text or "").lower()
+    if "reopen" in lowered:
+        return "reopen"
+    if re.search(r"\btrim", lowered):
+        return "trim"
+    if re.search(r"\badd", lowered):
+        return "add"
+    if "closed" in lowered or re.search(r"\bsold\b", lowered):
+        return "close_all"
+    if re.search(r"\bsl\b", lowered) or "stop" in lowered:
+        return "move_sl"
+    return None
+
+
+def _intent_tier(primary: str, text: str) -> int:
+    """Higher is better. 0 = no sealed support for this primary.
+
+    Exit prefers Closed/Sold/stopped (tier 2) over open Long/Short (tier 1).
+    Open-position tape is the GC-01 lever: sealed priors often have Long TICKER
+    while Sold/Closed lives only on the banned fill.
+    """
+
+    blob = text or ""
     if primary in {"enter", "size"}:
-        return _ENTER_SIZE_INTENT.search(text) is not None
+        return 2 if _ENTER_SIZE_INTENT.search(blob) else 0
     if primary == "manage":
-        return _MANAGE_INTENT.search(text) is not None or _ENTER_SIZE_INTENT.search(text) is not None
+        if _MANAGE_INTENT.search(blob) or _EXIT_INTENT.search(blob):
+            return 2
+        if _ENTER_SIZE_INTENT.search(blob):
+            return 1
+        return 0
     if primary == "exit":
-        return _EXIT_INTENT.search(text) is not None
-    return False
+        if _EXIT_INTENT.search(blob):
+            return 2
+        if _ENTER_SIZE_INTENT.search(blob):
+            return 1
+        return 0
+    return 0
 
 
 def _citation_from_ctx_message(msg: Any) -> ModelCitation:
@@ -689,7 +756,11 @@ def _citation_from_ctx_message(msg: Any) -> ModelCitation:
 
 
 def sealed_primary_support(case: FrozenCase, ctx: ModelContext) -> dict[str, Any] | None:
-    """Best sealed ticker+intent row for a non-abstain primary. No GT / fill body."""
+    """Best sealed ticker+intent row for a non-abstain primary. No GT / fill body.
+
+    Exit/manage: Closed/Sold/ADD/trim on a listed ticker outranks open Long/Short.
+    Open-position Long/Short is still support (GC-01: Sold lives on the banned fill).
+    """
 
     primary = case.primary_question
     if primary == "abstain":
@@ -698,29 +769,26 @@ def sealed_primary_support(case: FrozenCase, ctx: ModelContext) -> dict[str, Any
     if not tickers or not ctx.messages:
         return None
     retrieved = set(ctx.retrieved_ids)
-    ranked: list[tuple[int, Any, str]] = []
+    ranked: list[tuple[int, float, Any, str]] = []
     for msg in ctx.messages:
         if msg.message_id not in retrieved:
             continue
         text = msg.text or ""
-        if not _intent_ok_for_primary(primary, text):
+        tier = _intent_tier(primary, text)
+        if tier <= 0:
             continue
         hit = next((t for t in tickers if ticker_mentioned(text, t)), None)
         if not hit:
             continue
-        recency = 1 if msg.ts is not None else 0
-        ranked.append((recency, msg, hit))
+        ranked.append((tier, _msg_ts_epoch(msg), msg, hit))
     if not ranked:
         return None
-    # Prefer later sealed messages (walk already newest-last; take last hit).
-    _, msg, ticker = ranked[-1]
+    _, _, msg, ticker = max(ranked, key=lambda row: (row[0], row[1]))
     quote = _quote_around_ticker(msg.text or "", ticker)
     cite = _citation_from_ctx_message(msg)
     cite.quote_span = quote
     side = _side_from_sealed_text(msg.text or "")
-    if primary == "exit":
-        side = side or "n/a"
-    elif primary == "manage":
+    if primary in {"exit", "manage"}:
         side = side or "n/a"
     elif not side:
         side = "long"
@@ -730,6 +798,9 @@ def sealed_primary_support(case: FrozenCase, ctx: ModelContext) -> dict[str, Any
         "size_pct": _size_near_ticker(msg.text or "", ticker),
         "citation": cite,
         "message_id": msg.message_id,
+        "exit": _exit_label(msg.text or "") if primary == "exit" else None,
+        "management": _management_label(msg.text or "") if primary == "manage" else None,
+        "intent_tier": _intent_tier(primary, msg.text or ""),
     }
 
 
@@ -830,6 +901,15 @@ def prediction_from_model_obj(
     if action in {"manage", "exit"} and (side is None or side == ""):
         side = "n/a"
 
+    management = _coerce_optional_str(cleaned.get("management"))
+    exit_field = _coerce_optional_str(cleaned.get("exit"))
+    if support is not None:
+        if action == "manage" and not (management or "").strip():
+            management = _coerce_optional_str(support.get("management"))
+        if action == "exit" and not (exit_field or "").strip():
+            # Only copy Closed/Sold/stopped labels; do not invent sold from Long tape.
+            exit_field = _coerce_optional_str(support.get("exit"))
+
     # Model often returns rejected_alternatives as objects; lock schema is list[str].
     raw_rejected = cleaned.get("rejected_alternatives") or []
     rejected: list[str] = []
@@ -858,8 +938,8 @@ def prediction_from_model_obj(
         ticker=ticker,
         size_pct=size_pct,
         stop=_coerce_optional_str(cleaned.get("stop")),
-        management=_coerce_optional_str(cleaned.get("management")),
-        exit=_coerce_optional_str(cleaned.get("exit")),
+        management=management,
+        exit=exit_field,
         rejected_alternatives=rejected,
         citations=citations,
         confidence=_coerce_confidence(cleaned.get("confidence", 0.0)),
