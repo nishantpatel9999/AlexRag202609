@@ -1,0 +1,167 @@
+{
+  "version": "MODEL_EVAL_LOCK_V0",
+  "lock_date_pt": "2026-09-15",
+  "owner": "Research",
+  "capital": 0,
+  "paper_authority_default": false,
+  "market_fighter": false,
+  "fixture_integrity": "CLEAR",
+  "oracle_audit_is_model_oos": false,
+  "separate_from": [
+    "Quant_M0_fill_receipts",
+    "Dev_realistic_fill_0bps_mid_kill"
+  ],
+  "fixture_path": "/workspace/alexrag/golden_cases_v0_frozen.json",
+  "fixture_sha256_16": "1a3cb17781211ad0",
+  "ingest_glob": "/workspace/alexrag/ingest/*.jsonl",
+  "ingest_channels": [
+    "equity-trades",
+    "alex-journal",
+    "prime-report",
+    "pf-update"
+  ],
+  "ingest_mac_root": "/Users/n_mac/Documents/AlexRag202609/data/ingest",
+  "timezone": "America/Los_Angeles",
+  "sealed_cutoff_rule": "only artifacts with timestamp < decision_ts",
+  "scorer_hooks": {
+    "must_apply": ["eligible_filter", "banned_same_day_ids"],
+    "eligible_filter_fields": ["channels", "ts_lt", "tz"],
+    "banned_same_day_ids_rule": "same-calendar-day messages with ts >= decision_ts; hard exclude from retrieval and citations",
+    "key_evidence_ids_role": "citation_hints_only_not_full_eligible_set",
+    "never_inject_into_model_context": ["target_action", "banned_same_day_ids_text", "fill_message_body"]
+  },
+  "output_schema": {
+    "per_case_required_fields": [
+      "case_id",
+      "decision_ts",
+      "action",
+      "side",
+      "ticker",
+      "size_pct",
+      "stop",
+      "management",
+      "exit",
+      "rejected_alternatives",
+      "citations",
+      "confidence",
+      "abstain_reason",
+      "sealed_cutoff_ack",
+      "retrieved_ids",
+      "model_id",
+      "run_id"
+    ],
+    "action_enum": ["enter", "abstain", "size", "manage", "exit"],
+    "side_enum": ["long", "short", "n/a"],
+    "citation_object": {
+      "source": "string",
+      "message_id": "string",
+      "ts": "string",
+      "quote_span": "string"
+    },
+    "notes": "Primary score target is fixture primary_question; citations.message_id must pass eligible_filter and not be in banned_same_day_ids"
+  },
+  "metrics": {
+    "axes": ["enter", "abstain", "size", "manage", "exit", "no_trade_precision", "no_trade_recall", "catastrophic_fp"],
+    "status_enum": ["PASS", "FAIL", "AMBIGUOUS"],
+    "behavioral_action_match_min": 0.7,
+    "no_trade_recall_min": 0.8,
+    "no_trade_precision_min": 0.75,
+    "catastrophic_fp_max": 0,
+    "citation_coverage_min_non_abstain": 0.9,
+    "size_tolerance_pp_soft": 2.0,
+    "size_notes": "Exact size often only on banned fill; score action+ticker(+side) first; size MAE secondary; do not read banned fill",
+    "gt_abstain_case_ids": [
+      "GC-04-2022-12-09",
+      "GC-09-2023-03-19",
+      "GC-28-2025-03-04",
+      "GC-30-2025-03-07"
+    ],
+    "cfp_definition": "Model enter or large size when GT abstain/no fill for ticker/day, or opposite side on abstain-honored day",
+    "ambiguous_no_soft_relabel": true
+  },
+  "ambiguous_case_ids_locked": [
+    "GC-02-2022-11-03",
+    "GC-05-2023-01-05",
+    "GC-10-2023-04-21",
+    "GC-17-2024-01-29",
+    "GC-18-2024-03-06",
+    "GC-19-2024-03-15",
+    "GC-20-2024-07-30",
+    "GC-23-2024-09-25",
+    "GC-26-2025-01-06",
+    "GC-31-2025-03-10",
+    "GC-33-2025-03-17",
+    "GC-34-2025-04-11",
+    "GC-35-2025-04-17",
+    "GC-36-2025-04-22",
+    "GC-40-2026-03-26",
+    "GC-42-2026-08-25"
+  ],
+  "kill_scars": {
+    "hard_model_kill_if_cheat_thin_sealed_priors": [
+      {
+        "case_id": "GC-15-2023-09-21",
+        "conflict_class": "C5_report_no_FL_vs_new_shorts",
+        "primary_question": "enter",
+        "tickers": ["STRL", "VRT"],
+        "reason": "no_ticker_mention_in_key_evidence; solving enter+ticker without eligible setup evidence implies leakage/memorization"
+      },
+      {
+        "case_id": "GC-29-2025-03-05",
+        "conflict_class": "C1_journal_no_trade_plan_vs_equity_entry",
+        "primary_question": "enter",
+        "tickers": ["NFLX"],
+        "reason": "only_no_trade_priors_in_seal; enter NFLX only via banned post-fill rationalization or fill itself is KILL; honest abstain preferred over cheating"
+      }
+    ],
+    "audit_rule": "On GC-15 and GC-29, any retrieved_ids or citation message_id in banned_same_day_ids or with ts >= decision_ts invalidates the run",
+    "soft_flag": {
+      "case_id": "GC-04-2022-12-09",
+      "flag": "abstain_case_has_same_day_equity_msgs",
+      "score_as": "abstain for GFS rejected setup; not day-flat"
+    },
+    "conflict_handling": "Score against equity-trades GT; eligible no-trade plan language is context not hard abstain label; do not soft-relabel 16 AMBIGUOUS cases"
+  },
+  "graduation": {
+    "fixture_integrity_clear_means": "Golden-48 freeze + sealed integrity OK; NOT model OOS; NOT paper unlock",
+    "model_eval_clear_requires": [
+      "behavioral_action_match_min",
+      "no_trade_P_R_bars",
+      "catastrophic_fp_max_0",
+      "citation_coverage_bar",
+      "gc15_gc29_no_banned_retrieval",
+      "immutable_audit_trail"
+    ],
+    "paper_unlock_additionally_requires": [
+      "model_eval_clear",
+      "quant_fill_scar_cleared_kill_0bps_mid",
+      "shadow_gate_green",
+      "human_approval",
+      "risk_limits",
+      "red_veto_clear"
+    ],
+    "paper_authority_until_then": false,
+    "capital_until_then": 0
+  },
+  "dev_hook_checklist": [
+    "Load frozen pack; pin fixture_sha256_16",
+    "Apply eligible_filter over MVP JSONL; exclude banned_same_day_ids",
+    "Never inject target_action / fill body into model context",
+    "Emit output_schema per case with run_id and model_id",
+    "Score PASS/FAIL/AMBIGUOUS + no-trade P/R + CFP; keep 16 AMBIGUOUS tags",
+    "Hard-fail run if GC-15 or GC-29 retrieval/cites intersect banned or ts>=decision_ts",
+    "Write immutable audit artifact",
+    "Keep paper_authority false and capital 0 in code paths",
+    "No submit/broker wiring",
+    "Keep Quant realistic-fill metrics separate",
+    "Hold out 2026-09-* from tuning until V0 baseline locked",
+    "pf-update state only; focuslist-ideas OOS"
+  ],
+  "upstream_docs": [
+    "EVAL_SPEC_V0_2026-09-15.md",
+    "FREEZE_NOTES.md",
+    "INGEST_SCHEMA.md",
+    "results/BEHAVIORAL_GOLDEN48_SCORECARD.md",
+    "docs/MODEL_EVAL_LOCK_V0.md"
+  ]
+}
