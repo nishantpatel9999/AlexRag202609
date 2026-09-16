@@ -6,6 +6,8 @@ MODEL_EVAL_LOCK_V0 prediction per frozen case.
 
 ``--dry-run`` skips Inferhub and emits honest abstains (``model_id=dry_run_abstain``).
 Live Inferhub needs ``INFERHUB_API_KEY`` on the operator Mac; pytest stays offline.
+Next live ``run_id`` is ``inferhub-cbcn-v2-quality`` (decision-quality V2 delta).
+Does not claim model CLEAR; capital 0; paper stays KILL.
 """
 
 from __future__ import annotations
@@ -31,26 +33,57 @@ from alexrag.eval.model_lock import (
 )
 from alexrag.eval.model_prediction import ACTIONS, SIDES, ModelCitation, ModelPrediction
 from alexrag.eval.sealed_corpus import CorpusMessage, SealedCorpus, eligible_messages, load_mvp_ingest
-from alexrag.llm.inferhub import INFERHUB_MODEL, InferhubClient, InferhubError
+from alexrag.llm.inferhub import (
+    INFERHUB_MAX_TOKENS,
+    INFERHUB_MODEL,
+    INFERHUB_TEMPERATURE,
+    InferhubClient,
+    InferhubError,
+)
 
 DRY_RUN_MODEL_ID = "dry_run_abstain"
 DEFAULT_MAX_MESSAGES = 32
 DEFAULT_MAX_TEXT_CHARS = 480
 DEFAULT_OUT_ROOT = Path("results/model_eval_runs")
+SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v2-quality"
 PARSE_REPAIR_USER = (
-    "Reply with a single JSON object matching the required schema. "
-    "No markdown fences, no prose — JSON object only."
+    "Your previous reply was not valid JSON. Reply with a single JSON object "
+    "matching the required schema and nothing else. No markdown fences, no "
+    "prose, no trailing commentary — JSON object only. Required keys include "
+    "action, side, ticker, citations, abstain_reason, confidence, "
+    "rejected_alternatives. citations[].message_id must be copied from "
+    "retrieved_ids in the user message."
 )
+ACTION_ALIASES = {
+    "enter": "enter",
+    "entry": "enter",
+    "abstain": "abstain",
+    "size": "size",
+    "manage": "manage",
+    "management": "manage",
+    "exit": "exit",
+    "close": "exit",
+}
+SIDE_ALIASES = {
+    "long": "long",
+    "buy": "long",
+    "short": "short",
+    "sell": "short",
+    "n/a": "n/a",
+    "na": "n/a",
+    "none": "n/a",
+}
 
 
 class EmitParseStats:
     """Mutable counters for parse_failure / repair recovery across a run."""
 
-    __slots__ = ("n_parse_failure", "n_parse_retry_recovered")
+    __slots__ = ("n_parse_failure", "n_parse_retry_recovered", "n_parse_local_repaired")
 
     def __init__(self) -> None:
         self.n_parse_failure = 0
         self.n_parse_retry_recovered = 0
+        self.n_parse_local_repaired = 0
 
 
 class EmitRunMeta(BaseModel):
@@ -78,6 +111,12 @@ class EmitRunMeta(BaseModel):
     max_messages: int = DEFAULT_MAX_MESSAGES
     n_parse_failure: int = 0
     n_parse_retry_recovered: int = 0
+    n_parse_local_repaired: int = 0
+    temperature: float = INFERHUB_TEMPERATURE
+    max_tokens: int = INFERHUB_MAX_TOKENS
+    response_format: str = "json_object"
+    quality_delta: str = "decision_quality_v2"
+    suggested_live_run_id: str = SUGGESTED_LIVE_RUN_ID
 
     @field_validator("paper_authority")
     @classmethod
@@ -199,15 +238,25 @@ def _schema_instruction(lock: ModelEvalLock) -> str:
     actions = lock.output_schema.get("action_enum") or list(ACTIONS)
     sides = lock.output_schema.get("side_enum") or list(SIDES)
     return (
-        "You are a sealed-cutoff trading decision model. Reply with one JSON object "
-        "and nothing else (no markdown, no prose). Required keys: "
+        "You are a sealed-cutoff trading decision model. "
+        "Reply with exactly one JSON object and nothing else — no markdown fences, "
+        "no prose, no trailing commentary. Required keys: "
         + ", ".join(fields)
         + f". action is one of {actions}. side is one of {sides}. "
-        "citations is an array of {source, message_id, ts, quote_span}; each "
-        "message_id must be from the sealed context. quote_span must be a verbatim "
-        "substring of that message. If evidence is thin or you are unsure, set "
-        "action=abstain with abstain_reason. Do not invent fills. Do not use "
-        "information after the sealed cutoff. Do not echo ground-truth labels."
+        "citations is an array of {source, message_id, ts, quote_span}. "
+        "Each citations[].message_id MUST be copied from retrieved_ids in the user "
+        "message. quote_span MUST be a verbatim substring of that sealed message. "
+        "Decision rule: when sealed_context shows clear Long/Short (or buy/sell) "
+        "fill-intent language naming a listed ticker — e.g. 'Long TICKER', "
+        "'Short TICKER', 'bought TICKER', 'sold TICKER', 'filled TICKER', "
+        "'entered TICKER' — you MUST set action to match primary_question "
+        "(enter, or size/manage/exit when that is asked) with that ticker and "
+        "side, and cite the supporting retrieved_ids. "
+        "Abstain ONLY when evidence is thin: empty sealed_context, no listed "
+        "ticker mentioned, or no Long/Short fill-intent language for the asked "
+        "ticker. Do not default to abstain when that language is present. "
+        "Do not invent fills, prices, or message ids. Do not use information "
+        "after the sealed cutoff. Do not echo labels that are not in sealed_context."
     )
 
 
@@ -231,6 +280,12 @@ def build_prompt_messages(ctx: ModelContext, lock: ModelEvalLock) -> list[dict[s
             f"- id={msg.message_id} ts={ts} channel={msg.channel} "
             f"text={truncate_text(msg.text)}"
         )
+    lines.append(
+        "Respond with one JSON object only. If sealed_context has clear "
+        "Long/Short fill-intent wording for a listed ticker, enter/size/"
+        "manage/exit as primary_question requires, cite retrieved_ids, "
+        "and do not abstain. Abstain only if that evidence is thin."
+    )
     user = "\n".join(lines)
     payload = {"system": _schema_instruction(lock), "user": user}
     assert_no_gt_keys({"case_id": ctx.case_id, "primary_question": ctx.primary_question})
@@ -243,30 +298,137 @@ def build_prompt_messages(ctx: ModelContext, lock: ModelEvalLock) -> list[dict[s
     ]
 
 
-def extract_json_object(text: str) -> dict[str, Any]:
-    """Parse first JSON object; tolerate markdown fences and trailing prose."""
+def strip_code_fences(text: str) -> str:
+    """Drop markdown fences so JSON extract can see the object."""
 
     raw = (text or "").strip()
     if not raw:
-        raise ValueError("empty model text")
+        return ""
     fence = re.search(r"```(?:json|JSON)?\s*\n?(.*?)```", raw, re.DOTALL)
     if fence:
-        raw = fence.group(1).strip()
-    elif raw.startswith("```"):
+        return fence.group(1).strip()
+    if raw.startswith("```"):
         lines = raw.splitlines()
         if lines and lines[0].startswith("```"):
             lines = lines[1:]
         if lines and lines[-1].strip().startswith("```"):
             lines = lines[:-1]
-        raw = "\n".join(lines).strip()
+        return "\n".join(lines).strip()
+    return raw
+
+
+def greedy_first_json_object(text: str) -> str | None:
+    """Return the first balanced `{...}` span, ignoring braces inside strings."""
+
+    start = (text or "").find("{")
+    if start < 0:
+        return None
+    in_string = False
+    escape = False
+    depth = 0
+    for i, ch in enumerate(text[start:], start):
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+            continue
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+            if depth < 0:
+                return None
+    return None
+
+
+def repair_truncated_json(fragment: str) -> str | None:
+    """Close dangling strings / braces / brackets; drop a trailing comma.
+
+    Used when the model hits max_tokens mid-object. Does not invent keys.
+    """
+
+    start = (fragment or "").find("{")
+    if start < 0:
+        return None
+    s = fragment[start:]
+    in_string = False
+    escape = False
+    stack: list[str] = []
+    for ch in s:
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+            continue
+        if ch == "{":
+            stack.append("}")
+        elif ch == "[":
+            stack.append("]")
+        elif ch in "}]":
+            if stack and stack[-1] == ch:
+                stack.pop()
+    out = s.rstrip()
+    if in_string:
+        if out.endswith("\\") and not out.endswith("\\\\"):
+            out = out[:-1]
+        out += '"'
+    stripped = out.rstrip()
+    if stripped.endswith(","):
+        out = stripped[:-1]
+    if not stack and greedy_first_json_object(out):
+        return greedy_first_json_object(out)
+    while stack:
+        out += stack.pop()
+    return out
+
+
+def try_parse_json_object(candidate: str) -> dict[str, Any] | None:
+    try:
+        obj = json.loads(candidate)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return None
+    return obj if isinstance(obj, dict) else None
+
+
+def extract_json_object(text: str) -> dict[str, Any]:
+    """Parse first JSON object; tolerate fences, trailing prose, truncated braces."""
+
+    raw = strip_code_fences(text)
+    if not raw:
+        raise ValueError("empty model text")
+    candidates: list[str] = []
+    greedy = greedy_first_json_object(raw)
+    if greedy:
+        candidates.append(greedy)
     start = raw.find("{")
     end = raw.rfind("}")
-    if start < 0 or end < 0 or end <= start:
-        raise ValueError("no JSON object in model text")
-    obj = json.loads(raw[start : end + 1])
-    if not isinstance(obj, dict):
-        raise ValueError("model JSON must be an object")
-    return obj
+    if start >= 0 and end > start:
+        span = raw[start : end + 1]
+        if span not in candidates:
+            candidates.append(span)
+    if start >= 0:
+        repaired = repair_truncated_json(raw[start:])
+        if repaired and repaired not in candidates:
+            candidates.append(repaired)
+    for cand in candidates:
+        obj = try_parse_json_object(cand)
+        if obj is not None:
+            return obj
+    raise ValueError("no JSON object in model text")
 
 
 def sealed_abstain(
@@ -296,6 +458,90 @@ def sealed_abstain(
         model_id=model_id,
         run_id=run_id,
     )
+
+
+def _coerce_action(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    token = value.strip().casefold().replace("-", " ").replace("_", " ")
+    if not token:
+        return None
+    first = token.split()[0]
+    return ACTION_ALIASES.get(first)
+
+
+def _coerce_side(value: Any, action: str) -> str | None:
+    if value is None or value == "":
+        return "n/a" if action == "abstain" else None
+    if not isinstance(value, str):
+        return None
+    token = value.strip().casefold().replace("-", " ").replace("_", " ")
+    if not token:
+        return "n/a" if action == "abstain" else None
+    first = token.split()[0]
+    return SIDE_ALIASES.get(first)
+
+
+def _coerce_size_pct(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        raw = value.strip().replace("%", "")
+        try:
+            return float(raw)
+        except ValueError:
+            return None
+    return None
+
+
+def _coerce_confidence(value: Any) -> float | str:
+    if value is None:
+        return 0.0
+    if isinstance(value, bool):
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        try:
+            return float(stripped)
+        except ValueError:
+            return stripped or 0.0
+    return 0.0
+
+
+def _coerce_optional_str(value: Any) -> str | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float, bool)):
+        return str(value)
+    if isinstance(value, str):
+        return value
+    return str(value)
+
+
+def _normalize_citation_raw(raw: Any) -> dict[str, Any] | None:
+    if isinstance(raw, str):
+        return {"message_id": raw}
+    if not isinstance(raw, dict):
+        return None
+    cleaned = dict(raw)
+    if not cleaned.get("message_id"):
+        alt = cleaned.get("id") or cleaned.get("messageId") or cleaned.get("msg_id")
+        if alt is not None:
+            cleaned["message_id"] = alt
+    mid = cleaned.get("message_id")
+    if isinstance(mid, bool):
+        return None
+    if isinstance(mid, (int, float)):
+        cleaned["message_id"] = str(int(mid))
+    elif mid is not None:
+        cleaned["message_id"] = str(mid).strip()
+    return cleaned
 
 
 def _eligible_citation(
@@ -335,19 +581,25 @@ def prediction_from_model_obj(
     eligible_ids = set(ctx.retrieved_ids)
     by_id = {m.message_id: m for m in ctx.messages}
     citations: list[ModelCitation] = []
-    for raw in cleaned.get("citations") or []:
-        cite = _eligible_citation(raw, eligible_ids, by_id)
+    raw_cites = cleaned.get("citations") or []
+    if isinstance(raw_cites, dict):
+        raw_cites = [raw_cites]
+    for raw in raw_cites:
+        normalized = _normalize_citation_raw(raw)
+        if normalized is None:
+            continue
+        cite = _eligible_citation(normalized, eligible_ids, by_id)
         if cite is not None:
             citations.append(cite)
 
-    action = cleaned.get("action")
+    action = _coerce_action(cleaned.get("action"))
     if action not in ACTIONS:
-        raise ValueError(f"invalid action {action!r}")
-    side = cleaned.get("side") if cleaned.get("side") in SIDES else ("n/a" if action == "abstain" else None)
+        raise ValueError(f"invalid action {cleaned.get('action')!r}")
+    side = _coerce_side(cleaned.get("side"), action)
     if side is None:
         raise ValueError(f"invalid side {cleaned.get('side')!r}")
 
-    abstain_reason = cleaned.get("abstain_reason")
+    abstain_reason = _coerce_optional_str(cleaned.get("abstain_reason"))
     if action != "abstain" and not citations:
         action = "abstain"
         side = "n/a"
@@ -355,9 +607,9 @@ def prediction_from_model_obj(
     if action == "abstain" and not (abstain_reason or "").strip():
         abstain_reason = "model_abstain"
 
-    size_pct = cleaned.get("size_pct")
-    if size_pct == "":
-        size_pct = None
+    size_pct = _coerce_size_pct(cleaned.get("size_pct"))
+    ticker_raw = cleaned.get("ticker")
+    ticker = "" if action == "abstain" else str(ticker_raw or "").strip()
 
     # Model often returns rejected_alternatives as objects; lock schema is list[str].
     raw_rejected = cleaned.get("rejected_alternatives") or []
@@ -384,14 +636,14 @@ def prediction_from_model_obj(
         decision_ts=case.decision_ts.isoformat(),
         action=action,
         side=side,
-        ticker="" if action == "abstain" else str(cleaned.get("ticker") or ""),
+        ticker=ticker,
         size_pct=size_pct,
-        stop=cleaned.get("stop"),
-        management=cleaned.get("management"),
-        exit=cleaned.get("exit"),
+        stop=_coerce_optional_str(cleaned.get("stop")),
+        management=_coerce_optional_str(cleaned.get("management")),
+        exit=_coerce_optional_str(cleaned.get("exit")),
         rejected_alternatives=rejected,
         citations=citations,
-        confidence=cleaned.get("confidence", 0.0),
+        confidence=_coerce_confidence(cleaned.get("confidence", 0.0)),
         abstain_reason=abstain_reason,
         sealed_cutoff_ack=ctx.sealed_cutoff_ack,
         retrieved_ids=list(ctx.retrieved_ids),
@@ -404,6 +656,30 @@ def prediction_from_model_obj(
     if any(c.message_id in banned for c in pred.citations):
         raise ValueError("citations intersect banned_same_day_ids")
     return pred
+
+
+def _parse_model_prediction(
+    text: str,
+    case: FrozenCase,
+    ctx: ModelContext,
+    *,
+    run_id: str,
+    model_id: str,
+) -> tuple[ModelPrediction | None, str]:
+    """Parse model text into a prediction. method is ok / repaired / failed.
+
+    Does not invent enter on thin priors — that is handled by the caller.
+    """
+
+    raw = strip_code_fences(text)
+    greedy = greedy_first_json_object(raw)
+    greedy_ok = bool(greedy and try_parse_json_object(greedy) is not None)
+    try:
+        obj = extract_json_object(text)
+        pred = prediction_from_model_obj(obj, case, ctx, run_id=run_id, model_id=model_id)
+    except Exception:
+        return None, "failed"
+    return pred, ("ok" if greedy_ok else "repaired")
 
 
 def emit_one_case(
@@ -469,47 +745,71 @@ def emit_one_case(
             prompts,
         )
 
-    pred: ModelPrediction | None = None
-    try:
-        obj = extract_json_object(str(text))
-        pred = prediction_from_model_obj(obj, case, ctx, run_id=run_id, model_id=model_id)
-    except Exception:
-        # One repair retry: short user nudge for a single JSON object.
-        repair_msgs = list(prompts) + [
-            {"role": "assistant", "content": str(text)},
-            {"role": "user", "content": PARSE_REPAIR_USER},
-        ]
-        try:
-            result2 = client.complete(repair_msgs)
-        except InferhubError:
-            if parse_stats is not None:
-                parse_stats.n_parse_failure += 1
-            return (
-                sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason="parse_failure"),
-                prompts,
-            )
-        text2 = result2.get("text") if isinstance(result2, dict) else None
-        try:
-            if not text2:
-                raise ValueError("empty repair completion")
-            obj = extract_json_object(str(text2))
-            pred = prediction_from_model_obj(obj, case, ctx, run_id=run_id, model_id=model_id)
-            if parse_stats is not None:
-                parse_stats.n_parse_retry_recovered += 1
-        except Exception:
-            if parse_stats is not None:
-                parse_stats.n_parse_failure += 1
-            return (
-                sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason="parse_failure"),
-                prompts,
-            )
+    pred, method = _parse_model_prediction(
+        str(text), case, ctx, run_id=run_id, model_id=model_id
+    )
+    if pred is not None:
+        if method == "repaired" and parse_stats is not None:
+            parse_stats.n_parse_local_repaired += 1
+        post_thin = thin_evidence_reason(case, ctx)
+        if post_thin and pred.action in {"enter", "size"}:
+            return sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason=post_thin), prompts
+        return pred, prompts
 
-    assert pred is not None
-    # Second-look thin evidence: do not keep an invented enter on empty priors.
+    # Schema-only LLM retry (second attempt).
+    repair_msgs = list(prompts) + [
+        {"role": "assistant", "content": str(text)},
+        {"role": "user", "content": PARSE_REPAIR_USER},
+    ]
+    text2: str | None = None
+    try:
+        result2 = client.complete(repair_msgs)
+        raw2 = result2.get("text") if isinstance(result2, dict) else None
+        text2 = str(raw2) if raw2 else None
+    except InferhubError:
+        text2 = None
+
+    recovered: ModelPrediction | None = None
+    recovered_method = "failed"
+    if text2:
+        recovered, recovered_method = _parse_model_prediction(
+            text2, case, ctx, run_id=run_id, model_id=model_id
+        )
+
+    # Last-ditch: greedy first `{...}` on original then retry text.
+    if recovered is None:
+        for blob in (str(text), text2 or ""):
+            greedy = greedy_first_json_object(strip_code_fences(blob))
+            if not greedy:
+                continue
+            try:
+                obj = json.loads(greedy)
+                if isinstance(obj, dict):
+                    recovered = prediction_from_model_obj(
+                        obj, case, ctx, run_id=run_id, model_id=model_id
+                    )
+                    recovered_method = "ok"
+                    break
+            except Exception:
+                continue
+
+    if recovered is None:
+        if parse_stats is not None:
+            parse_stats.n_parse_failure += 1
+        return (
+            sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason="parse_failure"),
+            prompts,
+        )
+
+    if parse_stats is not None:
+        parse_stats.n_parse_retry_recovered += 1
+        if recovered_method == "repaired":
+            parse_stats.n_parse_local_repaired += 1
+
     post_thin = thin_evidence_reason(case, ctx)
-    if post_thin and pred.action in {"enter", "size"}:
+    if post_thin and recovered.action in {"enter", "size"}:
         return sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason=post_thin), prompts
-    return pred, prompts
+    return recovered, prompts
 
 
 def write_emit_artifacts(
@@ -571,6 +871,11 @@ def emit_model_predictions(
 
     n_abstain = sum(1 for p in predictions if p.action == "abstain")
     created = datetime.now(timezone.utc).isoformat()
+    temperature = INFERHUB_TEMPERATURE
+    max_tokens = INFERHUB_MAX_TOKENS
+    if client is not None:
+        temperature = float(getattr(client, "temperature", INFERHUB_TEMPERATURE))
+        max_tokens = int(getattr(client, "max_tokens", INFERHUB_MAX_TOKENS))
     meta = EmitRunMeta(
         run_id=rid,
         model_id=model_id,
@@ -590,6 +895,12 @@ def emit_model_predictions(
         max_messages=max_messages,
         n_parse_failure=parse_stats.n_parse_failure,
         n_parse_retry_recovered=parse_stats.n_parse_retry_recovered,
+        n_parse_local_repaired=parse_stats.n_parse_local_repaired,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        response_format="json_object",
+        quality_delta="decision_quality_v2",
+        suggested_live_run_id=SUGGESTED_LIVE_RUN_ID,
     )
     assert_emit_sealed(pack, predictions)
     dest = write_emit_artifacts(predictions, meta, out_root)
