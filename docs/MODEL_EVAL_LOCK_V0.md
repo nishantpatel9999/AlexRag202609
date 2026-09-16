@@ -15,7 +15,7 @@
 
 **Separate tracks (do not conflate):**
 - **This lock** = decision-model behavioral scoring under sealed cutoff.
-- **Quant M0** = fill receipts / realistic fills (kill 0bps mid). Dev may build realistic fill in parallel; **model CLEAR ≠ paper unlock**.
+- **Quant fill receipts** = M0 regression / M1 `m1_realistic_v0` realistic fills (kill 0bps mid). **model CLEAR ≠ paper unlock**. M1 does not unlock paper.
 
 Machine-readable twin: `docs/model_eval_lock_v0.json`.
 
@@ -39,7 +39,7 @@ MVP modes remain: sealed chronological replay → shadow → advise. **No submit
 - No implementation code in this drop (optional stub interface sketch only, below).
 - No soft-relabel of the **16 AMBIGUOUS** conflict/size cases; labels stay as scored in the fixture audit.
 - No treating the careful-reader **oracle** as a model OOS result or as a paper unlock signal.
-- No Quant fill-realism graduation inside this lock (0bps mid remains Quant/Dev kill scar elsewhere).
+- No Quant fill-realism graduation inside this lock (M1 kills 0bps mid for Quant re-score only; still does not unlock paper).
 - No order submit / broker API / live trading / Market Fighter.
 - No P&L as primary gate; doctrine (GitBook) never overrides fills GT.
 - No inventing eligible message-id lists at score time — apply `eligible_filter` over JSONL.
@@ -285,7 +285,7 @@ Research proposes model CLEAR when **all** hold on a sealed run over Golden-48 (
 Paper discussion / paper trading requires **additionally**:
 
 1. Model-eval CLEAR (above)  
-2. **Quant fill scar cleared** — realistic fills; **kill 0bps mid** (Dev building; separate from this lock / separate from Quant M0 fill receipts conflation)  
+2. **Quant fill scar cleared** — realistic fills; **kill 0bps mid** (`m1_realistic_v0` / `docs/FILL_FIDELITY_M1.md`; does **not** unlock paper; separate from this lock)  
 3. Shadow gate green (Risk + Red)  
 4. **Human approval** + **Risk limits** configured  
 5. Red unilateral veto right on leakage, CFP, injection, hallucinated reasons, unrealistic fills  
@@ -305,7 +305,7 @@ Until then: `paper_authority_default: false`, capital **0**, no submit.
 - [ ] Immutable audit artifact per run (inputs hash, sealed cutoff, retrieved ids, scores).  
 - [ ] Do **not** flip `paper_authority` in code paths; default **false**.  
 - [ ] Do **not** wire submit/broker; capital **0**.  
-- [ ] Keep Quant realistic-fill work on a **separate** branch/metric surface (0bps mid kill).  
+- [ ] Keep Quant fill scoring on a **separate** metric surface (`m1_realistic_v0` kills 0bps mid; still does not unlock paper).  
 - [ ] Hold out 2026-09-* goldens from prompt/retrieval tuning until V0 baseline locked.  
 - [ ] pf-update = state only; focuslist-ideas stays OOS.  
 

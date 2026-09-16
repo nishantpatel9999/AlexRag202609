@@ -30,8 +30,8 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
                                           │ no
                                           ▼
                                  Exec → FillIntent
-                                 paper_sim M0 or alpaca_paper stub
-                                 (stubbed ≠ filled; 0bps fixture mid)
+                                 paper_sim m1_realistic_v0 (M0 selectable) or alpaca_paper stub
+                                 (stubbed ≠ filled; m1 proxy scar ≠ Alex slippage; no paper unlock)
                                           │
                                           ▼
                                       Auditor
@@ -45,7 +45,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
 | Embeddings | `FakeEmbeddingProvider` (hash vectors) | local model on Mac Studio |
 | LLM | `InferhubClient` OpenAI-compatible chat (`LLM_PROVIDER=inferhub`, model **`cbcn/glm-5.3-flash`** (case-insensitive accept of `cbcn/GLM-5.3-flash`), `INFERHUB_PROVIDER=cbcn`; stub if no key) | live Inferhub on Mac via `INFERHUB_API_KEY`; no non-cbcn upstreams |
 | Index | in-memory | durable vector store |
-| Broker | `paper_sim` M0 (fixture bars) + `AlpacaPaperBroker` stub | Alpaca **paper** API only; stubbed ≠ filled; `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY` |
+| Broker | `paper_sim` `m1_realistic_v0` default (M0 regression) + `AlpacaPaperBroker` stub | Alpaca **paper** API only; stubbed ≠ filled; `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY` |
 | Notify | log stub | Discord webhook/bot |
 | Charts | `TradingViewMCP` raises `NotImplementedError` | MCP client; still no invented numbers |
 | Audit | JSONL file sink | same contract, maybe append-only store |
@@ -58,7 +58,7 @@ AlexRag202609 MVP is a **local, paper-only** pipeline. There is no service mesh,
 4. Retrieve with source precedence.
 5. Stale / low-confidence / empty → abstain.
 6. Regime → Setup → Risk.
-7. Exec maps a cleared proposal to a complete `FillIntent` and a `PaperFill` (`paper_sim` M0 or `alpaca_paper` stub). See `docs/FILL_FIDELITY_M0.md`.
+7. Exec maps a cleared proposal to a complete `FillIntent` and a `PaperFill` (`paper_sim` `m1_realistic_v0` by default, or `alpaca_paper` stub). See `docs/FILL_FIDELITY_M1.md`. M1 does not unlock paper.
 8. Auditor may force abstain if the trail is incomplete.
 9. Write `Proposal` JSON.
 

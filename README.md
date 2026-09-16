@@ -2,7 +2,7 @@
 
 RAG + multi-agent system that reasons like Alex (Prime Trading). **MVP scaffold is paper-only.** There is no live trading path and no go-live date — promotion is gate-driven (`docs/RISK_GATES.md`).
 
-Locked spec: [`docs/SDD_MVP.md`](docs/SDD_MVP.md). Corpus: [`docs/CORPUS.md`](docs/CORPUS.md). Eval: [`docs/EVAL_SPEC_V0.md`](docs/EVAL_SPEC_V0.md). Paper fills: [`docs/FILL_FIDELITY_M0.md`](docs/FILL_FIDELITY_M0.md). Also [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
+Locked spec: [`docs/SDD_MVP.md`](docs/SDD_MVP.md). Corpus: [`docs/CORPUS.md`](docs/CORPUS.md). Eval: [`docs/EVAL_SPEC_V0.md`](docs/EVAL_SPEC_V0.md). Paper fills: [`docs/FILL_FIDELITY_M1.md`](docs/FILL_FIDELITY_M1.md) (default `m1_realistic_v0`) and [`docs/FILL_FIDELITY_M0.md`](docs/FILL_FIDELITY_M0.md) (legacy 0bps mid). Also [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
 
 ## Setup
 
@@ -35,7 +35,7 @@ uv run alexrag ingest-gitbook --path tests/fixtures/gitbook --out /tmp/gitbook.j
 uv run alexrag run-paper-day --dry-run --fixtures tests/fixtures --out /tmp/proposal.json
 ```
 
-Prints an audited `Proposal` JSON (`mode=paper`). `abstain` may be `true` (`paper.nav` defaults to 0 so dollar limits cannot be derived). Audit JSONL defaults to `data/audit/events.jsonl`. To exercise Exec/M0 without live keys, pass `--config config/fixture.yaml` (same operator pcts + `paper.nav`).
+Prints an audited `Proposal` JSON (`mode=paper`). `abstain` may be `true` (`paper.nav` defaults to 0 so dollar limits cannot be derived). Audit JSONL defaults to `data/audit/events.jsonl`. To exercise Exec without live keys, pass `--config config/fixture.yaml` (same operator pcts + `paper.nav`). Default fill model is `m1_realistic_v0` (`ALEXRAG_FILL_MODEL`); this **does not unlock paper**.
 
 Eval Spec V0 golden pack (offline, no P&L):
 
@@ -43,7 +43,7 @@ Eval Spec V0 golden pack (offline, no P&L):
 uv run alexrag eval-golden --pack eval/golden_cases_v0.json
 ```
 
-Decision-model eval (MODEL_EVAL_LOCK_V0, **capital 0**, **does not unlock paper**). Research sequence is **emit → score-model**. Orthogonal to M0 fill receipts.
+Decision-model eval (MODEL_EVAL_LOCK_V0, **capital 0**, **does not unlock paper**). Research sequence is **emit → score-model**. Orthogonal to fill receipts. `m1_realistic_v0` kills the M0 0bps-mid scar for Quant re-score only; it does **not** flip paper_authority or model CLEAR.
 
 Emit sealed-cutoff predictions for all 48 frozen Golden cases (`eval/golden_cases_v0_frozen.json` + `docs/model_eval_lock_v0.json`). Retrieval applies `eligible_filter` over MVP ingest JSONL and excludes `banned_same_day_ids`. Context never includes `target_action`, banned fill bodies, or GT labels.
 
@@ -103,16 +103,17 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `src/alexrag/vision_caption` | Vision stub (TODO: Mac Studio VLM) |
 | `src/alexrag/rag` | Chunking, fake embeddings, precedence retrieve |
 | `src/alexrag/agents` | Regime, Setup, Risk, Exec paper stub, Auditor |
-| `src/alexrag/broker` | `paper_sim` M0 + Alpaca paper stub (`stubbed` ≠ filled) |
+| `src/alexrag/broker` | `paper_sim` (`m1_realistic_v0` default, M0 regression) + Alpaca paper stub (`stubbed` ≠ filled) |
 | `src/alexrag/llm` | Inferhub OpenAI-compatible client (`LLM_PROVIDER=inferhub`, `LLM_MODEL=cbcn/glm-5.3-flash`, `INFERHUB_PROVIDER=cbcn`; `INFERHUB_API_KEY` env only; `--dry-run` skips HTTP) |
 | `src/alexrag/notify` | Discord stub (TODO: bot token) |
-| `src/alexrag/eval` | Paper window, sealed cutoff, golden harness, M0 fill scorer, model-eval lock scorer + sealed emitter |
+| `src/alexrag/eval` | Paper window, sealed cutoff, golden harness, M0/M1 fill scorers, model-eval lock scorer + sealed emitter |
 | `eval/golden_cases_v0.json` | 48-case V0 pack |
 | `eval/golden_cases_v0_frozen.json` | Frozen Golden-48 (sha256[:16]=`1a3cb17781211ad0`) |
 | `docs/MODEL_EVAL_LOCK_V0.md` | Decision-model scoring contract (paper KILL, capital 0) |
 | `eval/baselines/abstain_everywhere_v0.jsonl` | Smoke predictions (abstain all 48) |
 | `docs/EVAL_SPEC_V0.md` | Enter/abstain/size/manage/exit + citation scoring |
-| `docs/FILL_FIDELITY_M0.md` | PaperFill / FillIntent / M0 (0bps fixture mid) |
+| `docs/FILL_FIDELITY_M0.md` | PaperFill / FillIntent / M0 (legacy 0bps fixture mid) |
+| `docs/FILL_FIDELITY_M1.md` | `m1_realistic_v0` proxy scar (`proxy_half_spread_not_alex_slippage`); does not unlock paper |
 | `config/fixture.yaml` | Locked operator pcts + `paper.nav` for offline Exec |
 | `src/alexrag/schemas` | `Proposal`, `FillIntent`, `PaperFill`/`FillReceipt`, `AuditEvent` |
 | `docs/CORPUS.md` | MVP channels (incl. pf-update snapshots), PT timestamps, doctrine, precedence |

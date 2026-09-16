@@ -58,7 +58,7 @@ def run_paper_day(
     dry_run: bool = True,
     replay_case_id: str | None = None,
 ) -> PaperDayResult:
-    """Regime→Setup→Risk→Exec (M0 paper_sim / alpaca stub)→Auditor. No network. No live path."""
+    """Regime→Setup→Risk→Exec (paper_sim fill model / alpaca stub)→Auditor. No network. No live path."""
 
     clock = aware(decision_clock or datetime.now(ZoneInfo(DEFAULT_DISCORD_TZ)))
     proposal_id = str(uuid.uuid4())

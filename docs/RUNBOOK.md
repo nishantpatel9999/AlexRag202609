@@ -85,7 +85,7 @@ Nishant-locked operator values (config/env):
 | `max_notional_pct` | 150% of paper equity | `paper.nav * 1.5` |
 | `notional_breach_policy` | `pro_rata_trim_for_new_entry` | If a new entry/buy would push **gross** notional above 150% of equity, **pro-rata trim all open positions** enough to make room for the new size, then enter. The new entry is not shrunk to leftover room. See `docs/RISK_GATES.md`. |
 
-`paper.nav` defaults to `0` (cannot derive dollars → `hard_limits_unconfigured`). Risk enforces daily loss and portfolio DD against `paper_book`. These are not model-suggested sizes. `sessions`/`decisions` are diagnostics, not a hard floor (`docs/RISK_GATES.md`). Offline Exec/M0 replay uses `config/fixture.yaml` (same pcts + `paper.nav`); see `docs/FILL_FIDELITY_M0.md`.
+`paper.nav` defaults to `0` (cannot derive dollars → `hard_limits_unconfigured`). Risk enforces daily loss and portfolio DD against `paper_book`. These are not model-suggested sizes. `sessions`/`decisions` are diagnostics, not a hard floor (`docs/RISK_GATES.md`). Offline Exec replay uses `config/fixture.yaml` (same pcts + `paper.nav`); default fill model is `m1_realistic_v0` (`docs/FILL_FIDELITY_M1.md`) and does not unlock paper. Legacy M0: `docs/FILL_FIDELITY_M0.md`.
 
 ## LLM (always-on)
 

@@ -1,4 +1,4 @@
-"""Offline fixture bars for paper_sim M0. No live market data."""
+"""Offline fixture bars for paper_sim fill models. No live market data."""
 
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ class FixtureBar(BaseModel):
     ts: datetime
     ticker: str
     mid: float
+    open: float | None = None
+    spread_bps: float | None = None
 
 
 def load_fixture_bars(path: Path) -> list[FixtureBar]:
