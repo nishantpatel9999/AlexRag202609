@@ -2,7 +2,7 @@
 # Nishant-locked operator hard limits (pcts of paper equity). Dollar notional
 # and dollar daily-loss are derived from paper.nav at runtime.
 # paper.nav 0 fail-closes go-decisions (cannot derive dollars). Use
-# config/fixture.yaml (same pcts + nav) for M0 replay. Secrets stay in env.
+# config/fixture.yaml (same pcts + nav) for Exec replay. Secrets stay in env.
 
 mode: paper
 kill_switch: false
@@ -36,7 +36,7 @@ hard_limits:
 
 paper:
   nav: 0.0
-  fill_model: M0
+  fill_model: m1_realistic_v0  # ALEXRAG_FILL_MODEL; m0_fixture_mid_0bps kept for regression
   venue: paper_sim
 
 paper_book:

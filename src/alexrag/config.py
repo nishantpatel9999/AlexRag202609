@@ -18,6 +18,7 @@ from alexrag.llm.inferhub import (
     require_inferhub_base_url,
     require_llm_provider,
 )
+from alexrag.schemas.paper_fill import DEFAULT_FILL_MODEL, FillModel, canonicalize_fill_model
 from alexrag.schemas.sources import PRECEDENCE_DEFAULT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -112,12 +113,24 @@ class LlmSettings(BaseModel):
 
 
 class PaperSimSettings(BaseModel):
-    """Offline paper sizing + M0 venue. ``nav`` 0 fail-closes Exec sizing."""
+    """Offline paper sizing + fill venue. ``nav`` 0 fail-closes Exec sizing.
+
+    Default fill model is ``m1_realistic_v0`` (documented proxy scar). Legacy
+    ``M0`` / ``m0_fixture_mid_0bps`` remains selectable for regression. Neither
+    model unlocks paper or enables live submit.
+    """
 
     nav: float = 0.0
-    fill_model: Literal["M0"] = "M0"
+    fill_model: FillModel = DEFAULT_FILL_MODEL
     venue: Literal["paper_sim", "alpaca_paper"] = "paper_sim"
     bars_path: str | None = None
+
+    @field_validator("fill_model", mode="before")
+    @classmethod
+    def _canon_fill_model(cls, value: object) -> str:
+        if not isinstance(value, str):
+            raise TypeError("paper.fill_model must be a string")
+        return canonicalize_fill_model(value)
 
 
 class PaperBook(BaseModel):
@@ -271,6 +284,9 @@ def _env_overlay() -> dict[str, Any]:
     nav = envutil.get_float("ALEXRAG_PAPER_NAV")
     if nav is not None:
         paper["nav"] = nav
+    fill_model = envutil.get_str("ALEXRAG_FILL_MODEL")
+    if fill_model is not None:
+        paper["fill_model"] = fill_model
     if paper:
         overlay["paper"] = paper
 

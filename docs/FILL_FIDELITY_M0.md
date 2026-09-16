@@ -1,6 +1,8 @@
 # Fill fidelity M0 (paper-only)
 
-Quant-facing contract for paper fills. There is **no live path** and **no P&L gate**.
+Quant-facing contract for **legacy** paper fills (`m0_fixture_mid_0bps`, alias `M0`). There is **no live path** and **no P&L gate**.
+
+The default FillIntent→PaperFill path is now **`m1_realistic_v0`** (`docs/FILL_FIDELITY_M1.md`): non-zero documented proxy scar, labeled `proxy_half_spread_not_alex_slippage`. M1 does **not** unlock paper. This M0 pack stays as regression for the 0bps fixture-mid mark.
 
 ## Receipt (`PaperFill` / `FillReceipt`)
 

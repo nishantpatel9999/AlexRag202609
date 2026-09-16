@@ -1,4 +1,4 @@
-# Fixture operator config for offline Exec / M0 replay. Not for production.
+# Fixture operator config for offline Exec / paper_sim replay. Not for production.
 # Same Nishant-locked pcts as default.yaml; paper.nav lets dollars derive at runtime.
 # config/default.yaml keeps paper.nav at 0 (fail-closed dollar derivation).
 
@@ -31,7 +31,7 @@ hard_limits:
 
 paper:
   nav: 100000.0
-  fill_model: M0
+  fill_model: m1_realistic_v0  # does not unlock paper; m0_fixture_mid_0bps still selectable
   venue: paper_sim
   bars_path: tests/fixtures/m0/bars.json
 

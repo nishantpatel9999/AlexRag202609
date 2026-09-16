@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pytest
+
 from alexrag.agents.orchestrator import run_paper_day
 from alexrag.config import load_settings
 from alexrag.eval.metrics import paper_window_met
@@ -152,19 +154,21 @@ def test_configured_limits_can_clear_risk(fixtures_dir: Path, tmp_path: Path) ->
         assert result.fill.mode == "paper"
 
 
-def test_fixture_config_exercises_m0_exec(fixtures_dir: Path, tmp_path: Path) -> None:
+def test_fixture_config_exercises_exec(fixtures_dir: Path, tmp_path: Path) -> None:
     from datetime import timezone
 
     from alexrag.config import ROOT
 
-    settings = load_settings(config_path=ROOT / "config" / "fixture.yaml")
+    settings = load_settings(
+        config_path=ROOT / "config" / "fixture.yaml", load_env_file=False
+    )
     index, _messages = _index(fixtures_dir, settings)
     clock = datetime(2026, 9, 15, 18, 15, tzinfo=timezone.utc)
     result = run_paper_day(
         settings,
         index,
         decision_clock=clock,
-        audit_path=tmp_path / "m0.jsonl",
+        audit_path=tmp_path / "exec.jsonl",
     )
     assert settings.max_notional_dollars() == 150000.0
     assert result.proposal.abstain is False
@@ -178,8 +182,10 @@ def test_fixture_config_exercises_m0_exec(fixtures_dir: Path, tmp_path: Path) ->
     assert result.receipt.status == "acked"
     assert result.receipt.filled is True
     assert result.receipt.venue == "paper_sim"
-    assert result.receipt.scar_bps == 0
-    assert result.receipt.fill_px == 125.0
+    assert result.receipt.fill_model == "m1_realistic_v0"
+    assert result.receipt.scar_bps == 6.0
+    assert result.receipt.scar_label == "proxy_half_spread_not_alex_slippage"
+    assert result.receipt.fill_px == pytest.approx(125.075)
     assert result.receipt.qty_filled == 2.0
 
 

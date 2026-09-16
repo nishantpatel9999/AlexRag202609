@@ -37,7 +37,7 @@ Implemented in `alexrag.eval.metrics.paper_window_met` / `paper_run_diagnostics`
 
 ## Nishant override
 
-Approximately **2 weeks of clean paper** may be enough to **discuss** promotion **if fidelity gates pass** (replay, citation faithfulness, abstain-reason coverage, fail-closed drills, M0 fill fidelity). `min_sessions` / `min_decisions` do **not** block that review. **Calendar time alone never promotes.**
+Approximately **2 weeks of clean paper** may be enough to **discuss** promotion **if fidelity gates pass** (replay, citation faithfulness, abstain-reason coverage, fail-closed drills, fill fidelity). `min_sessions` / `min_decisions` do **not** block that review. **Calendar time alone never promotes.** M1 fill realism is a Quant re-score input, not a paper unlock.
 
 ## Metrics that must be reported before any promotion review
 
@@ -51,9 +51,13 @@ Approximately **2 weeks of clean paper** may be enough to **discuss** promotion 
 
 Helpers live in `alexrag.eval`. Thresholds for “good enough” replay/citation/abstain are **not** invented here; a future eval spec must set them from observed paper data.
 
-## Paper fill fidelity (M0, not a P&L gate)
+## Paper fill fidelity (M1 default, M0 regression; not a P&L gate)
 
-Offline paper fills use model **M0**: mark-to-next-available fixture bar/mid, **0bps** scar labeled (`docs/FILL_FIDELITY_M0.md`). `stubbed` (Alpaca paper without keys/network) is **not** `filled`. Operator pcts are locked in `config/default.yaml`; `paper.nav` defaults to `0` (fail-closed dollar derivation). `config/fixture.yaml` sets `paper.nav` for Exec replay. **No P&L gate.** **No live path.**
+Offline paper fills default to **`m1_realistic_v0`**: next-bar open or mid ± half-spread + impact stub, **non-zero** scar labeled `proxy_half_spread_not_alex_slippage` (`docs/FILL_FIDELITY_M1.md`). That kills the M0 0bps-mid scar so Quant can re-score receipts. It is **not** Alex-calibrated slippage and **does not unlock paper** (`paper_authority=false`, capital 0, no live submit).
+
+Legacy **M0** (`m0_fixture_mid_0bps`) remains selectable via `ALEXRAG_FILL_MODEL=m0_fixture_mid_0bps` / `M0` for regression: mark-to-next-available fixture mid, 0bps scar labeled `fixture_mid_0bps_not_alex_slippage` (`docs/FILL_FIDELITY_M0.md`).
+
+`stubbed` (Alpaca paper without keys/network) is **not** `filled`. Operator pcts are locked in `config/default.yaml`; `paper.nav` defaults to `0` (fail-closed dollar derivation). `config/fixture.yaml` sets `paper.nav` for Exec replay. **No P&L gate.** **No live path.** Decision-model CLEAR remains KILL and orthogonal.
 
 ## What does *not* satisfy a gate
 

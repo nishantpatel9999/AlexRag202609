@@ -6,20 +6,22 @@ from typing import Literal
 from alexrag.agents.audit_log import AuditLog
 from alexrag.agents.fill_map import proposal_to_intent
 from alexrag.broker.alpaca_paper import AlpacaPaperBroker
-from alexrag.broker.paper_sim import simulate_m0
+from alexrag.broker.fill_models import resolve_fill_model
 from alexrag.config import Settings
 from alexrag.marketdata.fixture_bars import FixtureBar, next_available_mid
 from alexrag.schemas.fill_intent import FillIntent
-from alexrag.schemas.paper_fill import PaperFill
+from alexrag.schemas.paper_fill import DEFAULT_FILL_MODEL, PaperFill, canonicalize_fill_model
 from alexrag.schemas.proposal import Proposal
 
 FillVenue = Literal["paper_sim", "alpaca_paper"]
 
 
 class ExecAgent:
-    """Paper execution. Maps a cleared Proposal to FillIntent, then M0 or alpaca stub.
+    """Paper execution. Maps a cleared Proposal to FillIntent, then paper_sim or alpaca stub.
 
-    There is no live trading path in this module. Stubbed alpaca receipts are not fills.
+    Fill model is selected from settings (``m1_realistic_v0`` default; M0 kept for
+    regression). There is no live trading path. Stubbed alpaca receipts are not fills.
+    Selecting m1 does not unlock paper.
     """
 
     name = "exec"
@@ -83,10 +85,13 @@ class ExecAgent:
                 payload={"reason": proposal.abstain_reason, "intent_id": intent.intent_id},
             )
 
+        fill_model = canonicalize_fill_model(
+            settings.paper.fill_model if settings is not None else DEFAULT_FILL_MODEL
+        )
         if chosen == "alpaca_paper":
-            receipt = self.broker.submit_paper(intent)
+            receipt = self.broker.submit_paper(intent, fill_model=fill_model)
         else:
-            receipt = simulate_m0(intent, bars)
+            receipt = resolve_fill_model(fill_model).simulate(intent, bars)
 
         proposal.fill_intent_id = intent.intent_id
         audit.emit(

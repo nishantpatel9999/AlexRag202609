@@ -98,7 +98,7 @@ Hard-limit fields (Nishant-locked operator values; present even while Exec is a 
 - `max_portfolio_dd` = 0.25 (25% of equity)
 - `notional_breach_policy` = `pro_rata_trim_for_new_entry` (pro-rata trim open positions to make room for a new entry that would otherwise exceed 150% gross)
 
-Values are **operator-owned**, not research outputs. `paper.nav` defaults to `0` so go-decisions fail-closed until equity is set (`config/fixture.yaml` for M0). Snapshot includes both pcts and derived dollar `max_notional` / `max_daily_loss`.
+Values are **operator-owned**, not research outputs. `paper.nav` defaults to `0` so go-decisions fail-closed until equity is set (`config/fixture.yaml` for Exec). Snapshot includes both pcts and derived dollar `max_notional` / `max_daily_loss`.
 
 ### Exec
 
