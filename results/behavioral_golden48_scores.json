@@ -1,0 +1,2859 @@
+{
+  "audit_type": "BASELINE_ORACLE / FIXTURE_AUDIT",
+  "not_model_oos": true,
+  "paper_authority": "NOT unlocked",
+  "capital": 0,
+  "market_fighter": false,
+  "freeze_pt": "2026-09-15",
+  "frozen_pack": "/workspace/alexrag/golden_cases_v0_frozen.json",
+  "frozen_sha256_16": "1a3cb17781211ad0",
+  "ingest_dir": "/workspace/alexrag/ingest",
+  "ingest_counts": {
+    "equity-trades": 6664,
+    "alex-journal": 5471,
+    "prime-report": 3062,
+    "pf-update": 1428
+  },
+  "n_cases": 48,
+  "n_scored": 48,
+  "n_fully_resolved": 48,
+  "n_integrity_ok": 48,
+  "n_integrity_fail": 0,
+  "oracle_pass": 30,
+  "oracle_fail": 2,
+  "oracle_ambiguous": 16,
+  "catastrophic_fp_count": 0,
+  "no_trade": {
+    "gt_abstain_n": 4,
+    "gt_abstain_ids": [
+      "GC-04-2022-12-09",
+      "GC-09-2023-03-19",
+      "GC-28-2025-03-04",
+      "GC-30-2025-03-07"
+    ],
+    "oracle_abstain_ids": [
+      "GC-04-2022-12-09",
+      "GC-09-2023-03-19",
+      "GC-28-2025-03-04",
+      "GC-29-2025-03-05",
+      "GC-30-2025-03-07"
+    ],
+    "precision": 0.8,
+    "recall": 1.0
+  },
+  "by_primary_question": {
+    "exit": {
+      "pass": 5
+    },
+    "enter": {
+      "ambiguous": 11,
+      "pass": 13,
+      "fail": 2
+    },
+    "abstain": {
+      "pass": 4
+    },
+    "manage": {
+      "pass": 6
+    },
+    "size": {
+      "pass": 2,
+      "ambiguous": 5
+    }
+  },
+  "gc04_soft_flag": true,
+  "scars": [
+    "GC-04 soft flag: abstain_case_has_same_day_equity_msgs (rejected GFS; other names traded)",
+    "GC-10-2023-04-21 conflict=C4_report_no_focuslist_vs_equity_trades oracle=ambiguous",
+    "GC-15-2023-09-21 conflict=C5_report_no_FL_vs_new_shorts oracle=fail",
+    "GC-17-2024-01-29 conflict=pilot_language_vs_large_size oracle=ambiguous",
+    "GC-19-2024-03-15 conflict=C3_no_new_longs_narrative_vs_new_short oracle=ambiguous",
+    "GC-26-2025-01-06 conflict=C7_report_nothing_excites_vs_CIEN oracle=ambiguous",
+    "GC-29-2025-03-05 conflict=C1_journal_no_trade_plan_vs_equity_entry oracle=fail",
+    "GC-31-2025-03-10 conflict=journal_narrative_vs_equity_entries oracle=ambiguous",
+    "GC-33-2025-03-17 conflict=journal_not_in_hurry_vs_multi_pilots oracle=ambiguous",
+    "GC-34-2025-04-11 conflict=C10_rulebook_shorts_disabled_vs_practice oracle=ambiguous",
+    "GC-35-2025-04-17 conflict=C10_rulebook_shorts_disabled_vs_practice oracle=ambiguous",
+    "GC-36-2025-04-22 conflict=journal_gameplan_vs_equity_entry oracle=ambiguous",
+    "GC-40-2026-03-26 conflict=C10_rulebook_shorts_disabled_vs_practice oracle=ambiguous"
+  ],
+  "leakage_case_ids": [
+    "GC-02-2022-11-03",
+    "GC-03-2022-11-15",
+    "GC-05-2023-01-05",
+    "GC-06-2023-02-02",
+    "GC-07-2023-03-09",
+    "GC-08-2023-03-14",
+    "GC-10-2023-04-21",
+    "GC-14-2023-09-07",
+    "GC-17-2024-01-29",
+    "GC-19-2024-03-15",
+    "GC-20-2024-07-30",
+    "GC-21-2024-08-01",
+    "GC-22-2024-08-30",
+    "GC-23-2024-09-25",
+    "GC-24-2024-10-17",
+    "GC-25-2024-12-10",
+    "GC-26-2025-01-06",
+    "GC-27-2025-01-07",
+    "GC-31-2025-03-10",
+    "GC-32-2025-03-13",
+    "GC-34-2025-04-11",
+    "GC-35-2025-04-17",
+    "GC-36-2025-04-22",
+    "GC-40-2026-03-26",
+    "GC-42-2026-08-25",
+    "GC-47-2026-09-14",
+    "GC-48-2026-09-15"
+  ],
+  "cases": [
+    {
+      "case_id": "GC-01-2022-10-03",
+      "date_pt": "2022-10-03",
+      "primary_question": "exit",
+      "conflict_class": null,
+      "decision_ts": "2022-10-03T12:42:00-07:00",
+      "tickers": [
+        "TH",
+        "TQQQ",
+        "XMTR"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 27,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 27,
+        "n_banned": 4
+      },
+      "oracle": {
+        "pred_action": "exit",
+        "pred_side": "long",
+        "pred_ticker": "XMTR",
+        "pred_size_pct": null,
+        "gt_action": "exit",
+        "gt_side": null,
+        "gt_size_pct": null,
+        "gt_tickers": [
+          "XMTR"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "open_or_prior_ticker_activity_supports_exit_question"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 19,
+          "enter_eq": 3,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-02-2022-11-03",
+      "date_pt": "2022-11-03",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2022-11-03T06:41:00-07:00",
+      "tickers": [
+        "SOXS",
+        "LABD",
+        "SQQQ"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1030498275385671712",
+          "possible_pre_decision_rationalization:1009865264726290433"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 7
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "short",
+        "pred_ticker": "SQQQ",
+        "pred_size_pct": null,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": null,
+        "gt_tickers": [
+          "SOXS"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "side_mismatch pred=short gt=long"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 25,
+          "enter_eq": 8,
+          "exit_eq": 5,
+          "manage_eq": 3,
+          "setup_msgs": 5
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-03-2022-11-15",
+      "date_pt": "2022-11-15",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2022-11-15T05:53:00-08:00",
+      "tickers": [
+        "STEM"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1031933249796198411",
+          "possible_pre_decision_rationalization:1017484552261881928"
+        ],
+        "ke_ok": 39,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 39,
+        "n_banned": 21
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "STEM",
+        "pred_size_pct": null,
+        "gt_action": "enter",
+        "gt_side": null,
+        "gt_size_pct": null,
+        "gt_tickers": [
+          "STEM"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 9,
+          "enter_eq": 1,
+          "exit_eq": 1,
+          "manage_eq": 0,
+          "setup_msgs": 4
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-04-2022-12-09",
+      "date_pt": "2022-12-09",
+      "primary_question": "abstain",
+      "conflict_class": null,
+      "decision_ts": "2022-12-09T06:36:01-08:00",
+      "tickers": [
+        "GFS",
+        "ARRY",
+        "LSCC",
+        "KGC"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [
+        "abstain_case_has_same_day_equity_msgs"
+      ],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [
+          "freeze_blockers=['abstain_case_has_same_day_equity_msgs']"
+        ],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 12
+      },
+      "oracle": {
+        "pred_action": "abstain",
+        "pred_side": null,
+        "pred_ticker": null,
+        "pred_size_pct": null,
+        "gt_action": "abstain",
+        "gt_side": null,
+        "gt_size_pct": null,
+        "gt_tickers": [
+          "GFS",
+          "ARRY",
+          "LSCC"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "high",
+        "notes": [
+          "no_trade_language_in_1_msgs"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 12,
+          "enter_eq": 2,
+          "exit_eq": 1,
+          "manage_eq": 2,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-05-2023-01-05",
+      "date_pt": "2023-01-05",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2023-01-05T06:08:00-08:00",
+      "tickers": [
+        "SQQQ"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1047239111951528036",
+          "possible_pre_decision_rationalization:1030498275385671712",
+          "possible_pre_decision_rationalization:1009865264726290433"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 9
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "short",
+        "pred_ticker": "SQQQ",
+        "pred_size_pct": 10.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "SQQQ"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "side_mismatch pred=short gt=long"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 34,
+          "enter_eq": 14,
+          "exit_eq": 0,
+          "manage_eq": 3,
+          "setup_msgs": 8
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-06-2023-02-02",
+      "date_pt": "2023-02-02",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2023-02-02T06:55:00-08:00",
+      "tickers": [
+        "CSIQ",
+        "BAND"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1070403586254716938",
+          "possible_pre_decision_rationalization:1069722410074521674"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 20
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "BAND",
+        "pred_size_pct": 5.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "CSIQ"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 29,
+          "enter_eq": 11,
+          "exit_eq": 4,
+          "manage_eq": 6,
+          "setup_msgs": 6
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-07-2023-03-09",
+      "date_pt": "2023-03-09",
+      "primary_question": "enter",
+      "conflict_class": "C9_sidelines_then_entries",
+      "decision_ts": "2023-03-09T06:46:00-08:00",
+      "tickers": [
+        "FOUR",
+        "PATH",
+        "ALGM"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1080500066629976165",
+          "possible_pre_decision_rationalization:1075116690624495657"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 18
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "FOUR",
+        "pred_size_pct": 5.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 5.0,
+        "gt_tickers": [
+          "FOUR"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 40,
+          "enter_eq": 14,
+          "exit_eq": 4,
+          "manage_eq": 0,
+          "setup_msgs": 14
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-08-2023-03-14",
+      "date_pt": "2023-03-14",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2023-03-14T06:44:00-07:00",
+      "tickers": [
+        "LSCC",
+        "INDI"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1052310060522557492"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 19
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "LSCC",
+        "pred_size_pct": 10.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 5.0,
+        "gt_tickers": [
+          "LSCC"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 2,
+          "ticker_msgs": 18,
+          "enter_eq": 4,
+          "exit_eq": 4,
+          "manage_eq": 3,
+          "setup_msgs": 3
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-09-2023-03-19",
+      "date_pt": "2023-03-19",
+      "primary_question": "abstain",
+      "conflict_class": null,
+      "decision_ts": "2023-03-19T18:07:01-07:00",
+      "tickers": [],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 0
+      },
+      "oracle": {
+        "pred_action": "abstain",
+        "pred_side": null,
+        "pred_ticker": null,
+        "pred_size_pct": null,
+        "gt_action": "abstain",
+        "gt_side": "short",
+        "gt_size_pct": null,
+        "gt_tickers": [],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "no_trade_language_in_2_msgs"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 2,
+          "ticker_msgs": 0,
+          "enter_eq": 0,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-10-2023-04-21",
+      "date_pt": "2023-04-21",
+      "primary_question": "enter",
+      "conflict_class": "C4_report_no_focuslist_vs_equity_trades",
+      "decision_ts": "2023-04-21T06:52:00-07:00",
+      "tickers": [
+        "SQQQ",
+        "MAXN"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1098692251066040462",
+          "possible_pre_decision_rationalization:1093520000796594259",
+          "possible_pre_decision_rationalization:1090695219185451128",
+          "possible_pre_decision_rationalization:1047239111951528036"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 7
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "short",
+        "pred_ticker": "SQQQ",
+        "pred_size_pct": 10.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "SQQQ"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 39,
+          "enter_eq": 14,
+          "exit_eq": 1,
+          "manage_eq": 3,
+          "setup_msgs": 10
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-11-2023-05-23",
+      "date_pt": "2023-05-23",
+      "primary_question": "enter",
+      "conflict_class": "C4_report_no_focuslist_vs_equity_trades",
+      "decision_ts": "2023-05-23T07:29:00-07:00",
+      "tickers": [
+        "CNK",
+        "MARA"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 32,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 32,
+        "n_banned": 16
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "long",
+        "pred_ticker": "CNK",
+        "pred_size_pct": 10.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "CNK"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "low",
+        "notes": [
+          "prior_same_ticker_equity_entry"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 8,
+          "enter_eq": 5,
+          "exit_eq": 3,
+          "manage_eq": 1,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-12-2023-06-22",
+      "date_pt": "2023-06-22",
+      "primary_question": "manage",
+      "conflict_class": "C8_journal_admits_mistake_vs_trade_log",
+      "decision_ts": "2023-06-22T07:02:00-07:00",
+      "tickers": [
+        "ACVA",
+        "TMF",
+        "STNE"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 19
+      },
+      "oracle": {
+        "pred_action": "manage",
+        "pred_side": null,
+        "pred_ticker": "STNE",
+        "pred_size_pct": null,
+        "gt_action": "manage",
+        "gt_side": "long",
+        "gt_size_pct": 11.0,
+        "gt_tickers": [
+          "STNE"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "manage_or_entry_priors_present"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 30,
+          "enter_eq": 9,
+          "exit_eq": 5,
+          "manage_eq": 9,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-13-2023-07-28",
+      "date_pt": "2023-07-28",
+      "primary_question": "manage",
+      "conflict_class": "near_conflict_invalidation_vs_same_day_adds",
+      "decision_ts": "2023-07-28T05:49:00-07:00",
+      "tickers": [
+        "TZA"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 4
+      },
+      "oracle": {
+        "pred_action": "manage",
+        "pred_side": "long",
+        "pred_ticker": "TZA",
+        "pred_size_pct": null,
+        "gt_action": "manage",
+        "gt_side": null,
+        "gt_size_pct": 5.0,
+        "gt_tickers": [
+          "TZA"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "low",
+        "notes": [
+          "prior_entry_only_no_manage_verb_in_evidence"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 27,
+          "enter_eq": 7,
+          "exit_eq": 7,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-14-2023-09-07",
+      "date_pt": "2023-09-07",
+      "primary_question": "enter",
+      "conflict_class": "C10_rulebook_shorts_disabled_vs_practice",
+      "decision_ts": "2023-09-07T06:53:00-07:00",
+      "tickers": [
+        "SOFI",
+        "TSLA"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1006204039077302332"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 33
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "TSLA",
+        "pred_size_pct": 10.0,
+        "gt_action": "enter",
+        "gt_side": "short",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "SOFI"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 29,
+          "enter_eq": 11,
+          "exit_eq": 4,
+          "manage_eq": 5,
+          "setup_msgs": 6
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-15-2023-09-21",
+      "date_pt": "2023-09-21",
+      "primary_question": "enter",
+      "conflict_class": "C5_report_no_FL_vs_new_shorts",
+      "decision_ts": "2023-09-21T06:42:00-07:00",
+      "tickers": [
+        "STRL",
+        "VRT"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 12
+      },
+      "oracle": {
+        "pred_action": "ambiguous",
+        "pred_side": null,
+        "pred_ticker": null,
+        "pred_size_pct": null,
+        "gt_action": "enter",
+        "gt_side": "short",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "STRL"
+        ],
+        "action_match": false,
+        "status": "fail",
+        "confidence": "low",
+        "notes": [
+          "no_ticker_mention_in_key_evidence"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 0,
+          "enter_eq": 0,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "fail"
+    },
+    {
+      "case_id": "GC-16-2023-11-09",
+      "date_pt": "2023-11-09",
+      "primary_question": "size",
+      "conflict_class": null,
+      "decision_ts": "2023-11-09T06:44:00-08:00",
+      "tickers": [
+        "SMCI",
+        "META"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 20
+      },
+      "oracle": {
+        "pred_action": "size",
+        "pred_side": "long",
+        "pred_ticker": "SMCI",
+        "pred_size_pct": 11.0,
+        "gt_action": "size",
+        "gt_side": "long",
+        "gt_size_pct": 11.0,
+        "gt_tickers": [
+          "SMCI"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "size_recoverable_approx gt=11.0"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 40,
+          "enter_eq": 18,
+          "exit_eq": 0,
+          "manage_eq": 1,
+          "setup_msgs": 12
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-17-2024-01-29",
+      "date_pt": "2024-01-29",
+      "primary_question": "size",
+      "conflict_class": "pilot_language_vs_large_size",
+      "decision_ts": "2024-01-29T07:10:00-08:00",
+      "tickers": [
+        "M2K",
+        "GLBE"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1200052694044377148",
+          "possible_pre_decision_rationalization:1082325112793071666"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 13
+      },
+      "oracle": {
+        "pred_action": "size",
+        "pred_side": "short",
+        "pred_ticker": "M2K",
+        "pred_size_pct": 10.0,
+        "gt_action": "size",
+        "gt_side": "long",
+        "gt_size_pct": 16.0,
+        "gt_tickers": [
+          "GLBE"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "side_mismatch pred=short gt=long",
+          "exact_size_pct_not_in_priors gt=16.0 (expected: size on banned fill)"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 28,
+          "enter_eq": 8,
+          "exit_eq": 4,
+          "manage_eq": 7,
+          "setup_msgs": 6
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-18-2024-03-06",
+      "date_pt": "2024-03-06",
+      "primary_question": "size",
+      "conflict_class": null,
+      "decision_ts": "2024-03-06T09:40:00-08:00",
+      "tickers": [
+        "MNQ",
+        "PLAY"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 16
+      },
+      "oracle": {
+        "pred_action": "size",
+        "pred_side": null,
+        "pred_ticker": "PLAY",
+        "pred_size_pct": 10.0,
+        "gt_action": "size",
+        "gt_side": "long",
+        "gt_size_pct": 24.0,
+        "gt_tickers": [
+          "PLAY"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "exact_size_pct_not_in_priors gt=24.0 (expected: size on banned fill)"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 39,
+          "enter_eq": 7,
+          "exit_eq": 6,
+          "manage_eq": 0,
+          "setup_msgs": 17
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-19-2024-03-15",
+      "date_pt": "2024-03-15",
+      "primary_question": "enter",
+      "conflict_class": "C3_no_new_longs_narrative_vs_new_short",
+      "decision_ts": "2024-03-15T08:28:00-07:00",
+      "tickers": [
+        "SPOT",
+        "ANF",
+        "SQQQ"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1201927890724196393",
+          "possible_pre_decision_rationalization:1098692251066040462",
+          "possible_pre_decision_rationalization:1093520000796594259",
+          "possible_pre_decision_rationalization:1047239111951528036"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 6
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "long",
+        "pred_ticker": "SPOT",
+        "pred_size_pct": 10.0,
+        "gt_action": "enter",
+        "gt_side": "short",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "SPOT"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 40,
+          "enter_eq": 17,
+          "exit_eq": 0,
+          "manage_eq": 1,
+          "setup_msgs": 9
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-20-2024-07-30",
+      "date_pt": "2024-07-30",
+      "primary_question": "size",
+      "conflict_class": null,
+      "decision_ts": "2024-07-30T06:44:00-07:00",
+      "tickers": [
+        "M2K",
+        "COHR"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1265869682838343784",
+          "possible_pre_decision_rationalization:1255233120207245393",
+          "possible_pre_decision_rationalization:1255166198317060126",
+          "possible_pre_decision_rationalization:1250090812772188252",
+          "possible_pre_decision_rationalization:1222177626639175771",
+          "possible_pre_decision_rationalization:1213133633783730286",
+          "possible_pre_decision_rationalization:1207372452728934400",
+          "possible_pre_decision_rationalization:1201614138552635402",
+          "possible_pre_decision_rationalization:1200052694044377148"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 15
+      },
+      "oracle": {
+        "pred_action": "size",
+        "pred_side": null,
+        "pred_ticker": "COHR",
+        "pred_size_pct": 9.0,
+        "gt_action": "size",
+        "gt_side": "short",
+        "gt_size_pct": 15.0,
+        "gt_tickers": [
+          "COHR"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "exact_size_pct_not_in_priors gt=15.0 (expected: size on banned fill)"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 35,
+          "enter_eq": 14,
+          "exit_eq": 5,
+          "manage_eq": 0,
+          "setup_msgs": 12
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-21-2024-08-01",
+      "date_pt": "2024-08-01",
+      "primary_question": "enter",
+      "conflict_class": "worst_breadth_vs_large_longs",
+      "decision_ts": "2024-08-01T04:19:00-07:00",
+      "tickers": [
+        "PANW",
+        "NTAP",
+        "M2K"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1265869682838343784",
+          "possible_pre_decision_rationalization:1207372452728934400",
+          "possible_pre_decision_rationalization:1201614138552635402",
+          "possible_pre_decision_rationalization:1200052694044377148"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 27
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "long",
+        "pred_ticker": "M2K",
+        "pred_size_pct": 10.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": null,
+        "gt_tickers": [
+          "M2K"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 37,
+          "enter_eq": 15,
+          "exit_eq": 4,
+          "manage_eq": 1,
+          "setup_msgs": 10
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-22-2024-08-30",
+      "date_pt": "2024-08-30",
+      "primary_question": "size",
+      "conflict_class": null,
+      "decision_ts": "2024-08-30T06:09:00-07:00",
+      "tickers": [
+        "TNDM",
+        "SPOT",
+        "MNQ"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1278742186426503209",
+          "possible_pre_decision_rationalization:1251201869154357328",
+          "possible_pre_decision_rationalization:1251174251172728852",
+          "possible_pre_decision_rationalization:1248285173108314172"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 16
+      },
+      "oracle": {
+        "pred_action": "size",
+        "pred_side": "long",
+        "pred_ticker": "SPOT",
+        "pred_size_pct": 18.0,
+        "gt_action": "size",
+        "gt_side": "long",
+        "gt_size_pct": null,
+        "gt_tickers": [
+          "MNQ"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 40,
+          "enter_eq": 17,
+          "exit_eq": 3,
+          "manage_eq": 0,
+          "setup_msgs": 13
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-23-2024-09-25",
+      "date_pt": "2024-09-25",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2024-09-25T12:52:00-07:00",
+      "tickers": [
+        "MES"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1271435135627296768",
+          "possible_pre_decision_rationalization:1267838550720778321"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 17
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "long",
+        "pred_ticker": "MES",
+        "pred_size_pct": 25.0,
+        "gt_action": "enter",
+        "gt_side": "short",
+        "gt_size_pct": 50.0,
+        "gt_tickers": [
+          "MES"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "side_mismatch pred=long gt=short"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 24,
+          "enter_eq": 12,
+          "exit_eq": 3,
+          "manage_eq": 1,
+          "setup_msgs": 6
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-24-2024-10-17",
+      "date_pt": "2024-10-17",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2024-10-17T08:24:00-07:00",
+      "tickers": [
+        "Z"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1250878898431070209",
+          "possible_pre_decision_rationalization:1217471693597970464"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 17
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "Z",
+        "pred_size_pct": 12.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 8.0,
+        "gt_tickers": [
+          "Z"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 17,
+          "enter_eq": 5,
+          "exit_eq": 5,
+          "manage_eq": 1,
+          "setup_msgs": 5
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-25-2024-12-10",
+      "date_pt": "2024-12-10",
+      "primary_question": "enter",
+      "conflict_class": "C6_report_no_FL_vs_longs",
+      "decision_ts": "2024-12-10T06:32:00-08:00",
+      "tickers": [
+        "UPST",
+        "ACHR",
+        "TTD"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1300495428466511953",
+          "possible_pre_decision_rationalization:1299444519703548075",
+          "possible_pre_decision_rationalization:1257371403179655199",
+          "possible_pre_decision_rationalization:1247909407044665395",
+          "possible_pre_decision_rationalization:1247548549768679466",
+          "possible_pre_decision_rationalization:1246096159789809735"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 27
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "long",
+        "pred_ticker": "UPST",
+        "pred_size_pct": 13.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 5.0,
+        "gt_tickers": [
+          "UPST"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 32,
+          "enter_eq": 11,
+          "exit_eq": 4,
+          "manage_eq": 4,
+          "setup_msgs": 6
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-26-2025-01-06",
+      "date_pt": "2025-01-06",
+      "primary_question": "enter",
+      "conflict_class": "C7_report_nothing_excites_vs_CIEN",
+      "decision_ts": "2025-01-06T06:55:00-08:00",
+      "tickers": [
+        "CIEN"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1299379609061556264"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 8
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "long",
+        "pred_ticker": "CIEN",
+        "pred_size_pct": 20.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 16.0,
+        "gt_tickers": [
+          "CIEN"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "low",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 2,
+          "enter_eq": 1,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-27-2025-01-07",
+      "date_pt": "2025-01-07",
+      "primary_question": "enter",
+      "conflict_class": "C7_report_nothing_excites_vs_entry",
+      "decision_ts": "2025-01-07T06:43:00-08:00",
+      "tickers": [
+        "TSLA"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1319704415208472677",
+          "possible_pre_decision_rationalization:1312064055359443006",
+          "possible_pre_decision_rationalization:1293229337394544692",
+          "possible_pre_decision_rationalization:1243205153490731068",
+          "possible_pre_decision_rationalization:1182752476559061093",
+          "possible_pre_decision_rationalization:1178794185000759426"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 12
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "TSLA",
+        "pred_size_pct": 5.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "TSLA"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 40,
+          "enter_eq": 19,
+          "exit_eq": 1,
+          "manage_eq": 1,
+          "setup_msgs": 12
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-28-2025-03-04",
+      "date_pt": "2025-03-04",
+      "primary_question": "abstain",
+      "conflict_class": null,
+      "decision_ts": "2025-03-04T04:01:01-08:00",
+      "tickers": [],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 20,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 20,
+        "n_banned": 2
+      },
+      "oracle": {
+        "pred_action": "abstain",
+        "pred_side": null,
+        "pred_ticker": null,
+        "pred_size_pct": null,
+        "gt_action": "abstain",
+        "gt_side": "short",
+        "gt_size_pct": null,
+        "gt_tickers": [],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "high",
+        "notes": [
+          "no_trade_language_in_6_msgs"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 6,
+          "ticker_msgs": 0,
+          "enter_eq": 0,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-29-2025-03-05",
+      "date_pt": "2025-03-05",
+      "primary_question": "enter",
+      "conflict_class": "C1_journal_no_trade_plan_vs_equity_entry",
+      "decision_ts": "2025-03-05T11:05:00-08:00",
+      "tickers": [
+        "NFLX"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 22,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 22,
+        "n_banned": 5
+      },
+      "oracle": {
+        "pred_action": "abstain",
+        "pred_side": null,
+        "pred_ticker": null,
+        "pred_size_pct": null,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 23.0,
+        "gt_tickers": [
+          "NFLX"
+        ],
+        "action_match": false,
+        "status": "fail",
+        "confidence": "high",
+        "notes": [
+          "only_no_trade_priors_no_ticker_setup_ORACLE_WOULD_ABSTAIN",
+          "false_abstain_on_enter_gt"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 7,
+          "ticker_msgs": 0,
+          "enter_eq": 0,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "fail"
+    },
+    {
+      "case_id": "GC-30-2025-03-07",
+      "date_pt": "2025-03-07",
+      "primary_question": "abstain",
+      "conflict_class": null,
+      "decision_ts": "2025-03-07T06:23:01-08:00",
+      "tickers": [],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 30,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 30,
+        "n_banned": 0
+      },
+      "oracle": {
+        "pred_action": "abstain",
+        "pred_side": null,
+        "pred_ticker": null,
+        "pred_size_pct": null,
+        "gt_action": "abstain",
+        "gt_side": null,
+        "gt_size_pct": null,
+        "gt_tickers": [],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "high",
+        "notes": [
+          "no_trade_language_in_8_msgs"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 8,
+          "ticker_msgs": 0,
+          "enter_eq": 0,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-31-2025-03-10",
+      "date_pt": "2025-03-10",
+      "primary_question": "enter",
+      "conflict_class": "journal_narrative_vs_equity_entries",
+      "decision_ts": "2025-03-10T06:57:00-07:00",
+      "tickers": [
+        "MP",
+        "ACMR"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1245026327120187472",
+          "possible_pre_decision_rationalization:1245009822441668800",
+          "possible_pre_decision_rationalization:1239575027842814074",
+          "possible_pre_decision_rationalization:1237398820040605737",
+          "possible_pre_decision_rationalization:1224733924597436517",
+          "possible_pre_decision_rationalization:1055928599913451530"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 20
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "MP",
+        "pred_size_pct": 16.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 12.0,
+        "gt_tickers": [
+          "MP"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 3,
+          "ticker_msgs": 33,
+          "enter_eq": 6,
+          "exit_eq": 9,
+          "manage_eq": 3,
+          "setup_msgs": 9
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-32-2025-03-13",
+      "date_pt": "2025-03-13",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2025-03-13T07:39:00-07:00",
+      "tickers": [
+        "ERY"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1077969768369356972"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 10
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "ERY",
+        "pred_size_pct": 5.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 11.0,
+        "gt_tickers": [
+          "ERY"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 3,
+          "ticker_msgs": 13,
+          "enter_eq": 4,
+          "exit_eq": 3,
+          "manage_eq": 0,
+          "setup_msgs": 3
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-33-2025-03-17",
+      "date_pt": "2025-03-17",
+      "primary_question": "size",
+      "conflict_class": "journal_not_in_hurry_vs_multi_pilots",
+      "decision_ts": "2025-03-17T06:39:00-07:00",
+      "tickers": [
+        "SE",
+        "TTWO",
+        "EXLS",
+        "BE"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 27
+      },
+      "oracle": {
+        "pred_action": "size",
+        "pred_side": "long",
+        "pred_ticker": "BE",
+        "pred_size_pct": 10.0,
+        "gt_action": "size",
+        "gt_side": "long",
+        "gt_size_pct": 3.0,
+        "gt_tickers": [
+          "SE"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also",
+          "exact_size_pct_not_in_priors gt=3.0 (expected: size on banned fill)"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 4,
+          "ticker_msgs": 39,
+          "enter_eq": 16,
+          "exit_eq": 2,
+          "manage_eq": 1,
+          "setup_msgs": 10
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-34-2025-04-11",
+      "date_pt": "2025-04-11",
+      "primary_question": "enter",
+      "conflict_class": "C10_rulebook_shorts_disabled_vs_practice",
+      "decision_ts": "2025-04-11T06:33:00-07:00",
+      "tickers": [
+        "NVDA",
+        "RIVN"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1357361959506284666",
+          "possible_pre_decision_rationalization:1350138249338945606",
+          "possible_pre_decision_rationalization:1311399212096688229",
+          "possible_pre_decision_rationalization:1311341483500113920",
+          "possible_pre_decision_rationalization:1290307300669653106"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 8
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "short",
+        "pred_ticker": "NVDA",
+        "pred_size_pct": 11.7,
+        "gt_action": "enter",
+        "gt_side": "short",
+        "gt_size_pct": 14.2,
+        "gt_tickers": [
+          "NVDA"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 2,
+          "ticker_msgs": 39,
+          "enter_eq": 17,
+          "exit_eq": 1,
+          "manage_eq": 0,
+          "setup_msgs": 10
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-35-2025-04-17",
+      "date_pt": "2025-04-17",
+      "primary_question": "enter",
+      "conflict_class": "C10_rulebook_shorts_disabled_vs_practice",
+      "decision_ts": "2025-04-17T07:07:00-07:00",
+      "tickers": [
+        "QQQ"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1327299848231456878",
+          "possible_pre_decision_rationalization:1316421424860233798"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 2
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "short",
+        "pred_ticker": "QQQ",
+        "pred_size_pct": 4.5,
+        "gt_action": "enter",
+        "gt_side": "short",
+        "gt_size_pct": 20.1,
+        "gt_tickers": [
+          "QQQ"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 2,
+          "ticker_msgs": 21,
+          "enter_eq": 0,
+          "exit_eq": 0,
+          "manage_eq": 0,
+          "setup_msgs": 14
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-36-2025-04-22",
+      "date_pt": "2025-04-22",
+      "primary_question": "enter",
+      "conflict_class": "journal_gameplan_vs_equity_entry",
+      "decision_ts": "2025-04-22T11:46:00-07:00",
+      "tickers": [
+        "PLTR"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1352640667297255566",
+          "possible_pre_decision_rationalization:1352301253270573057",
+          "possible_pre_decision_rationalization:1351595140829151234",
+          "possible_pre_decision_rationalization:1324454071838445711",
+          "possible_pre_decision_rationalization:1319680562600083508",
+          "possible_pre_decision_rationalization:1319024811015671863",
+          "possible_pre_decision_rationalization:1280544056958521398",
+          "possible_pre_decision_rationalization:1180158146728173579",
+          "possible_pre_decision_rationalization:1179522024931082250"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 4
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": "long",
+        "pred_ticker": "PLTR",
+        "pred_size_pct": 15.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 10.0,
+        "gt_tickers": [
+          "PLTR"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 39,
+          "enter_eq": 20,
+          "exit_eq": 0,
+          "manage_eq": 1,
+          "setup_msgs": 12
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-37-2025-05-20",
+      "date_pt": "2025-05-20",
+      "primary_question": "manage",
+      "conflict_class": "C2_journal_no_trades_vs_multiple_equity_actions",
+      "decision_ts": "2025-05-20T06:57:00-07:00",
+      "tickers": [
+        "STNE",
+        "MSTR"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 17
+      },
+      "oracle": {
+        "pred_action": "manage",
+        "pred_side": null,
+        "pred_ticker": "MSTR",
+        "pred_size_pct": null,
+        "gt_action": "manage",
+        "gt_side": "long",
+        "gt_size_pct": 11.0,
+        "gt_tickers": [
+          "STNE"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "manage_or_entry_priors_present"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 37,
+          "enter_eq": 8,
+          "exit_eq": 3,
+          "manage_eq": 10,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-38-2025-08-05",
+      "date_pt": "2025-08-05",
+      "primary_question": "exit",
+      "conflict_class": null,
+      "decision_ts": "2025-08-05T07:45:00-07:00",
+      "tickers": [
+        "VRT"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 7
+      },
+      "oracle": {
+        "pred_action": "exit",
+        "pred_side": "long",
+        "pred_ticker": "VRT",
+        "pred_size_pct": null,
+        "gt_action": "exit",
+        "gt_side": null,
+        "gt_size_pct": 2.9,
+        "gt_tickers": [
+          "VRT"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "open_or_prior_ticker_activity_supports_exit_question"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 35,
+          "enter_eq": 6,
+          "exit_eq": 11,
+          "manage_eq": 2,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-39-2025-11-06",
+      "date_pt": "2025-11-06",
+      "primary_question": "exit",
+      "conflict_class": null,
+      "decision_ts": "2025-11-06T12:17:00-08:00",
+      "tickers": [
+        "HOOD",
+        "PLTR"
+      ],
+      "pre_trade_labeled": true,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 26
+      },
+      "oracle": {
+        "pred_action": "exit",
+        "pred_side": "long",
+        "pred_ticker": "HOOD",
+        "pred_size_pct": null,
+        "gt_action": "exit",
+        "gt_side": null,
+        "gt_size_pct": 6.0,
+        "gt_tickers": [
+          "HOOD",
+          "PLTR"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "open_or_prior_ticker_activity_supports_exit_question"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 3,
+          "ticker_msgs": 35,
+          "enter_eq": 3,
+          "exit_eq": 17,
+          "manage_eq": 1,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-40-2026-03-26",
+      "date_pt": "2026-03-26",
+      "primary_question": "enter",
+      "conflict_class": "C10_rulebook_shorts_disabled_vs_practice",
+      "decision_ts": "2026-03-26T12:02:00-07:00",
+      "tickers": [
+        "AMZN",
+        "SOXL"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1486357434799751298",
+          "possible_pre_decision_rationalization:1457755488023482596",
+          "possible_pre_decision_rationalization:1455665787997126818",
+          "possible_pre_decision_rationalization:1414607234205225163",
+          "possible_pre_decision_rationalization:1339936079494516758",
+          "possible_pre_decision_rationalization:1339621621475835924",
+          "possible_pre_decision_rationalization:1339231726953828514"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 12
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "SOXL",
+        "pred_size_pct": 4.4,
+        "gt_action": "enter",
+        "gt_side": "short",
+        "gt_size_pct": 11.0,
+        "gt_tickers": [
+          "AMZN"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "med",
+        "notes": [
+          "conflict_no_trade_language_present_but_ticker_setup_also"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 32,
+          "enter_eq": 8,
+          "exit_eq": 5,
+          "manage_eq": 0,
+          "setup_msgs": 11
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-41-2026-04-29",
+      "date_pt": "2026-04-29",
+      "primary_question": "manage",
+      "conflict_class": null,
+      "decision_ts": "2026-04-29T12:50:00-07:00",
+      "tickers": [
+        "ONDS",
+        "TER"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 9
+      },
+      "oracle": {
+        "pred_action": "manage",
+        "pred_side": null,
+        "pred_ticker": "TER",
+        "pred_size_pct": null,
+        "gt_action": "manage",
+        "gt_side": null,
+        "gt_size_pct": 8.9,
+        "gt_tickers": [
+          "ONDS",
+          "TER"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "manage_or_entry_priors_present"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 23,
+          "enter_eq": 4,
+          "exit_eq": 3,
+          "manage_eq": 3,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-42-2026-08-25",
+      "date_pt": "2026-08-25",
+      "primary_question": "size",
+      "conflict_class": null,
+      "decision_ts": "2026-08-25T04:11:00-07:00",
+      "tickers": [
+        "SPCX"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1541511453297868930"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 21
+      },
+      "oracle": {
+        "pred_action": "size",
+        "pred_side": "long",
+        "pred_ticker": "SPCX",
+        "pred_size_pct": 16.0,
+        "gt_action": "size",
+        "gt_side": "long",
+        "gt_size_pct": 18.0,
+        "gt_tickers": [
+          "SPCX"
+        ],
+        "action_match": true,
+        "status": "ambiguous",
+        "confidence": "low",
+        "notes": [
+          "ticker_setup_or_journal_mention",
+          "exact_size_pct_not_in_priors gt=18.0 (expected: size on banned fill)"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 3,
+          "enter_eq": 1,
+          "exit_eq": 1,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "ambiguous"
+    },
+    {
+      "case_id": "GC-43-2026-08-28",
+      "date_pt": "2026-08-28",
+      "primary_question": "exit",
+      "conflict_class": null,
+      "decision_ts": "2026-08-28T06:50:00-07:00",
+      "tickers": [
+        "IONQ"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 23
+      },
+      "oracle": {
+        "pred_action": "exit",
+        "pred_side": "long",
+        "pred_ticker": "IONQ",
+        "pred_size_pct": null,
+        "gt_action": "exit",
+        "gt_side": null,
+        "gt_size_pct": 5.0,
+        "gt_tickers": [
+          "IONQ"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "open_or_prior_ticker_activity_supports_exit_question"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 37,
+          "enter_eq": 8,
+          "exit_eq": 12,
+          "manage_eq": 1,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-44-2026-09-02",
+      "date_pt": "2026-09-02",
+      "primary_question": "manage",
+      "conflict_class": null,
+      "decision_ts": "2026-09-02T12:20:00-07:00",
+      "tickers": [
+        "MU",
+        "OSCR",
+        "FROG"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 7
+      },
+      "oracle": {
+        "pred_action": "manage",
+        "pred_side": "long",
+        "pred_ticker": "OSCR",
+        "pred_size_pct": null,
+        "gt_action": "manage",
+        "gt_side": null,
+        "gt_size_pct": 9.0,
+        "gt_tickers": [
+          "FROG"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "manage_or_entry_priors_present"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 29,
+          "enter_eq": 7,
+          "exit_eq": 3,
+          "manage_eq": 16,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-45-2026-09-03",
+      "date_pt": "2026-09-03",
+      "primary_question": "manage",
+      "conflict_class": null,
+      "decision_ts": "2026-09-03T06:25:00-07:00",
+      "tickers": [
+        "PLTR",
+        "SMCI",
+        "HOOD"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 33
+      },
+      "oracle": {
+        "pred_action": "manage",
+        "pred_side": "long",
+        "pred_ticker": "HOOD",
+        "pred_size_pct": null,
+        "gt_action": "manage",
+        "gt_side": null,
+        "gt_size_pct": 1.93,
+        "gt_tickers": [
+          "PLTR"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "manage_or_entry_priors_present"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 3,
+          "ticker_msgs": 40,
+          "enter_eq": 6,
+          "exit_eq": 1,
+          "manage_eq": 15,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-46-2026-09-10",
+      "date_pt": "2026-09-10",
+      "primary_question": "exit",
+      "conflict_class": null,
+      "decision_ts": "2026-09-10T05:45:00-07:00",
+      "tickers": [
+        "ALAB",
+        "TEM"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 38
+      },
+      "oracle": {
+        "pred_action": "exit",
+        "pred_side": "long",
+        "pred_ticker": "ALAB",
+        "pred_size_pct": null,
+        "gt_action": "exit",
+        "gt_side": null,
+        "gt_size_pct": 5.3,
+        "gt_tickers": [
+          "ALAB",
+          "TEM"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "open_or_prior_ticker_activity_supports_exit_question"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 40,
+          "enter_eq": 2,
+          "exit_eq": 18,
+          "manage_eq": 0,
+          "setup_msgs": 0
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-47-2026-09-14",
+      "date_pt": "2026-09-14",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2026-09-14T09:17:00-07:00",
+      "tickers": [
+        "SNOW",
+        "AMD"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1539615579093344286",
+          "possible_pre_decision_rationalization:1519054469059444786",
+          "possible_pre_decision_rationalization:1517164039191531650",
+          "possible_pre_decision_rationalization:1514700424148553789",
+          "possible_pre_decision_rationalization:1456670035585142930"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 16
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "SNOW",
+        "pred_size_pct": 17.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 13.0,
+        "gt_tickers": [
+          "SNOW"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 0,
+          "ticker_msgs": 40,
+          "enter_eq": 19,
+          "exit_eq": 1,
+          "manage_eq": 0,
+          "setup_msgs": 8
+        }
+      },
+      "score_label": "pass"
+    },
+    {
+      "case_id": "GC-48-2026-09-15",
+      "date_pt": "2026-09-15",
+      "primary_question": "enter",
+      "conflict_class": null,
+      "decision_ts": "2026-09-15T06:38:00-07:00",
+      "tickers": [
+        "TEM",
+        "HOOD",
+        "MRNA"
+      ],
+      "pre_trade_labeled": false,
+      "freeze_blockers": [],
+      "integrity": {
+        "ok": true,
+        "issues": [],
+        "soft": [],
+        "leakage_flags": [
+          "possible_pre_decision_rationalization:1547969661105086566",
+          "possible_pre_decision_rationalization:1547968401274703923",
+          "possible_pre_decision_rationalization:1545072963207037019",
+          "possible_pre_decision_rationalization:1544710501001465967",
+          "possible_pre_decision_rationalization:1538995554623688824",
+          "possible_pre_decision_rationalization:1527322681081594020",
+          "possible_pre_decision_rationalization:1526635601087172732"
+        ],
+        "ke_ok": 40,
+        "ke_missing": 0,
+        "ke_future": 0,
+        "banned_missing": 0,
+        "banned_too_early": 0,
+        "n_key_evidence": 40,
+        "n_banned": 17
+      },
+      "oracle": {
+        "pred_action": "enter",
+        "pred_side": null,
+        "pred_ticker": "TEM",
+        "pred_size_pct": 5.0,
+        "gt_action": "enter",
+        "gt_side": "long",
+        "gt_size_pct": 7.0,
+        "gt_tickers": [
+          "TEM"
+        ],
+        "action_match": true,
+        "status": "pass",
+        "confidence": "med",
+        "notes": [
+          "ticker_setup_or_journal_mention"
+        ],
+        "catastrophic_fp": false,
+        "signal_counts": {
+          "nt_msgs": 1,
+          "ticker_msgs": 40,
+          "enter_eq": 20,
+          "exit_eq": 0,
+          "manage_eq": 2,
+          "setup_msgs": 9
+        }
+      },
+      "score_label": "pass"
+    }
+  ],
+  "generated_at_utc": "2026-09-16T02:31:49.773787+00:00",
+  "generated_at_pt_note": "Convert UTC\u2192America/Los_Angeles for operator display",
+  "generated_at_pt": "2026-09-15 7:31:49 PM PT",
+  "blockers": [
+    "No behavioral decision model in repo \u2014 results are BASELINE_ORACLE/FIXTURE_AUDIT only, not model OOS",
+    "Paper authority NOT unlocked; capital 0",
+    "GC-15 key_evidence lacks STRL/VRT ticker mentions (thin sealed priors for C5 short)",
+    "GC-29 C1: sealed priors are no-trade only \u2014 careful reader cannot recover NFLX enter without hindsight",
+    "Exact size% typically on banned fill \u2014 size axis often ambiguous by construction"
+  ],
+  "headline": {
+    "n_scored": 48,
+    "integrity_ok": 48,
+    "oracle_pass": 30,
+    "oracle_fail": 2,
+    "oracle_ambiguous": 16,
+    "catastrophic_fp": 0,
+    "no_trade_precision": 0.8,
+    "no_trade_recall": 1.0,
+    "gc04_soft_flag": true,
+    "paper_authority": "NOT unlocked",
+    "capital": 0
+  }
+}
