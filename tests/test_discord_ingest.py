@@ -75,3 +75,28 @@ def test_timestamps_inherit_across_message_groups(fixtures_dir: Path) -> None:
     assert messages[0].ts == messages[1].ts == messages[2].ts
     assert messages[0].ts is not None
     assert messages[0].ts.tzinfo == ZoneInfo(DEFAULT_DISCORD_TZ)
+
+
+def test_parse_exporter_title_ts_with_narrow_nbsp() -> None:
+    dt = parse_ts("Monday, October 3, 2022 6:37\u202fAM")
+    assert dt is not None
+    assert dt.year == 2022 and dt.month == 10 and dt.day == 3
+    assert dt.hour == 6 and dt.minute == 37
+    assert getattr(dt.tzinfo, "key", None) == DEFAULT_DISCORD_TZ
+
+
+def test_exporter_title_timestamps(fixtures_dir: Path) -> None:
+    html = fixtures_dir / "discord" / "exporter_title.html"
+    messages = list(iter_discord_html(html, source_type="trade_log"))
+    assert len(messages) == 2
+    first, second = messages
+    assert first.id == "4001"
+    assert first.ts is not None
+    assert first.ts_inherited is False
+    assert first.ts.year == 2022 and first.ts.month == 10 and first.ts.day == 3
+    assert first.ts.hour == 6 and first.ts.minute == 37
+    assert second.id == "4002"
+    assert second.ts is not None
+    assert second.ts_inherited is False
+    assert second.ts.hour == 7 and second.ts.minute == 51
+    assert second.source_type == "trade_log"
