@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import io
 import json
+import urllib.error
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -715,9 +717,9 @@ def test_inferhub_response_format_http400_fallback(monkeypatch: pytest.MonkeyPat
         body = json.loads(req.data.decode("utf-8"))
         bodies.append(body)
         if "response_format" in body:
-            fp = __import__("io").BytesIO(b'{"error":"response_format"}')
-            raise __import__("urllib.error").HTTPError(
-                req.full_url, 400, "Bad Request", hdrs=None, fp=fp
+            fp = io.BytesIO(b'{"error":"response_format"}')
+            raise urllib.error.HTTPError(
+                req.full_url, 400, "Bad Request", hdrs={}, fp=fp
             )
         return _Resp()
 
