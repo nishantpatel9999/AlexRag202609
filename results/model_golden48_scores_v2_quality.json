@@ -1,0 +1,298 @@
+{
+  "run_id": "inferhub-cbcn-v2-quality",
+  "model_id": "cbcn/glm-5.3-flash",
+  "dry_run": false,
+  "live_llm": true,
+  "repo_tip": "e71c82a",
+  "fixture_sha256_16": "1a3cb17781211ad0",
+  "lock_version": "MODEL_EVAL_LOCK_V0",
+  "decision_quality_lock": "DECISION_QUALITY_PASS_V1_LOCK",
+  "quality_delta": "decision_quality_v2",
+  "capital": 0,
+  "paper_authority": false,
+  "paper_unlocked": false,
+  "model_eval_clear": false,
+  "soft_relabel": false,
+  "a_through_f_all_pass": true,
+  "af": {
+    "A_parse_health": {
+      "pass": true,
+      "parse_failure": 0,
+      "parse_retry_recovered": 0,
+      "parse_local_repaired": 0,
+      "rule": "parse_failure==0 (or <=2 with retry_recovered>=1)"
+    },
+    "B_abstain_swamp": {
+      "pass": true,
+      "emitter_abstain": 16,
+      "max": 30,
+      "baseline_v1": 42
+    },
+    "C_enter_quality": {
+      "pass": true,
+      "enter_pass_non_ambiguous": 9,
+      "min_required": 1,
+      "case_ids": [
+        "GC-03-2022-11-15",
+        "GC-06-2023-02-02",
+        "GC-07-2023-03-09",
+        "GC-14-2023-09-07",
+        "GC-21-2024-08-01",
+        "GC-25-2024-12-10",
+        "GC-27-2025-01-07",
+        "GC-47-2026-09-14",
+        "GC-48-2026-09-15"
+      ]
+    },
+    "D_cfp": {
+      "pass": true,
+      "cfp_count": 0,
+      "max": 0,
+      "case_ids": []
+    },
+    "E_kill_scars": {
+      "pass": true,
+      "gc15": {
+        "action": "abstain",
+        "abstain_reason": "thin_evidence_no_ticker_in_priors",
+        "status": "FAIL",
+        "n_retrieved": 32,
+        "n_citations": 0,
+        "ret_cap_banned": [],
+        "cite_cap_banned": [],
+        "honest_abstain": true
+      },
+      "gc29": {
+        "action": "abstain",
+        "abstain_reason": "thin_evidence_no_ticker_in_priors",
+        "status": "FAIL",
+        "n_retrieved": 32,
+        "n_citations": 0,
+        "ret_cap_banned": [],
+        "cite_cap_banned": [],
+        "honest_abstain": true
+      },
+      "kill_scars": [],
+      "run_valid": true
+    },
+    "F_lock_surface": {
+      "pass": true,
+      "fixture_sha256_16": "1a3cb17781211ad0",
+      "expected_fixture_sha256_16": "1a3cb17781211ad0",
+      "no_soft_relabel": true,
+      "eligible_filter_unchanged": true,
+      "lock_version": "MODEL_EVAL_LOCK_V0"
+    }
+  },
+  "summary": {
+    "n_cases": 48,
+    "n_scored": 48,
+    "n_pass": 14,
+    "n_fail": 18,
+    "n_ambiguous": 16,
+    "n_missing": 0,
+    "behavioral_action_match": 0.4375,
+    "no_trade_precision": 0.25,
+    "no_trade_recall": 1.0,
+    "cfp_count": 0,
+    "citation_coverage_non_abstain": 1.0,
+    "run_valid": true,
+    "kill_scars": [],
+    "paper_authority": false,
+    "capital": 0,
+    "pnl_scored": false,
+    "gates": {
+      "behavioral_action_match_ok": false,
+      "no_trade_recall_ok": true,
+      "no_trade_precision_ok": false,
+      "cfp_ok": true,
+      "citation_coverage_ok": true,
+      "kill_scars_clear": true,
+      "model_eval_clear": false,
+      "paper_authority": false,
+      "capital": 0
+    }
+  },
+  "manifest": {
+    "run_id": "inferhub-cbcn-v2-quality",
+    "lock_version": "MODEL_EVAL_LOCK_V0",
+    "fixture_sha256_16": "1a3cb17781211ad0",
+    "fixture_path": "eval/golden_cases_v0_frozen.json",
+    "created_at": "2026-09-16T04:57:07.683729+00:00",
+    "paper_authority": false,
+    "capital": 0,
+    "run_valid": true,
+    "kill_scars": [],
+    "cfp_count": 0,
+    "pnl_scored": false,
+    "orthogonal_to": "Quant_M0_fill_receipts",
+    "live_llm": false,
+    "broker": false
+  },
+  "emit_meta": {
+    "n_cases": 48,
+    "n_abstain": 16,
+    "n_parse_failure": 0,
+    "n_parse_retry_recovered": 0,
+    "n_parse_local_repaired": 0,
+    "temperature": 0.15,
+    "max_tokens": 8192,
+    "response_format": "json_object",
+    "max_messages": 32,
+    "created_at": "2026-09-16T04:54:42.404994+00:00"
+  },
+  "by_primary_question": {
+    "exit": {
+      "FAIL": 5
+    },
+    "enter": {
+      "AMBIGUOUS": 11,
+      "PASS": 9,
+      "FAIL": 6
+    },
+    "abstain": {
+      "PASS": 4
+    },
+    "manage": {
+      "FAIL": 6
+    },
+    "size": {
+      "FAIL": 1,
+      "AMBIGUOUS": 5,
+      "PASS": 1
+    }
+  },
+  "pass_case_ids": [
+    "GC-03-2022-11-15",
+    "GC-04-2022-12-09",
+    "GC-06-2023-02-02",
+    "GC-07-2023-03-09",
+    "GC-09-2023-03-19",
+    "GC-14-2023-09-07",
+    "GC-21-2024-08-01",
+    "GC-22-2024-08-30",
+    "GC-25-2024-12-10",
+    "GC-27-2025-01-07",
+    "GC-28-2025-03-04",
+    "GC-30-2025-03-07",
+    "GC-47-2026-09-14",
+    "GC-48-2026-09-15"
+  ],
+  "fail_case_ids": [
+    "GC-01-2022-10-03",
+    "GC-08-2023-03-14",
+    "GC-11-2023-05-23",
+    "GC-12-2023-06-22",
+    "GC-13-2023-07-28",
+    "GC-15-2023-09-21",
+    "GC-16-2023-11-09",
+    "GC-24-2024-10-17",
+    "GC-29-2025-03-05",
+    "GC-32-2025-03-13",
+    "GC-37-2025-05-20",
+    "GC-38-2025-08-05",
+    "GC-39-2025-11-06",
+    "GC-41-2026-04-29",
+    "GC-43-2026-08-28",
+    "GC-44-2026-09-02",
+    "GC-45-2026-09-03",
+    "GC-46-2026-09-10"
+  ],
+  "ambiguous_case_ids": [
+    "GC-02-2022-11-03",
+    "GC-05-2023-01-05",
+    "GC-10-2023-04-21",
+    "GC-17-2024-01-29",
+    "GC-18-2024-03-06",
+    "GC-19-2024-03-15",
+    "GC-20-2024-07-30",
+    "GC-23-2024-09-25",
+    "GC-26-2025-01-06",
+    "GC-31-2025-03-10",
+    "GC-33-2025-03-17",
+    "GC-34-2025-04-11",
+    "GC-35-2025-04-17",
+    "GC-36-2025-04-22",
+    "GC-40-2026-03-26",
+    "GC-42-2026-08-25"
+  ],
+  "cfp_case_ids": [],
+  "enter_pass_non_ambiguous_case_ids": [
+    "GC-03-2022-11-15",
+    "GC-06-2023-02-02",
+    "GC-07-2023-03-09",
+    "GC-14-2023-09-07",
+    "GC-21-2024-08-01",
+    "GC-25-2024-12-10",
+    "GC-27-2025-01-07",
+    "GC-47-2026-09-14",
+    "GC-48-2026-09-15"
+  ],
+  "enter_pass_non_ambiguous_count": 9,
+  "gc15": {
+    "action": "abstain",
+    "abstain_reason": "thin_evidence_no_ticker_in_priors",
+    "status": "FAIL",
+    "n_retrieved": 32,
+    "n_citations": 0,
+    "ret_cap_banned": [],
+    "cite_cap_banned": [],
+    "honest_abstain": true
+  },
+  "gc29": {
+    "action": "abstain",
+    "abstain_reason": "thin_evidence_no_ticker_in_priors",
+    "status": "FAIL",
+    "n_retrieved": 32,
+    "n_citations": 0,
+    "ret_cap_banned": [],
+    "cite_cap_banned": [],
+    "honest_abstain": true
+  },
+  "prediction_action_counts": {
+    "exit": 5,
+    "enter": 16,
+    "abstain": 16,
+    "manage": 6,
+    "size": 5
+  },
+  "parse_failure": 0,
+  "parse_retry_recovered": 0,
+  "vs_v1": {
+    "v1_pass_fail_ambiguous": [
+      4,
+      28,
+      16
+    ],
+    "v2_pass_fail_ambiguous": [
+      14,
+      18,
+      16
+    ],
+    "v1_behavioral_action_match": 0.125,
+    "v2_behavioral_action_match": 0.4375,
+    "v1_cfp": 0,
+    "v2_cfp": 0,
+    "v1_emitter_abstain": 42,
+    "v2_emitter_abstain": 16,
+    "v1_parse_failure": 12,
+    "v2_parse_failure": 0,
+    "v1_enter_pass_non_ambiguous": 0,
+    "v2_enter_pass_non_ambiguous": 9,
+    "v1_model_eval_clear": false,
+    "v2_model_eval_clear": false,
+    "v1_no_trade_precision": 0.09523809523809523,
+    "v2_no_trade_precision": 0.25,
+    "v1_no_trade_recall": 1.0,
+    "v2_no_trade_recall": 1.0
+  },
+  "notes": [
+    "Formal offline score of live Inferhub predictions; scorer capital 0; no LLM; no soft-relabel.",
+    "Default score-model --out collisions with predictions dir; wrote audit to results/model_score_runs/inferhub-cbcn-v2-quality.",
+    "A\u2013F HIT under DECISION_QUALITY_PASS_V1_LOCK research_rescore_mvp_bar; does NOT imply MODEL_EVAL_LOCK_V0 clear.",
+    "Paper NOT unlocked: model_eval_clear=false (behavioral_action_match 0.4375 < clear bar; no_trade_precision_ok=false).",
+    "GC-15/GC-29 honest abstain; empty citations; retrieved_ids \u2229 banned_same_day_ids = \u2205."
+  ],
+  "generated_at_pt": "2026-09-15 09:58:20 PM PT",
+  "generated_at_utc": "2026-09-16T04:58:20.602139+00:00"
+}
