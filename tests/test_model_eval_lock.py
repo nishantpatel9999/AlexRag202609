@@ -108,8 +108,10 @@ def test_context_builder_rejects_gt_injection() -> None:
     with pytest.raises(GroundTruthLeakError):
         build_model_context(case, eligible, retrieved_ids=["ban-fill"])
     poisoned = list(eligible) + [corpus.lookup("ban-fill")]  # type: ignore[list-item]
-    with pytest.raises(GroundTruthLeakError):
-        build_model_context(case, poisoned)
+    # Banned/GT rows in the eligible list are filtered out (not raised).
+    ctx2 = build_model_context(case, poisoned)
+    assert "ban-fill" not in ctx2.retrieved_ids
+    assert case.target_action.message_id not in ctx2.retrieved_ids
 
 
 def _pred_for(case: FrozenCase, **overrides: object) -> ModelPrediction:
