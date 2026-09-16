@@ -51,6 +51,6 @@ embedding:
 
 llm:
   provider: inferhub
-  model: cbcn/GLM-5.3-flash
+  model: cbcn/glm-5.3-flash
   base_url: https://api.inferhub.dev/v1
   inferhub_provider: cbcn

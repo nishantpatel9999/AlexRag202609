@@ -80,7 +80,7 @@ def test_nav_zero_cannot_derive_dollars(tmp_path: Path) -> None:
 def test_llm_locked_to_inferhub_cbcn() -> None:
     settings = load_settings()
     assert settings.llm.provider == "inferhub"
-    assert settings.llm.model == "cbcn/GLM-5.3-flash"
+    assert settings.llm.model == "cbcn/glm-5.3-flash"
     assert settings.llm.base_url == "https://api.inferhub.dev/v1"
     assert settings.llm.inferhub_provider == "cbcn"
     with pytest.raises(ValidationError):
@@ -199,7 +199,7 @@ def test_inferhub_provider_env_must_be_cbcn(monkeypatch) -> None:
     monkeypatch.setenv("INFERHUB_PROVIDER", "cbcn")
     settings = load_settings(load_env_file=False)
     assert settings.llm.provider == "inferhub"
-    assert settings.llm.model == "cbcn/GLM-5.3-flash"
+    assert settings.llm.model == "cbcn/glm-5.3-flash"
     assert settings.llm.inferhub_provider == "cbcn"
     monkeypatch.setenv("INFERHUB_PROVIDER", "other")
     with pytest.raises(ValidationError):
@@ -218,13 +218,31 @@ def test_paper_nav_env_derives_dollars(monkeypatch) -> None:
     assert settings.max_daily_loss_dollars() == 5000.0
 
 
+
+def test_inferhub_model_case_insensitive_normalize(monkeypatch) -> None:
+    """Accept capital-GLM lock spelling; HTTP model is always lowercase canonical."""
+
+    monkeypatch.delenv(INFERHUB_API_KEY_ENV, raising=False)
+    for spelling in ("cbcn/GLM-5.3-flash", "cbcn/glm-5.3-flash", "cbcn/Glm-5.3-Flash"):
+        client = InferhubClient(model=spelling)
+        assert client.model == INFERHUB_MODEL == "cbcn/glm-5.3-flash"
+        body = client.request_body([{"role": "user", "content": "x"}])
+        assert body["model"] == "cbcn/glm-5.3-flash"
+    settings = Settings.model_validate({"llm": {"model": "cbcn/GLM-5.3-flash"}})
+    assert settings.llm.model == "cbcn/glm-5.3-flash"
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"llm": {"model": "cbcn/other-model"}})
+    with pytest.raises(ValueError, match="cbcn"):
+        InferhubClient(model="other/glm-5.3-flash")
+
+
 def test_secrets_stay_out_of_git() -> None:
     root = ROOT
     example = (root / ".env.example").read_text(encoding="utf-8")
     assert "INFERHUB_API_KEY=" in example
     assert "INFERHUB_PROVIDER=cbcn" in example
     assert "LLM_PROVIDER=inferhub" in example
-    assert "LLM_MODEL=cbcn/GLM-5.3-flash" in example
+    assert "LLM_MODEL=cbcn/glm-5.3-flash" in example
     assert "INFERHUB_BASE_URL=https://api.inferhub.dev/v1" in example
     assert "ALPACA_API_KEY_ID=" in example
     assert "ALPACA_API_SECRET_KEY=" in example

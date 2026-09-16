@@ -37,6 +37,21 @@ DRY_RUN_MODEL_ID = "dry_run_abstain"
 DEFAULT_MAX_MESSAGES = 32
 DEFAULT_MAX_TEXT_CHARS = 480
 DEFAULT_OUT_ROOT = Path("results/model_eval_runs")
+PARSE_REPAIR_USER = (
+    "Reply with a single JSON object matching the required schema. "
+    "No markdown fences, no prose — JSON object only."
+)
+
+
+class EmitParseStats:
+    """Mutable counters for parse_failure / repair recovery across a run."""
+
+    __slots__ = ("n_parse_failure", "n_parse_retry_recovered")
+
+    def __init__(self) -> None:
+        self.n_parse_failure = 0
+        self.n_parse_retry_recovered = 0
+
 
 class EmitRunMeta(BaseModel):
     """Sidecar for an emit run. Paper stays KILL; capital stays 0."""
@@ -61,6 +76,8 @@ class EmitRunMeta(BaseModel):
     orthogonal_to: str = "Quant_M0_fill_receipts"
     created_at: str
     max_messages: int = DEFAULT_MAX_MESSAGES
+    n_parse_failure: int = 0
+    n_parse_retry_recovered: int = 0
 
     @field_validator("paper_authority")
     @classmethod
@@ -227,14 +244,19 @@ def build_prompt_messages(ctx: ModelContext, lock: ModelEvalLock) -> list[dict[s
 
 
 def extract_json_object(text: str) -> dict[str, Any]:
+    """Parse first JSON object; tolerate markdown fences and trailing prose."""
+
     raw = (text or "").strip()
     if not raw:
         raise ValueError("empty model text")
-    if raw.startswith("```"):
+    fence = re.search(r"```(?:json|JSON)?\s*\n?(.*?)```", raw, re.DOTALL)
+    if fence:
+        raw = fence.group(1).strip()
+    elif raw.startswith("```"):
         lines = raw.splitlines()
         if lines and lines[0].startswith("```"):
             lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
+        if lines and lines[-1].strip().startswith("```"):
             lines = lines[:-1]
         raw = "\n".join(lines).strip()
     start = raw.find("{")
@@ -337,6 +359,26 @@ def prediction_from_model_obj(
     if size_pct == "":
         size_pct = None
 
+    # Model often returns rejected_alternatives as objects; lock schema is list[str].
+    raw_rejected = cleaned.get("rejected_alternatives") or []
+    rejected: list[str] = []
+    for item in raw_rejected:
+        if isinstance(item, str):
+            rejected.append(item)
+        elif isinstance(item, dict):
+            alt = item.get("alternative") or item.get("action") or item.get("alt")
+            reason = item.get("reason") or item.get("why")
+            if alt and reason:
+                rejected.append(f"{alt}: {reason}")
+            elif alt:
+                rejected.append(str(alt))
+            elif reason:
+                rejected.append(str(reason))
+            else:
+                rejected.append(str(item))
+        else:
+            rejected.append(str(item))
+
     pred = ModelPrediction(
         case_id=case.case_id,
         decision_ts=case.decision_ts.isoformat(),
@@ -347,7 +389,7 @@ def prediction_from_model_obj(
         stop=cleaned.get("stop"),
         management=cleaned.get("management"),
         exit=cleaned.get("exit"),
-        rejected_alternatives=list(cleaned.get("rejected_alternatives") or []),
+        rejected_alternatives=rejected,
         citations=citations,
         confidence=cleaned.get("confidence", 0.0),
         abstain_reason=abstain_reason,
@@ -374,6 +416,7 @@ def emit_one_case(
     dry_run: bool,
     client: InferhubClient | None = None,
     max_messages: int = DEFAULT_MAX_MESSAGES,
+    parse_stats: EmitParseStats | None = None,
 ) -> tuple[ModelPrediction, list[dict[str, str]]]:
     eligible = eligible_messages(case, corpus)
     retrieved_ids = select_retrieved_ids(case, eligible, max_messages=max_messages)
@@ -425,15 +468,43 @@ def emit_one_case(
             ),
             prompts,
         )
+
+    pred: ModelPrediction | None = None
     try:
         obj = extract_json_object(str(text))
         pred = prediction_from_model_obj(obj, case, ctx, run_id=run_id, model_id=model_id)
     except Exception:
-        return (
-            sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason="parse_failure"),
-            prompts,
-        )
+        # One repair retry: short user nudge for a single JSON object.
+        repair_msgs = list(prompts) + [
+            {"role": "assistant", "content": str(text)},
+            {"role": "user", "content": PARSE_REPAIR_USER},
+        ]
+        try:
+            result2 = client.complete(repair_msgs)
+        except InferhubError:
+            if parse_stats is not None:
+                parse_stats.n_parse_failure += 1
+            return (
+                sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason="parse_failure"),
+                prompts,
+            )
+        text2 = result2.get("text") if isinstance(result2, dict) else None
+        try:
+            if not text2:
+                raise ValueError("empty repair completion")
+            obj = extract_json_object(str(text2))
+            pred = prediction_from_model_obj(obj, case, ctx, run_id=run_id, model_id=model_id)
+            if parse_stats is not None:
+                parse_stats.n_parse_retry_recovered += 1
+        except Exception:
+            if parse_stats is not None:
+                parse_stats.n_parse_failure += 1
+            return (
+                sealed_abstain(case, ctx, run_id=run_id, model_id=model_id, reason="parse_failure"),
+                prompts,
+            )
 
+    assert pred is not None
     # Second-look thin evidence: do not keep an invented enter on empty priors.
     post_thin = thin_evidence_reason(case, ctx)
     if post_thin and pred.action in {"enter", "size"}:
@@ -482,6 +553,7 @@ def emit_model_predictions(
 
     predictions: list[ModelPrediction] = []
     prompts_all: list[list[dict[str, str]]] = []
+    parse_stats = EmitParseStats()
     for case in pack.cases:
         pred, prompts = emit_one_case(
             case,
@@ -492,6 +564,7 @@ def emit_model_predictions(
             dry_run=dry_run,
             client=client,
             max_messages=max_messages,
+            parse_stats=parse_stats,
         )
         predictions.append(pred)
         prompts_all.append(prompts)
@@ -515,6 +588,8 @@ def emit_model_predictions(
         model_eval_clear=False,
         created_at=created,
         max_messages=max_messages,
+        n_parse_failure=parse_stats.n_parse_failure,
+        n_parse_retry_recovered=parse_stats.n_parse_retry_recovered,
     )
     assert_emit_sealed(pack, predictions)
     dest = write_emit_artifacts(predictions, meta, out_root)

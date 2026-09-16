@@ -1,8 +1,10 @@
-"""Inferhub GLM-5.3-flash client. OpenAI-compatible chat completions.
+"""Inferhub glm-5.3-flash client. OpenAI-compatible chat completions.
 
 Nishant / Hermes lock: ``https://api.inferhub.dev/v1`` with
-``INFERHUB_PROVIDER=cbcn`` and model id ``cbcn/GLM-5.3-flash``.
-Do not route to any non-cbcn Inferhub upstream.
+``INFERHUB_PROVIDER=cbcn`` and canonical model id ``cbcn/glm-5.3-flash``
+(HTTP ``model`` field). Accepts ``cbcn/GLM-5.3-flash`` case-insensitively
+and normalizes to the lowercase API id. Do not route to any non-cbcn
+Inferhub upstream.
 
 ``INFERHUB_API_KEY`` is read from the environment only and is never stored on
 the client, returned in payloads, or written to logs.
@@ -26,7 +28,7 @@ INFERHUB_BASE_URL = "https://api.inferhub.dev/v1"
 INFERHUB_BASE_URL_ENV = "INFERHUB_BASE_URL"
 INFERHUB_PROVIDER = "cbcn"
 INFERHUB_PROVIDER_ENV = "INFERHUB_PROVIDER"
-INFERHUB_MODEL = "cbcn/GLM-5.3-flash"
+INFERHUB_MODEL = "cbcn/glm-5.3-flash"
 INFERHUB_API_KEY_ENV = "INFERHUB_API_KEY"
 
 CHAT_COMPLETIONS_PATH = "/chat/completions"
@@ -55,19 +57,24 @@ def require_cbcn_provider(provider: str) -> str:
 
 
 def require_cbcn_model(model: str) -> str:
-    """Reject models that are not the locked ``cbcn/GLM-5.3-flash`` id."""
+    """Accept locked model case-insensitively; return canonical API id.
+
+    Canonical HTTP ``model`` is ``cbcn/glm-5.3-flash``. Env/validators may
+    pass ``cbcn/GLM-5.3-flash`` or ``cbcn/glm-5.3-flash``.
+    """
 
     prefix = f"{INFERHUB_PROVIDER}/"
-    if not model.startswith(prefix):
+    if not model.casefold().startswith(prefix.casefold()):
         raise ValueError(
             f"Inferhub model id must be prefixed with {prefix!r} "
             f"(got {model!r}); do not route to non-cbcn upstreams"
         )
-    if model != INFERHUB_MODEL:
+    if model.casefold() != INFERHUB_MODEL.casefold():
         raise ValueError(
-            f"locked Inferhub model is {INFERHUB_MODEL!r}; got {model!r}"
+            f"locked Inferhub model is {INFERHUB_MODEL!r} "
+            f"(case-insensitive); got {model!r}"
         )
-    return model
+    return INFERHUB_MODEL
 
 
 def require_inferhub_base_url(url: str) -> str:
@@ -150,10 +157,10 @@ def _choice_text(payload: dict[str, Any]) -> str | None:
 
 
 class InferhubClient:
-    """OpenAI-compatible chat client pinned to cbcn / GLM-5.3-flash.
+    """OpenAI-compatible chat client pinned to cbcn / glm-5.3-flash.
 
-    Request shape always includes ``provider=cbcn`` and
-    ``model=cbcn/GLM-5.3-flash``. Secrets stay in ``INFERHUB_API_KEY``.
+    Request shape always includes ``provider=cbcn`` and canonical
+    ``model=cbcn/glm-5.3-flash``. Secrets stay in ``INFERHUB_API_KEY``.
     Without a key, ``complete`` returns a local stub (no HTTP) so unit tests
     stay offline. With a key, POST ``{base_url}/chat/completions``.
     """

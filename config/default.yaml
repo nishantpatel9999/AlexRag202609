@@ -58,6 +58,6 @@ embedding:
 # Always-on LLM. Inferhub + cbcn upstream only. Key via INFERHUB_API_KEY env.
 llm:
   provider: inferhub
-  model: cbcn/GLM-5.3-flash
+  model: cbcn/glm-5.3-flash
   base_url: https://api.inferhub.dev/v1
   inferhub_provider: cbcn
