@@ -103,3 +103,12 @@ cutoff helpers, and scores a `Prediction` when one is supplied.
 - Ingest of operator Mac corpus trees
 - Full GitBook scrape
 - focuslist-ideas
+
+## Frozen pack (2026-09-15)
+
+Canonical sealed fixtures: [`eval/golden_cases_v0_frozen.json`](../eval/golden_cases_v0_frozen.json) (48/48 resolved against Mac `data/ingest/*.jsonl` post `title=` timestamp fix).
+
+- Schema: [`docs/INGEST_SCHEMA.md`](INGEST_SCHEMA.md)
+- Freeze notes / sealed cutoff: [`docs/FREEZE_NOTES.md`](FREEZE_NOTES.md)
+- Scorers: apply `eligible_filter` (`channels` + `ts < decision_ts`) over ingest JSONL; never use post-decision journal as enter-evidence. Soft flag only on GC-04 (`abstain_case_has_same_day_equity_msgs`).
+
