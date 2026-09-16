@@ -9,7 +9,7 @@ import typer
 from alexrag.config import load_settings
 from alexrag.agents.orchestrator import run_paper_day
 from alexrag.eval.harness import DEFAULT_PACK, load_golden_pack, score_pack
-from alexrag.eval.model_emit import DEFAULT_OUT_ROOT, emit_model_predictions
+from alexrag.eval.model_emit import DEFAULT_OUT_ROOT, SUGGESTED_LIVE_RUN_ID, emit_model_predictions
 from alexrag.eval.model_lock import DEFAULT_FROZEN_PACK, DEFAULT_LOCK_PATH
 from alexrag.eval.model_scorer import KillScarError, run_score_model
 from alexrag.llm.inferhub import InferhubClient, inferhub_key_present
@@ -118,7 +118,14 @@ def emit_model_predictions_cmd(
         "--dry-run/--no-dry-run",
         help="Skip Inferhub; write abstain predictions with model_id=dry_run_abstain.",
     ),
-    run_id: Optional[str] = typer.Option(None, "--run-id", help="Immutable audit run id"),
+    run_id: Optional[str] = typer.Option(
+        None,
+        "--run-id",
+        help=(
+            "Immutable audit run id. Next live Inferhub emit should use "
+            f"{SUGGESTED_LIVE_RUN_ID} (not a v0/v1 identical re-score)."
+        ),
+    ),
     max_messages: int = typer.Option(32, "--max-messages", help="Max sealed context messages per case"),
 ) -> None:
     """Emit sealed-cutoff MODEL_EVAL_LOCK_V0 predictions.jsonl. Capital 0; no paper unlock.
@@ -127,6 +134,7 @@ def emit_model_predictions_cmd(
     (excludes banned_same_day_ids), never injects target_action / GT fill bodies,
     and writes one JSON object per case_id. Default --dry-run is offline CI.
     Live Inferhub (--no-dry-run) needs INFERHUB_API_KEY (Mac); never logged.
+    Next live run_id: inferhub-cbcn-v2-quality. Capital 0; does not claim CLEAR.
     """
 
     if not dry_run and not inferhub_key_present():
@@ -158,6 +166,10 @@ def emit_model_predictions_cmd(
     typer.echo(
         f"run_id={run.meta.run_id} cases={run.meta.n_cases} abstain={run.meta.n_abstain} "
         f"model_id={run.meta.model_id} dry_run={dry_run} "
+        f"parse_failure={run.meta.n_parse_failure} "
+        f"parse_retry_recovered={run.meta.n_parse_retry_recovered} "
+        f"parse_local_repaired={run.meta.n_parse_local_repaired} "
+        f"suggested_live_run_id={SUGGESTED_LIVE_RUN_ID} "
         f"paper_authority=false capital=0 wrote={pred_path}"
     )
 

@@ -31,6 +31,11 @@ INFERHUB_PROVIDER_ENV = "INFERHUB_PROVIDER"
 INFERHUB_MODEL = "cbcn/glm-5.3-flash"
 INFERHUB_API_KEY_ENV = "INFERHUB_API_KEY"
 
+# Decision-quality V2 decode knobs (MODEL_EVAL_LOCK_V0 still binds; still cbcn).
+INFERHUB_TEMPERATURE = 0.15
+INFERHUB_MAX_TOKENS = 8192
+INFERHUB_RESPONSE_FORMAT: dict[str, str] = {"type": "json_object"}
+
 CHAT_COMPLETIONS_PATH = "/chat/completions"
 _BEARER_RE = re.compile(r"Bearer\s+\S+", re.IGNORECASE)
 
@@ -176,12 +181,20 @@ class InferhubClient:
         provider: str | None = None,
         model: str | None = None,
         base_url: str | None = None,
-        timeout: float = 60.0,
+        timeout: float = 90.0,
+        temperature: float = INFERHUB_TEMPERATURE,
+        max_tokens: int = INFERHUB_MAX_TOKENS,
+        response_format: dict[str, str] | None = None,
     ) -> None:
         self.provider = require_cbcn_provider(provider or locked_inferhub_provider())
         self.model = require_cbcn_model(model or locked_inferhub_model())
         self.base_url = require_inferhub_base_url(base_url or locked_inferhub_base_url())
         self.timeout = timeout
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.response_format = (
+            dict(response_format) if response_format is not None else dict(INFERHUB_RESPONSE_FORMAT)
+        )
         self.configured = inferhub_key_present()
 
     def __repr__(self) -> str:
@@ -190,14 +203,29 @@ class InferhubClient:
             f"base_url={self.base_url!r}, configured={self.configured})"
         )
 
-    def request_body(self, messages: list[dict[str, str]] | None = None) -> dict[str, Any]:
-        """Body that a real client would POST. Pins cbcn provider + prefixed model."""
+    def request_body(
+        self,
+        messages: list[dict[str, str]] | None = None,
+        *,
+        include_response_format: bool = True,
+    ) -> dict[str, Any]:
+        """Body that a real client would POST. Pins cbcn provider + prefixed model.
 
-        return {
+        Includes temperature / max_tokens and (by default) OpenAI-style
+        ``response_format=json_object``. Inferhub may ignore or 400 the
+        format field; ``complete`` drops it and retries on HTTP 400.
+        """
+
+        body: dict[str, Any] = {
             "provider": require_cbcn_provider(self.provider),
             "model": require_cbcn_model(self.model),
             "messages": list(messages or []),
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
         }
+        if include_response_format and self.response_format:
+            body["response_format"] = dict(self.response_format)
+        return body
 
     def complete(
         self,
@@ -240,6 +268,17 @@ class InferhubClient:
         if not key:
             return stub
 
+        wait = timeout or self.timeout
+        try:
+            return self._post_chat(body, key, wait)
+        except InferhubError as exc:
+            # OpenAI json_object is best-effort; Inferhub may 400 it.
+            if "response_format" in body and str(exc).startswith("Inferhub HTTP 400"):
+                fallback = self.request_body(messages, include_response_format=False)
+                return self._post_chat(fallback, key, wait)
+            raise
+
+    def _post_chat(self, body: dict[str, Any], key: str, timeout: float) -> dict[str, Any]:
         url = f"{self.base_url}{CHAT_COMPLETIONS_PATH}"
         raw_body = json.dumps(body).encode("utf-8")
         request = urllib.request.Request(url, data=raw_body, method="POST")
@@ -247,7 +286,7 @@ class InferhubClient:
         request.add_header("Accept", "application/json")
         request.add_header("Authorization", f"Bearer {key}")
         try:
-            with urllib.request.urlopen(request, timeout=timeout or self.timeout) as resp:
+            with urllib.request.urlopen(request, timeout=timeout) as resp:
                 raw = resp.read()
         except urllib.error.HTTPError as exc:
             err_body = ""
