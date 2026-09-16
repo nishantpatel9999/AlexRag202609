@@ -9,8 +9,10 @@ import typer
 from alexrag.config import load_settings
 from alexrag.agents.orchestrator import run_paper_day
 from alexrag.eval.harness import DEFAULT_PACK, load_golden_pack, score_pack
+from alexrag.eval.model_emit import DEFAULT_OUT_ROOT, emit_model_predictions
 from alexrag.eval.model_lock import DEFAULT_FROZEN_PACK, DEFAULT_LOCK_PATH
 from alexrag.eval.model_scorer import KillScarError, run_score_model
+from alexrag.llm.inferhub import InferhubClient, inferhub_key_present
 from alexrag.ingest.discord_html import ingest_discord_html
 from alexrag.ingest.gitbook import ingest_gitbook_snapshot
 from alexrag.pipeline import load_fixture_messages, messages_to_index, newest_timestamp
@@ -98,6 +100,65 @@ def eval_golden(
     typer.echo(
         f"loaded {summary['n_cases']} cases version={summary['version']} "
         f"scored={summary['n_scored']} passed={summary['n_passed']} pnl={summary['pnl_scored']}"
+    )
+
+
+@app.command("emit-model-predictions")
+def emit_model_predictions_cmd(
+    ingest: Path = typer.Option(
+        Path("data/ingest"),
+        "--ingest",
+        help="MVP JSONL dir (equity-trades.jsonl, alex-journal.jsonl, …).",
+    ),
+    frozen: Path = typer.Option(DEFAULT_FROZEN_PACK, "--frozen", exists=True, readable=True),
+    lock: Path = typer.Option(DEFAULT_LOCK_PATH, "--lock", exists=True, readable=True),
+    out: Path = typer.Option(DEFAULT_OUT_ROOT, "--out", help="Audit root; writes <run_id>/predictions.jsonl"),
+    dry_run: bool = typer.Option(
+        True,
+        "--dry-run/--no-dry-run",
+        help="Skip Inferhub; write abstain predictions with model_id=dry_run_abstain.",
+    ),
+    run_id: Optional[str] = typer.Option(None, "--run-id", help="Immutable audit run id"),
+    max_messages: int = typer.Option(32, "--max-messages", help="Max sealed context messages per case"),
+) -> None:
+    """Emit sealed-cutoff MODEL_EVAL_LOCK_V0 predictions.jsonl. Capital 0; no paper unlock.
+
+    Loads the frozen Golden-48 pack + lock, applies eligible_filter over MVP ingest
+    (excludes banned_same_day_ids), never injects target_action / GT fill bodies,
+    and writes one JSON object per case_id. Default --dry-run is offline CI.
+    Live Inferhub (--no-dry-run) needs INFERHUB_API_KEY (Mac); never logged.
+    """
+
+    if not dry_run and not inferhub_key_present():
+        typer.echo(
+            "INFERHUB_API_KEY is required for --no-dry-run (set on Mac; never commit). "
+            "Use --dry-run for offline abstain predictions.",
+            err=True,
+        )
+        raise typer.Exit(code=2)
+
+    ingest_dir: Path | None = ingest if ingest.exists() else None
+    client = None if dry_run else InferhubClient()
+    try:
+        run = emit_model_predictions(
+            ingest_dir=ingest_dir,
+            frozen_path=frozen,
+            lock_path=lock,
+            out_root=out,
+            dry_run=dry_run,
+            run_id=run_id,
+            max_messages=max_messages,
+            client=client,
+        )
+    except FileExistsError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=2) from exc
+
+    pred_path = Path(run.out_dir) / "predictions.jsonl"
+    typer.echo(
+        f"run_id={run.meta.run_id} cases={run.meta.n_cases} abstain={run.meta.n_abstain} "
+        f"model_id={run.meta.model_id} dry_run={dry_run} "
+        f"paper_authority=false capital=0 wrote={pred_path}"
     )
 
 

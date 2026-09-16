@@ -89,7 +89,7 @@ Nishant-locked operator values (config/env):
 
 ## LLM (always-on)
 
-Inferhub host: `https://api.inferhub.dev/v1` (`INFERHUB_BASE_URL`). **LLM_PROVIDER=inferhub**. **Upstream `INFERHUB_PROVIDER=cbcn` only** — do not route to any other Inferhub upstream. Model id: **`cbcn/GLM-5.3-flash`** (`LLM_MODEL`, provider prefix on the model). Stub: `alexrag.llm.inferhub.InferhubClient` (request body always includes `provider=cbcn` and `model=cbcn/GLM-5.3-flash`). Secret via `INFERHUB_API_KEY` env only — never in git.
+Inferhub host: `https://api.inferhub.dev/v1` (`INFERHUB_BASE_URL`). **LLM_PROVIDER=inferhub**. **Upstream `INFERHUB_PROVIDER=cbcn` only** — do not route to any other Inferhub upstream. Model id: **`cbcn/GLM-5.3-flash`** (`LLM_MODEL`, provider prefix on the model). Client: `alexrag.llm.inferhub.InferhubClient` POSTs OpenAI-compatible `{base_url}/chat/completions` (request body always includes `provider=cbcn` and `model=cbcn/GLM-5.3-flash`). Secret via `INFERHUB_API_KEY` env only — never in git, never logged. Without a key the client returns a local stub (no HTTP). Decision-model emit: `alexrag emit-model-predictions` (default `--dry-run` for offline CI) then `alexrag score-model`. Live emit needs the key on the operator Mac (`--no-dry-run`). Capital 0; does not unlock paper.
 
 ## Alpaca (paper only)
 
@@ -98,7 +98,8 @@ Env: `ALPACA_API_KEY_ID` / `ALPACA_API_SECRET_KEY` (operator key pair #2 — do 
 ## What not to run
 
 - Anything that would set `ALEXRAG_MODE=live` (config will reject it).
-- Real Alpaca/Discord/Inferhub/TradingView clients — stubs only; TODOs are in code.
+- Alpaca/Discord/TradingView live clients — still stubs; TODOs are in code.
+- `emit-model-predictions --no-dry-run` without `INFERHUB_API_KEY` on the operator Mac.
 - Committing `.env`, Inferhub/Alpaca paper keys, or Discord tokens.
 
 ## Tests

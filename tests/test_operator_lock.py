@@ -119,8 +119,24 @@ def test_inferhub_stub_presence_only_never_returns_key(monkeypatch) -> None:
     monkeypatch.setenv(INFERHUB_API_KEY_ENV, "secret-must-not-leak")
     hot = InferhubClient()
     assert hot.configured is True
+
+    class _Resp:
+        def read(self) -> bytes:
+            return b'{"choices":[{"message":{"content":"ok"}}]}'
+
+        def __enter__(self) -> "_Resp":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    monkeypatch.setattr(
+        "alexrag.llm.inferhub.urllib.request.urlopen", lambda *a, **k: _Resp()
+    )
     hot_payload = hot.complete()
     assert hot_payload["configured"] is True
+    assert hot_payload["status"] == "ok"
+    assert hot_payload["text"] == "ok"
     assert hot_payload["request"]["provider"] == "cbcn"
     assert hot_payload["request"]["model"] == INFERHUB_MODEL
     assert "secret-must-not-leak" not in str(hot_payload)
