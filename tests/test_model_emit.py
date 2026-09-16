@@ -29,6 +29,7 @@ from alexrag.eval.model_emit import (
     greedy_first_json_object,
     prediction_from_model_obj,
     repair_truncated_json,
+    sealed_primary_support,
     select_retrieved_ids,
     thin_evidence_reason,
 )
@@ -78,6 +79,77 @@ def _syn_enter_case() -> FrozenCase:
     )
 
 
+def _syn_exit_case() -> FrozenCase:
+    """GC-01 analog: exit primary; Sold fill is banned; sealed tape is open Long."""
+
+    pt = ZoneInfo("America/Los_Angeles")
+    decision = datetime(2022, 10, 3, 12, 42, tzinfo=pt)
+    return FrozenCase(
+        case_id="SYN-EXIT-GC01",
+        date_pt="2022-10-03",
+        tickers=["TH", "TQQQ", "XMTR"],
+        primary_question="exit",
+        decision_ts=decision,
+        fill_ts=decision,
+        target_action=TargetAction(
+            message_id="ban-sold-xmtr",
+            channel="equity-trades",
+            ts=decision,
+            text="Sold XMTR @ 58.20 - below entry EOD",
+            action_classes=["exit"],
+            primary_question="exit",
+        ),
+        eligible_filter=EligibleFilter(
+            channels=["equity-trades", "alex-journal", "prime-report", "pf-update"],
+            ts_lt=decision,
+            tz="America/Los_Angeles",
+        ),
+        banned_same_day_ids=["ban-sold-xmtr", "ban-closed-th"],
+        key_evidence_ids=["eq-long-xmtr"],
+    )
+
+
+def _syn_manage_case() -> FrozenCase:
+    pt = ZoneInfo("America/Los_Angeles")
+    decision = datetime(2023, 6, 22, 10, 0, tzinfo=pt)
+    return FrozenCase(
+        case_id="SYN-MANAGE",
+        date_pt="2023-06-22",
+        tickers=["STNE"],
+        primary_question="manage",
+        decision_ts=decision,
+        fill_ts=decision,
+        target_action=TargetAction(
+            message_id="ban-add-stne",
+            channel="equity-trades",
+            ts=decision,
+            text="Long 11% STNE (ADD#1) @ 13.97 (SL @ 13.63)",
+            action_classes=["manage"],
+            primary_question="manage",
+        ),
+        eligible_filter=EligibleFilter(
+            channels=["equity-trades", "alex-journal", "prime-report", "pf-update"],
+            ts_lt=decision,
+            tz="America/Los_Angeles",
+        ),
+        banned_same_day_ids=["ban-add-stne"],
+        key_evidence_ids=["eq-trim-stne"],
+    )
+
+
+def _model_abstain_payload() -> str:
+    return json.dumps(
+        {
+            "action": "abstain",
+            "side": "n/a",
+            "ticker": "",
+            "citations": [],
+            "confidence": 0.1,
+            "abstain_reason": "unsure",
+        }
+    )
+
+
 def test_cli_dry_run_emits_48_matching_case_ids(tmp_path: Path) -> None:
     pack = load_frozen_pack()
     out = tmp_path / "runs"
@@ -118,7 +190,7 @@ def test_cli_dry_run_emits_48_matching_case_ids(tmp_path: Path) -> None:
     assert meta["max_messages"] == DEFAULT_MAX_MESSAGES
     assert meta["temperature"] == INFERHUB_TEMPERATURE
     assert meta["max_tokens"] == INFERHUB_MAX_TOKENS
-    assert "suggested_live_run_id=inferhub-cbcn-v3-quality" in result.output
+    assert "suggested_live_run_id=inferhub-cbcn-v4-quality" in result.output
 
 
 def test_dry_run_context_never_contains_target_action(tmp_path: Path) -> None:
@@ -813,7 +885,7 @@ def test_select_retrieved_ids_key_evidence_ticker_first() -> None:
     assert "hint-noise" in got
 
 
-def test_v3_prompt_abstain_discipline_invariants() -> None:
+def test_v4_prompt_abstain_discipline_invariants() -> None:
     pack = load_frozen_pack()
     lock = load_model_eval_lock()
     corpus = load_mvp_ingest(FIXTURE_INGEST)
@@ -838,6 +910,8 @@ def test_v3_prompt_abstain_discipline_invariants() -> None:
         assert "no-trade precision" in lowered
         assert "primary_question is abstain" in lowered
         assert "do not abstain" in lowered or "not abstain" in lowered
+        assert "open long/short" in lowered
+        assert "post-cutoff" in lowered
         if case.primary_question == "enter":
             assert "primary_question: enter" in user
         else:
@@ -939,3 +1013,265 @@ def test_abstain_primary_not_coerced_even_with_long_language() -> None:
     assert pred.action == "abstain"
     assert pred.ticker == ""
     assert pred.abstain_reason == "rejected_setup"
+
+
+def test_exit_false_abstain_coerced_from_open_long() -> None:
+    """GC-01 analog: primary=exit, sealed Long XMTR, banned Sold fill, model abstains."""
+
+    case = _syn_exit_case()
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="eq-long-th",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 6, 37, tzinfo=pt),
+            text="long 1/2p TH @ 13.09 (SL @ 12.78)",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="eq-long-tqqq",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 7, 1, tzinfo=pt),
+            text="long 1/2p TQQQ @ 19.84 (SL @ 19.64)",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="eq-long-xmtr",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 7, 49, tzinfo=pt),
+            text="Long 1/2 XMTR 59.19",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="ban-sold-xmtr",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 12, 42, tzinfo=pt),
+            text="Sold XMTR @ 58.20 - below entry EOD",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="ban-closed-th",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 12, 44, tzinfo=pt),
+            text="Closed 1/2 TH",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            blob = "\n".join(m["content"] for m in messages)
+            assert "target_action" not in blob
+            assert "Sold XMTR @ 58.20" not in blob
+            assert "ban-sold-xmtr" not in blob
+            return {"status": "ok", "text": _model_abstain_payload(), "model": INFERHUB_MODEL}
+
+    pred, prompts = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="coerce-exit-long",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert pred.action == "exit"
+    assert pred.ticker == "XMTR"
+    assert pred.citations
+    assert pred.citations[0].message_id == "eq-long-xmtr"
+    assert "eq-long-xmtr" in pred.retrieved_ids
+    assert "ban-sold-xmtr" not in pred.retrieved_ids
+    assert all(c.message_id != "ban-sold-xmtr" for c in pred.citations)
+    # Open Long is not Closed/Sold — do not invent sold from entry tape.
+    assert pred.exit is None
+    assert "target_action" not in "\n".join(p["content"] for p in prompts)
+    assert "Sold XMTR @ 58.20" not in "\n".join(p["content"] for p in prompts)
+
+
+def test_exit_false_abstain_coerced_from_closed_sold() -> None:
+    """When sealed Closed/Sold names a listed ticker, do not leave model abstain."""
+
+    case = _syn_exit_case().model_copy(update={"key_evidence_ids": ["eq-closed-xmtr"]})
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="eq-long-xmtr-old",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 7, 49, tzinfo=pt),
+            text="Long 1/2 XMTR 59.19",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="eq-closed-xmtr",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 11, 0, tzinfo=pt),
+            text="Closed XMTR runner into strength",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="ban-sold-xmtr",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 12, 42, tzinfo=pt),
+            text="Sold XMTR @ 58.20 - below entry EOD",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            blob = "\n".join(m["content"] for m in messages)
+            assert "Sold XMTR @ 58.20" not in blob
+            return {"status": "ok", "text": _model_abstain_payload(), "model": INFERHUB_MODEL}
+
+    pred, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="coerce-exit-closed",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert pred.action == "exit"
+    assert pred.ticker == "XMTR"
+    assert pred.citations[0].message_id == "eq-closed-xmtr"
+    assert pred.exit == "close"
+    assert "ban-sold-xmtr" not in pred.retrieved_ids
+
+
+def test_exit_support_prefers_closed_over_older_long() -> None:
+    case = _syn_exit_case().model_copy(
+        update={"key_evidence_ids": ["eq-long-xmtr", "eq-closed-th"]}
+    )
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="eq-long-xmtr",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 11, 30, tzinfo=pt),
+            text="Long 1/2 XMTR 59.19",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="eq-closed-th",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 8, 0, tzinfo=pt),
+            text="Closed TH @ 13.40",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+    eligible = eligible_messages(case, corpus)
+    retrieved = select_retrieved_ids(case, eligible)
+    ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+    support = sealed_primary_support(case, ctx)
+    assert support is not None
+    assert support["ticker"] == "TH"
+    assert support["message_id"] == "eq-closed-th"
+    assert support["exit"] == "close"
+    assert support["intent_tier"] == 2
+
+
+def test_manage_false_abstain_coerced_from_add_trim() -> None:
+    case = _syn_manage_case()
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="eq-trim-stne",
+            channel="equity-trades",
+            ts=datetime(2023, 6, 21, 10, 0, tzinfo=pt),
+            text="Trim 1/4 STNE @ 14.13 (PT2)",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="eq-long-stne",
+            channel="equity-trades",
+            ts=datetime(2023, 6, 20, 9, 0, tzinfo=pt),
+            text="Long 13% STNE @ 13.48",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="ban-add-stne",
+            channel="equity-trades",
+            ts=datetime(2023, 6, 22, 10, 0, tzinfo=pt),
+            text="Long 11% STNE (ADD#1) @ 13.97 (SL @ 13.63)",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            blob = "\n".join(m["content"] for m in messages)
+            assert "ADD#1" not in blob
+            assert "ban-add-stne" not in blob
+            return {"status": "ok", "text": _model_abstain_payload(), "model": INFERHUB_MODEL}
+
+    pred, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="coerce-manage-trim",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert pred.action == "manage"
+    assert pred.ticker == "STNE"
+    assert pred.citations[0].message_id == "eq-trim-stne"
+    assert pred.management == "trim"
+    assert "ban-add-stne" not in pred.retrieved_ids
+
+
+def test_exit_coerce_never_uses_banned_sold_fill() -> None:
+    case = _syn_exit_case()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="eq-long-xmtr",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 7, 49, tzinfo=pt),
+            text="Long 1/2 XMTR 59.19",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="ban-sold-xmtr",
+            channel="equity-trades",
+            ts=datetime(2022, 10, 3, 12, 42, tzinfo=pt),
+            text="Sold XMTR @ 58.20 - below entry EOD",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+    eligible = eligible_messages(case, corpus)
+    retrieved = select_retrieved_ids(case, eligible)
+    ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+    assert "ban-sold-xmtr" not in ctx.retrieved_ids
+    assert all("Sold XMTR @ 58.20" not in (m.text or "") for m in ctx.messages)
+    support = sealed_primary_support(case, ctx)
+    assert support is not None
+    assert support["message_id"] == "eq-long-xmtr"
+    obj = {
+        "action": "abstain",
+        "side": "n/a",
+        "ticker": "",
+        "citations": [{"message_id": "ban-sold-xmtr", "quote_span": "Sold XMTR"}],
+        "confidence": 0.2,
+        "abstain_reason": "unsure",
+    }
+    pred = prediction_from_model_obj(obj, case, ctx, run_id="no-ban", model_id="t")
+    assert pred.action == "exit"
+    assert all(c.message_id != "ban-sold-xmtr" for c in pred.citations)
+    assert pred.citations[0].message_id == "eq-long-xmtr"
+
