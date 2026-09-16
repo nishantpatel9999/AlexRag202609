@@ -10,5 +10,6 @@ __pycache__/
 dist/
 build/
 data/
+results/model_eval_runs/
 *.log
 .DS_Store

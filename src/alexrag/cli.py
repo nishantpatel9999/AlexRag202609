@@ -9,6 +9,8 @@ import typer
 from alexrag.config import load_settings
 from alexrag.agents.orchestrator import run_paper_day
 from alexrag.eval.harness import DEFAULT_PACK, load_golden_pack, score_pack
+from alexrag.eval.model_lock import DEFAULT_FROZEN_PACK, DEFAULT_LOCK_PATH
+from alexrag.eval.model_scorer import KillScarError, run_score_model
 from alexrag.ingest.discord_html import ingest_discord_html
 from alexrag.ingest.gitbook import ingest_gitbook_snapshot
 from alexrag.pipeline import load_fixture_messages, messages_to_index, newest_timestamp
@@ -96,6 +98,47 @@ def eval_golden(
     typer.echo(
         f"loaded {summary['n_cases']} cases version={summary['version']} "
         f"scored={summary['n_scored']} passed={summary['n_passed']} pnl={summary['pnl_scored']}"
+    )
+
+
+@app.command("score-model")
+def score_model(
+    predictions: Path = typer.Option(..., "--predictions", exists=True, readable=True),
+    ingest: Path = typer.Option(
+        Path("data/ingest"),
+        "--ingest",
+        help="MVP JSONL dir (equity-trades.jsonl, alex-journal.jsonl, …). Optional for scoring.",
+    ),
+    frozen: Path = typer.Option(DEFAULT_FROZEN_PACK, "--frozen", exists=True, readable=True),
+    lock: Path = typer.Option(DEFAULT_LOCK_PATH, "--lock", exists=True, readable=True),
+    out: Path = typer.Option(Path("results/model_eval_runs"), "--out", help="Audit root"),
+) -> None:
+    """Score a predictions JSONL against MODEL_EVAL_LOCK_V0. Offline; capital 0; no LLM."""
+
+    ingest_dir: Path | None = ingest if ingest.exists() else None
+    try:
+        run = run_score_model(
+            predictions_path=predictions,
+            ingest_dir=ingest_dir,
+            frozen_path=frozen,
+            lock_path=lock,
+            out_root=out,
+        )
+    except KillScarError as exc:
+        dest = exc.run.out_dir if exc.run is not None else ""
+        typer.echo(
+            f"KILL_SCAR run_valid=false paper_authority=false capital=0 hits={exc.hits} wrote={dest}",
+            err=True,
+        )
+        raise typer.Exit(code=2) from exc
+
+    s = run.summary
+    typer.echo(
+        f"run_id={run.run_id} cases={s.n_cases} scored={s.n_scored} "
+        f"pass={s.n_pass} fail={s.n_fail} ambiguous={s.n_ambiguous} "
+        f"cfp={s.cfp_count} no_trade_p={s.no_trade_precision} no_trade_r={s.no_trade_recall} "
+        f"run_valid={s.run_valid} paper_authority=false capital=0 pnl={s.pnl_scored} "
+        f"wrote={run.out_dir}"
     )
 
 
