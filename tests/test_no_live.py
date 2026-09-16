@@ -19,6 +19,10 @@ def test_no_live_alpaca_url_in_src() -> None:
 
 
 def test_broker_rejects_non_paper(monkeypatch) -> None:
+    from alexrag.broker.alpaca_paper import ALPACA_KEY_ID_ENV, ALPACA_SECRET_KEY_ENV
+
+    monkeypatch.delenv(ALPACA_KEY_ID_ENV, raising=False)
+    monkeypatch.delenv(ALPACA_SECRET_KEY_ENV, raising=False)
     broker = AlpacaPaperBroker()
     with pytest.raises(Exception):
         FillIntent(intent_id="i", proposal_id="p", mode="live")  # type: ignore[arg-type]
