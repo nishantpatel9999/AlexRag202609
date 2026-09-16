@@ -13,10 +13,28 @@ from alexrag.schemas.sources import DEFAULT_DISCORD_TZ
 ENTER_BANNED_SOURCES = frozenset({"journal", "gameplan", "report", "pf_update", "gitbook"})
 
 
-def aware(ts: datetime) -> datetime:
+def aware(ts: datetime, tz_name: str | None = None) -> datetime:
     if ts.tzinfo is None:
-        return ts.replace(tzinfo=ZoneInfo(DEFAULT_DISCORD_TZ))
+        return ts.replace(tzinfo=ZoneInfo(tz_name or DEFAULT_DISCORD_TZ))
     return ts
+
+
+def parse_ts(raw: datetime | str | None, tz_name: str | None = None) -> datetime | None:
+    """Parse ISO-8601 / datetime evidence stamps. Naive values use PT (or tz_name)."""
+
+    if raw is None:
+        return None
+    if isinstance(raw, datetime):
+        return aware(raw, tz_name)
+    text = str(raw).strip()
+    if not text:
+        return None
+    text = text.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return aware(parsed, tz_name)
 
 
 def sealed_ok(timestamp: datetime | None, decision_ts: datetime | None) -> bool:

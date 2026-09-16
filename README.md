@@ -43,6 +43,17 @@ Eval Spec V0 golden pack (offline, no P&L):
 uv run alexrag eval-golden --pack eval/golden_cases_v0.json
 ```
 
+Decision-model scorer (MODEL_EVAL_LOCK_V0, offline, **capital 0**, no LLM/broker):
+
+```bash
+uv run alexrag score-model \
+  --predictions eval/baselines/abstain_everywhere_v0.jsonl \
+  --ingest data/ingest \
+  --frozen eval/golden_cases_v0_frozen.json
+```
+
+Drop a JSONL of per-case predictions (lock `output_schema`) and score against the frozen pack. Artifacts land in `results/model_eval_runs/<run_id>/` with `paper_authority=false` and `capital=0`. Ingest JSONL is used only for sealed eligible/citation checks; missing ingest still scores GT vs predictions. Orthogonal to M0 fill receipts. **Does not unlock paper.**
+
 Kill switch drill:
 
 ```bash
@@ -60,8 +71,11 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `src/alexrag/broker` | `paper_sim` M0 + Alpaca paper stub (`stubbed` ≠ filled) |
 | `src/alexrag/llm` | Inferhub stub (`LLM_PROVIDER=inferhub`, `LLM_MODEL=cbcn/GLM-5.3-flash`, `INFERHUB_PROVIDER=cbcn`; `INFERHUB_API_KEY` env only) |
 | `src/alexrag/notify` | Discord stub (TODO: bot token) |
-| `src/alexrag/eval` | Paper window, sealed cutoff, golden harness, M0 fill scorer |
+| `src/alexrag/eval` | Paper window, sealed cutoff, golden harness, M0 fill scorer, model-eval lock scorer |
 | `eval/golden_cases_v0.json` | 48-case V0 pack |
+| `eval/golden_cases_v0_frozen.json` | Frozen Golden-48 (sha256[:16]=`1a3cb17781211ad0`) |
+| `docs/MODEL_EVAL_LOCK_V0.md` | Decision-model scoring contract (paper KILL, capital 0) |
+| `eval/baselines/abstain_everywhere_v0.jsonl` | Smoke predictions (abstain all 48) |
 | `docs/EVAL_SPEC_V0.md` | Enter/abstain/size/manage/exit + citation scoring |
 | `docs/FILL_FIDELITY_M0.md` | PaperFill / FillIntent / M0 (0bps fixture mid) |
 | `config/fixture.yaml` | Locked operator pcts + `paper.nav` for offline Exec |
