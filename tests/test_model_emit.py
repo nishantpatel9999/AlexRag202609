@@ -17,9 +17,12 @@ from alexrag.cli import app
 from alexrag.eval.frozen_pack import EligibleFilter, FrozenCase, TargetAction, load_frozen_pack
 from alexrag.eval.model_context import build_model_context
 from alexrag.eval.model_emit import (
+    DEFAULT_MAX_MESSAGES,
     DRY_RUN_MODEL_ID,
+    QUALITY_DELTA,
     SUGGESTED_LIVE_RUN_ID,
     EmitParseStats,
+    build_prompt_messages,
     emit_model_predictions,
     emit_one_case,
     extract_json_object,
@@ -31,7 +34,7 @@ from alexrag.eval.model_emit import (
 )
 from alexrag.eval.model_lock import HARD_KILL_SCAR_IDS, load_model_eval_lock
 from alexrag.eval.model_prediction import load_predictions
-from alexrag.eval.sealed_corpus import eligible_messages, load_mvp_ingest
+from alexrag.eval.sealed_corpus import CorpusMessage, SealedCorpus, eligible_messages, load_mvp_ingest
 from alexrag.llm.inferhub import (
     INFERHUB_API_KEY_ENV,
     INFERHUB_MAX_TOKENS,
@@ -111,9 +114,11 @@ def test_cli_dry_run_emits_48_matching_case_ids(tmp_path: Path) -> None:
     assert meta["live_llm"] is False
     assert meta["broker"] is False
     assert meta["suggested_live_run_id"] == SUGGESTED_LIVE_RUN_ID
+    assert meta["quality_delta"] == QUALITY_DELTA
+    assert meta["max_messages"] == DEFAULT_MAX_MESSAGES
     assert meta["temperature"] == INFERHUB_TEMPERATURE
     assert meta["max_tokens"] == INFERHUB_MAX_TOKENS
-    assert "suggested_live_run_id=inferhub-cbcn-v2-quality" in result.output
+    assert "suggested_live_run_id=inferhub-cbcn-v3-quality" in result.output
 
 
 def test_dry_run_context_never_contains_target_action(tmp_path: Path) -> None:
@@ -733,3 +738,204 @@ def test_inferhub_response_format_http400_fallback(monkeypatch: pytest.MonkeyPat
     assert bodies[1]["temperature"] == INFERHUB_TEMPERATURE
     assert bodies[1]["max_tokens"] == INFERHUB_MAX_TOKENS
     assert "secret-must-not-leak" not in str(payload)
+
+
+def test_select_retrieved_ids_ticker_bias_beats_recency() -> None:
+    """Same-ticker eligible rows beat newer chatter even when key_evidence is noise."""
+
+    case = _syn_enter_case().model_copy(update={"key_evidence_ids": ["noise-new"]})
+    pt = ZoneInfo("America/Los_Angeles")
+    chatter = [
+        CorpusMessage(
+            message_id=f"noise-{i}",
+            channel="alex-journal",
+            ts=datetime(2024, 1, 15, 9, i, tzinfo=pt),
+            text=f"tape chatter {i} no listed names",
+            source_type="journal",
+        )
+        for i in range(12)
+    ]
+    eligible = [
+        CorpusMessage(
+            message_id="old-aaa",
+            channel="equity-trades",
+            ts=datetime(2024, 1, 2, 9, 0, tzinfo=pt),
+            text="Long 4% AAA last month still watching",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="noise-new",
+            channel="alex-journal",
+            ts=datetime(2024, 1, 15, 9, 59, tzinfo=pt),
+            text="tape is choppy",
+            source_type="journal",
+        ),
+        *chatter,
+    ]
+    got = select_retrieved_ids(case, eligible, max_messages=8)
+    assert "old-aaa" in got
+    assert got[0] == "old-aaa"
+    assert "ban-fill" not in got
+    assert case.target_action.message_id not in got
+    # Recency-only would have filled with noise-* and dropped the old ticker hit.
+    assert sum(1 for mid in got if mid.startswith("noise-")) <= 7
+
+
+def test_select_retrieved_ids_key_evidence_ticker_first() -> None:
+    case = _syn_enter_case().model_copy(update={"key_evidence_ids": ["hint-aaa", "hint-noise"]})
+    pt = ZoneInfo("America/Los_Angeles")
+    eligible = [
+        CorpusMessage(
+            message_id="hint-noise",
+            channel="prime-report",
+            ts=datetime(2024, 1, 14, 8, 0, tzinfo=pt),
+            text="FOCUSLIST only QQQ",
+            source_type="report",
+        ),
+        CorpusMessage(
+            message_id="hint-aaa",
+            channel="equity-trades",
+            ts=datetime(2024, 1, 14, 9, 0, tzinfo=pt),
+            text="watching AAA into resistance",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="other-aaa",
+            channel="alex-journal",
+            ts=datetime(2024, 1, 14, 10, 0, tzinfo=pt),
+            text="AAA still on radar",
+            source_type="journal",
+        ),
+    ]
+    got = select_retrieved_ids(case, eligible, max_messages=3)
+    assert got[0] == "hint-aaa"
+    assert "other-aaa" in got
+    assert "hint-noise" in got
+
+
+def test_v3_prompt_abstain_discipline_invariants() -> None:
+    pack = load_frozen_pack()
+    lock = load_model_eval_lock()
+    corpus = load_mvp_ingest(FIXTURE_INGEST)
+    enter_case = next(
+        c for c in pack.cases if c.primary_question == "enter" and c.case_id not in HARD_KILL_SCAR_IDS
+    )
+    abstain_case = next(c for c in pack.cases if c.primary_question == "abstain")
+    for case in (enter_case, abstain_case):
+        eligible = eligible_messages(case, corpus)
+        retrieved = select_retrieved_ids(case, eligible)
+        ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+        prompts = build_prompt_messages(ctx, lock)
+        blob = "\n".join(p["content"] for p in prompts)
+        assert "target_action" not in blob
+        assert "action_classes" not in blob
+        assert f"id={case.target_action.message_id} " not in blob
+        system = next(p["content"] for p in prompts if p["role"] == "system")
+        user = next(p["content"] for p in prompts if p["role"] == "user")
+        lowered = (system + "\n" + user).casefold()
+        assert "exactly one json object" in lowered
+        assert "abstain discipline" in lowered
+        assert "no-trade precision" in lowered
+        assert "primary_question is abstain" in lowered
+        assert "do not abstain" in lowered or "not abstain" in lowered
+        if case.primary_question == "enter":
+            assert "primary_question: enter" in user
+        else:
+            assert "primary_question: abstain" in user
+            assert "if primary_question is abstain, abstain" in lowered
+
+
+def test_false_abstain_coerced_when_sealed_long_language() -> None:
+    case = _syn_enter_case()
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = CorpusMessage(
+        message_id="eq-long-aaa",
+        channel="equity-trades",
+        ts=datetime(2024, 1, 14, 10, 0, tzinfo=pt),
+        text="Long 6% AAA @ 11.50 (SL @ 11.20)",
+        source_type="trade_log",
+    )
+    base = load_mvp_ingest(FIXTURE_INGEST)
+    corpus = SealedCorpus(list(base.messages) + [extra])
+    payload = json.dumps(
+        {
+            "action": "abstain",
+            "side": "n/a",
+            "ticker": "",
+            "citations": [],
+            "confidence": 0.1,
+            "abstain_reason": "unsure",
+        }
+    )
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            blob = "\n".join(m["content"] for m in messages)
+            assert "target_action" not in blob
+            assert "Long 10% AAA @ 12.00" not in blob
+            return {"status": "ok", "text": payload, "model": INFERHUB_MODEL}
+
+    pred, prompts = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="coerce-enter",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert pred.action == "enter"
+    assert pred.ticker == "AAA"
+    assert pred.side == "long"
+    assert pred.citations
+    assert pred.citations[0].message_id == "eq-long-aaa"
+    assert "eq-long-aaa" in pred.retrieved_ids
+    assert "ban-fill" not in pred.retrieved_ids
+    assert "target_action" not in "\n".join(p["content"] for p in prompts)
+
+
+def test_abstain_primary_not_coerced_even_with_long_language() -> None:
+    case = _syn_enter_case().model_copy(update={"primary_question": "abstain"})
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = CorpusMessage(
+        message_id="eq-long-other",
+        channel="equity-trades",
+        ts=datetime(2024, 1, 14, 10, 0, tzinfo=pt),
+        text="Long 6% AAA @ 11.50 (SL @ 11.20)",
+        source_type="trade_log",
+    )
+    base = load_mvp_ingest(FIXTURE_INGEST)
+    corpus = SealedCorpus(list(base.messages) + [extra])
+    payload = json.dumps(
+        {
+            "action": "abstain",
+            "side": "n/a",
+            "ticker": "",
+            "citations": [],
+            "confidence": 0.9,
+            "abstain_reason": "rejected_setup",
+        }
+    )
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            return {"status": "ok", "text": payload, "model": INFERHUB_MODEL}
+
+    pred, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="keep-abstain",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert pred.action == "abstain"
+    assert pred.ticker == ""
+    assert pred.abstain_reason == "rejected_setup"

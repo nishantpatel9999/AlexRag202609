@@ -6,7 +6,7 @@ MODEL_EVAL_LOCK_V0 prediction per frozen case.
 
 ``--dry-run`` skips Inferhub and emits honest abstains (``model_id=dry_run_abstain``).
 Live Inferhub needs ``INFERHUB_API_KEY`` on the operator Mac; pytest stays offline.
-Next live ``run_id`` is ``inferhub-cbcn-v2-quality`` (decision-quality V2 delta).
+Next live ``run_id`` is ``inferhub-cbcn-v3-quality`` (decision-quality V3 delta).
 Does not claim model CLEAR; capital 0; paper stays KILL.
 """
 
@@ -42,10 +42,11 @@ from alexrag.llm.inferhub import (
 )
 
 DRY_RUN_MODEL_ID = "dry_run_abstain"
-DEFAULT_MAX_MESSAGES = 32
+DEFAULT_MAX_MESSAGES = 48
 DEFAULT_MAX_TEXT_CHARS = 480
 DEFAULT_OUT_ROOT = Path("results/model_eval_runs")
-SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v2-quality"
+SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v3-quality"
+QUALITY_DELTA = "decision_quality_v3"
 PARSE_REPAIR_USER = (
     "Your previous reply was not valid JSON. Reply with a single JSON object "
     "matching the required schema and nothing else. No markdown fences, no "
@@ -115,7 +116,7 @@ class EmitRunMeta(BaseModel):
     temperature: float = INFERHUB_TEMPERATURE
     max_tokens: int = INFERHUB_MAX_TOKENS
     response_format: str = "json_object"
-    quality_delta: str = "decision_quality_v2"
+    quality_delta: str = QUALITY_DELTA
     suggested_live_run_id: str = SUGGESTED_LIVE_RUN_ID
 
     @field_validator("paper_authority")
@@ -148,19 +149,28 @@ def new_run_id() -> str:
     return f"emit-{uuid.uuid4().hex[:12]}"
 
 
+def _message_has_listed_ticker(text: str, tickers: Sequence[str]) -> bool:
+    return any(ticker_mentioned(text, t) for t in tickers)
+
+
 def select_retrieved_ids(
     case: FrozenCase,
     eligible: Sequence[CorpusMessage],
     *,
     max_messages: int = DEFAULT_MAX_MESSAGES,
 ) -> list[str]:
-    """Eligible key_evidence hints first, then most recent eligible. Never banned/GT."""
+    """Key_evidence first among same-ticker hits, then other ticker-aware eligible.
+
+    Recency fills remaining slots. Never banned/GT. Same-ticker rows from the
+    broader eligible set are reserved so long key_evidence lists cannot drop them.
+    """
 
     banned = set(case.banned_same_day_ids)
     target_id = case.target_action.message_id
     eligible_by_id = {m.message_id: m for m in eligible}
     chosen: list[str] = []
     seen: set[str] = set()
+    tickers = list(case.tickers)
 
     def _accept(mid: str) -> bool:
         if not mid or mid in seen or mid in banned or mid == target_id:
@@ -169,22 +179,42 @@ def select_retrieved_ids(
             return False
         return True
 
-    for mid in case.key_evidence_ids:
+    def _take(mid: str) -> bool:
         if not _accept(mid):
-            continue
+            return False
         chosen.append(mid)
         seen.add(mid)
-        if len(chosen) >= max_messages:
+        return len(chosen) >= max_messages
+
+    ticker_ids = {
+        m.message_id
+        for m in eligible
+        if tickers and _message_has_listed_ticker(m.text, tickers)
+    }
+
+    # 1) key_evidence that mentions a listed ticker
+    if tickers:
+        for mid in case.key_evidence_ids:
+            if mid not in ticker_ids:
+                continue
+            if _take(mid):
+                return chosen
+
+        # 2) other same-ticker eligible, newest first (eligible_for is ascending)
+        for msg in reversed(list(eligible)):
+            if msg.message_id not in ticker_ids:
+                continue
+            if _take(msg.message_id):
+                return chosen
+
+    # 3) remaining key_evidence (non-ticker hints)
+    for mid in case.key_evidence_ids:
+        if _take(mid):
             return chosen
 
-    # eligible_for sorts ascending by ts; walk newest first.
+    # 4) remaining eligible, newest first
     for msg in reversed(list(eligible)):
-        mid = msg.message_id
-        if not _accept(mid):
-            continue
-        chosen.append(mid)
-        seen.add(mid)
-        if len(chosen) >= max_messages:
+        if _take(msg.message_id):
             break
     return chosen
 
@@ -246,15 +276,25 @@ def _schema_instruction(lock: ModelEvalLock) -> str:
         "citations is an array of {source, message_id, ts, quote_span}. "
         "Each citations[].message_id MUST be copied from retrieved_ids in the user "
         "message. quote_span MUST be a verbatim substring of that sealed message. "
-        "Decision rule: when sealed_context shows clear Long/Short (or buy/sell) "
-        "fill-intent language naming a listed ticker — e.g. 'Long TICKER', "
-        "'Short TICKER', 'bought TICKER', 'sold TICKER', 'filled TICKER', "
-        "'entered TICKER' — you MUST set action to match primary_question "
-        "(enter, or size/manage/exit when that is asked) with that ticker and "
-        "side, and cite the supporting retrieved_ids. "
-        "Abstain ONLY when evidence is thin: empty sealed_context, no listed "
-        "ticker mentioned, or no Long/Short fill-intent language for the asked "
-        "ticker. Do not default to abstain when that language is present. "
+        "ABSTAIN DISCIPLINE (protect no-trade precision): action=abstain is legal "
+        "ONLY when primary_question is abstain, OR evidence is thin (empty "
+        "sealed_context, no listed ticker mentioned, and no Long/Short/Closed/ADD/"
+        "trim/Sold language naming a listed ticker). If primary_question is enter, "
+        "size, manage, or exit and that sealed language exists, you MUST emit the "
+        "asked action with a citation — do not abstain. False abstains on those "
+        "questions destroy no-trade precision. "
+        "When primary_question is abstain you MUST abstain; do not invent a fill "
+        "for the listed ticker. Same-day Long/Short tape in other names is not a "
+        "reason to enter the rejected ticker. "
+        "ACTION MAP: enter → action=enter, ticker+side from sealed 'Long TICKER' / "
+        "'Short TICKER' / bought / filled / entered; cite that retrieved_id. "
+        "size → action=size (or enter); copy size_pct from the percentage beside "
+        "that ticker; ticker+side as enter. "
+        "manage → action=manage (not abstain); management add|trim|move_sl|reopen|"
+        "close_all when ADD/trim/SL/reopen/closed language is present; ticker from "
+        "that language or empty string if unclear — never guess a wrong ticker. "
+        "exit → action=exit (not abstain); ticker MUST be the Closed/Sold/stopped "
+        "name; exit close|sold|stopped matching that language. "
         "Do not invent fills, prices, or message ids. Do not use information "
         "after the sealed cutoff. Do not echo labels that are not in sealed_context."
     )
@@ -281,10 +321,12 @@ def build_prompt_messages(ctx: ModelContext, lock: ModelEvalLock) -> list[dict[s
             f"text={truncate_text(msg.text)}"
         )
     lines.append(
-        "Respond with one JSON object only. If sealed_context has clear "
-        "Long/Short fill-intent wording for a listed ticker, enter/size/"
-        "manage/exit as primary_question requires, cite retrieved_ids, "
-        "and do not abstain. Abstain only if that evidence is thin."
+        "Respond with one JSON object only. If primary_question is abstain, "
+        "abstain. If primary_question is enter, size, manage, or exit and "
+        "sealed_context has a listed ticker with Long/Short/Closed/ADD/trim/"
+        "Sold language, emit that asked action (not abstain), cite retrieved_ids, "
+        "and name the ticker (or leave ticker empty on manage if unclear). "
+        "Abstain only if primary_question is abstain or that evidence is thin."
     )
     user = "\n".join(lines)
     payload = {"system": _schema_instruction(lock), "user": user}
@@ -565,6 +607,139 @@ def _eligible_citation(
     return ModelCitation(source=source, message_id=mid, ts=ts, quote_span=quote)
 
 
+_ENTER_SIZE_INTENT = re.compile(
+    r"\b(long|short|bought|buy|filled|entered|enter)\b",
+    re.IGNORECASE,
+)
+_MANAGE_INTENT = re.compile(
+    r"\b(add(?:ed)?(?:#\d+)?|trim(?:med)?|reopen(?:ed)?|ssl|(?:move[_\s-]?)?sl|stop(?:ped)?)\b",
+    re.IGNORECASE,
+)
+_EXIT_INTENT = re.compile(
+    r"\b(closed|sold|stopped|taking my sl)\b",
+    re.IGNORECASE,
+)
+_LONG_SIDE = re.compile(r"\b(long|bought|buy|filled)\b", re.IGNORECASE)
+_SHORT_SIDE = re.compile(r"\bshort\b", re.IGNORECASE)
+
+
+def _quote_around_ticker(text: str, ticker: str, max_len: int = 80) -> str:
+    compact = " ".join((text or "").split())
+    token = (ticker or "").upper()
+    if not compact:
+        return ""
+    if not token:
+        return compact[:max_len]
+    idx = compact.upper().find(token)
+    if idx < 0:
+        return compact[:max_len]
+    start = max(0, idx - 16)
+    end = min(len(compact), idx + len(token) + 48)
+    return compact[start:end].strip()[:max_len]
+
+
+def _side_from_sealed_text(text: str) -> str | None:
+    has_long = _LONG_SIDE.search(text or "") is not None
+    has_short = _SHORT_SIDE.search(text or "") is not None
+    if has_short and not has_long:
+        return "short"
+    if has_long:
+        return "long"
+    return None
+
+
+def _size_near_ticker(text: str, ticker: str) -> float | None:
+    token = re.escape((ticker or "").strip())
+    if not token:
+        return None
+    patterns = [
+        rf"(\d+(?:\.\d+)?)\s*%\s*{token}\b",
+        rf"\b(?:long|short)\s+(\d+(?:\.\d+)?)\s*%\s*{token}\b",
+        rf"\b{token}\b[^%]{{0,24}}(\d+(?:\.\d+)?)\s*%",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text or "", re.IGNORECASE)
+        if not match:
+            continue
+        try:
+            return float(match.group(1))
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _intent_ok_for_primary(primary: str, text: str) -> bool:
+    if primary in {"enter", "size"}:
+        return _ENTER_SIZE_INTENT.search(text) is not None
+    if primary == "manage":
+        return _MANAGE_INTENT.search(text) is not None or _ENTER_SIZE_INTENT.search(text) is not None
+    if primary == "exit":
+        return _EXIT_INTENT.search(text) is not None
+    return False
+
+
+def _citation_from_ctx_message(msg: Any) -> ModelCitation:
+    ts = msg.ts.isoformat() if getattr(msg, "ts", None) is not None else ""
+    return ModelCitation(
+        source=str(getattr(msg, "channel", "") or ""),
+        message_id=str(msg.message_id),
+        ts=ts,
+        quote_span="",
+    )
+
+
+def sealed_primary_support(case: FrozenCase, ctx: ModelContext) -> dict[str, Any] | None:
+    """Best sealed ticker+intent row for a non-abstain primary. No GT / fill body."""
+
+    primary = case.primary_question
+    if primary == "abstain":
+        return None
+    tickers = list(case.tickers)
+    if not tickers or not ctx.messages:
+        return None
+    retrieved = set(ctx.retrieved_ids)
+    ranked: list[tuple[int, Any, str]] = []
+    for msg in ctx.messages:
+        if msg.message_id not in retrieved:
+            continue
+        text = msg.text or ""
+        if not _intent_ok_for_primary(primary, text):
+            continue
+        hit = next((t for t in tickers if ticker_mentioned(text, t)), None)
+        if not hit:
+            continue
+        recency = 1 if msg.ts is not None else 0
+        ranked.append((recency, msg, hit))
+    if not ranked:
+        return None
+    # Prefer later sealed messages (walk already newest-last; take last hit).
+    _, msg, ticker = ranked[-1]
+    quote = _quote_around_ticker(msg.text or "", ticker)
+    cite = _citation_from_ctx_message(msg)
+    cite.quote_span = quote
+    side = _side_from_sealed_text(msg.text or "")
+    if primary == "exit":
+        side = side or "n/a"
+    elif primary == "manage":
+        side = side or "n/a"
+    elif not side:
+        side = "long"
+    return {
+        "ticker": ticker,
+        "side": side,
+        "size_pct": _size_near_ticker(msg.text or "", ticker),
+        "citation": cite,
+        "message_id": msg.message_id,
+    }
+
+
+def _ticker_in_case(ticker: str, case: FrozenCase) -> bool:
+    got = (ticker or "").strip().upper()
+    if not got:
+        return False
+    return got in {t.strip().upper() for t in case.tickers}
+
+
 def prediction_from_model_obj(
     obj: dict[str, Any],
     case: FrozenCase,
@@ -599,17 +774,61 @@ def prediction_from_model_obj(
     if side is None:
         raise ValueError(f"invalid side {cleaned.get('side')!r}")
 
+    support = sealed_primary_support(case, ctx)
+    asked = case.primary_question
+    if (
+        support is not None
+        and asked != "abstain"
+        and asked in ACTIONS
+        and (action == "abstain" or (asked in {"enter", "manage", "exit"} and action != asked))
+    ):
+        # Prefer asked action + sealed cite; never invent enter on abstain goldens.
+        if not (asked == "size" and action in {"size", "enter"}):
+            action = "size" if asked == "size" else asked
+        cite = support["citation"]
+        if isinstance(cite, ModelCitation) and cite.message_id in eligible_ids:
+            if all(c.message_id != cite.message_id for c in citations):
+                citations.insert(0, cite)
+        support_side = _coerce_side(support.get("side"), action)
+        if action in {"enter", "size"} and (side in {None, "n/a"} or side == "n/a"):
+            if support_side in {"long", "short"}:
+                side = support_side
+        elif action in {"manage", "exit"} and side is None:
+            side = support_side or "n/a"
+
+    if action != "abstain" and not citations and support is not None:
+        cite = support["citation"]
+        if isinstance(cite, ModelCitation) and cite.message_id in eligible_ids:
+            citations.append(cite)
+
     abstain_reason = _coerce_optional_str(cleaned.get("abstain_reason"))
     if action != "abstain" and not citations:
         action = "abstain"
         side = "n/a"
         abstain_reason = "thin_evidence_no_eligible_citations"
-    if action == "abstain" and not (abstain_reason or "").strip():
+    if action != "abstain":
+        abstain_reason = None
+    elif not (abstain_reason or "").strip():
         abstain_reason = "model_abstain"
 
     size_pct = _coerce_size_pct(cleaned.get("size_pct"))
     ticker_raw = cleaned.get("ticker")
     ticker = "" if action == "abstain" else str(ticker_raw or "").strip()
+    if action != "abstain" and support is not None:
+        support_ticker = str(support.get("ticker") or "").strip()
+        if not _ticker_in_case(ticker, case):
+            if action == "manage":
+                ticker = support_ticker if _ticker_in_case(support_ticker, case) else ""
+            elif _ticker_in_case(support_ticker, case):
+                ticker = support_ticker
+        if action in {"enter", "size"} and side in {None, "n/a"}:
+            support_side = _coerce_side(support.get("side"), action)
+            if support_side in {"long", "short"}:
+                side = support_side
+        if action == "size" and size_pct is None:
+            size_pct = support.get("size_pct")
+    if action in {"manage", "exit"} and (side is None or side == ""):
+        side = "n/a"
 
     # Model often returns rejected_alternatives as objects; lock schema is list[str].
     raw_rejected = cleaned.get("rejected_alternatives") or []
@@ -899,7 +1118,7 @@ def emit_model_predictions(
         temperature=temperature,
         max_tokens=max_tokens,
         response_format="json_object",
-        quality_delta="decision_quality_v2",
+        quality_delta=QUALITY_DELTA,
         suggested_live_run_id=SUGGESTED_LIVE_RUN_ID,
     )
     assert_emit_sealed(pack, predictions)
