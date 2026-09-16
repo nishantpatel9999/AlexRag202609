@@ -1,0 +1,86 @@
+{
+  "case_id": "m0_limit_citation",
+  "fill_model": "M0",
+  "scar_bps": 0.0,
+  "paper_nav": 100000.0,
+  "hard_limits": {
+    "max_notional_pct": 1.5,
+    "max_positions": 15,
+    "max_daily_loss_pct": 0.10,
+    "max_portfolio_dd": 0.25,
+    "notional_breach_policy": "pro_rata_trim_for_new_entry"
+  },
+  "bars": [
+    {
+      "ts": "2026-09-15T18:16:00+00:00",
+      "ticker": "NVDA",
+      "mid": 125.0
+    }
+  ],
+  "proposal": {
+    "proposal_id": "prop-m0-limit",
+    "decision_clock": "2026-09-15T18:15:00+00:00",
+    "mode": "paper",
+    "tickers": ["NVDA"],
+    "regime": "trend_day",
+    "size_ner_pct": 0.25,
+    "confidence": 0.7,
+    "abstain": false,
+    "abstain_reason": null,
+    "citations": [
+      {
+        "source_id": "tl-1",
+        "source_type": "trade_log",
+        "chunk_id": "c-limit",
+        "excerpt": "Trade log: filled $NVDA long limit 120. Size NER 0.25%. Invalidation: 118.",
+        "timestamp": "2026-09-15T18:10:00+00:00"
+      }
+    ],
+    "thesis": "limit/invalidation copied from sealed citations only; M0 still marks next mid at 0bps",
+    "setup_summary": "$NVDA long limit 120 invalidation 118",
+    "hard_limits_snapshot": {
+      "max_notional_pct": 1.5,
+      "max_positions": 15,
+      "max_daily_loss_pct": 0.10,
+      "max_portfolio_dd": 0.25,
+      "notional_breach_policy": "pro_rata_trim_for_new_entry",
+      "paper_equity": 100000.0,
+      "max_notional": 150000.0,
+      "max_daily_loss": 10000.0
+    }
+  },
+  "intent": {
+    "intent_id": "intent-m0-limit",
+    "proposal_id": "prop-m0-limit",
+    "mode": "paper",
+    "ticker": "NVDA",
+    "side": "buy",
+    "order_type": "limit",
+    "limit_px": 120.0,
+    "invalidation": "118",
+    "notional": 250.0,
+    "qty": 2.0833333333333335,
+    "size_ner_pct": 0.25,
+    "decision_clock": "2026-09-15T18:15:00+00:00",
+    "ref_px": 120.0,
+    "ref_px_source": "sealed_limit",
+    "abstain": false,
+    "abstain_reason": null
+  },
+  "expected_fill": {
+    "fill_ts": "2026-09-15T18:16:00+00:00",
+    "fill_px": 125.0,
+    "qty_filled": 2.0833333333333335,
+    "qty_left": 0.0,
+    "status": "acked",
+    "venue": "paper_sim",
+    "latency_ms": 60000.0,
+    "intent_id": "intent-m0-limit",
+    "proposal_id": "prop-m0-limit",
+    "filled": true,
+    "fill_model": "M0",
+    "scar_bps": 0.0,
+    "scar_label": "fixture_mid_0bps_not_alex_slippage"
+  },
+  "notes": "Intent limit_px=120 from sealed citation. M0 fill_px is next fixture mid 125, scar_bps=0. Do not invent Alex slippage around the limit."
+}

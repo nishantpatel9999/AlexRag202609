@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>inherit timestamps across groups</title>
+</head>
+<body>
+<div class="chatlog">
+  <div class="chatlog__message-group">
+    <div id="chatlog__message-container-3001" class="chatlog__message-container" data-message-id="3001">
+      <div class="chatlog__message">
+        <div class="chatlog__message-primary">
+          <div class="chatlog__header">
+            <span class="chatlog__author">Alex</span>
+            <span class="chatlog__timestamp">
+              <time datetime="2026-09-15T11:00:00">15-Sep-26 11:00 AM</time>
+            </span>
+          </div>
+          <div class="chatlog__content">
+            <span class="chatlog__markdown-preserve">First in group with datetime (naive → America/Los_Angeles).</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="chatlog__message-container-3002" class="chatlog__message-container" data-message-id="3002">
+      <div class="chatlog__message">
+        <div class="chatlog__message-primary">
+          <div class="chatlog__content">
+            <span class="chatlog__markdown-preserve">Same group, no datetime — inherit.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chatlog__message-group">
+    <div id="chatlog__message-container-3003" class="chatlog__message-container" data-message-id="3003">
+      <div class="chatlog__message">
+        <div class="chatlog__message-primary">
+          <div class="chatlog__header">
+            <span class="chatlog__author">Alex</span>
+          </div>
+          <div class="chatlog__content">
+            <span class="chatlog__markdown-preserve">Next group, no datetime — still inherit.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

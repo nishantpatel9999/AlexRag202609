@@ -1,0 +1,96 @@
+{
+  "case_id": "m0_acked_long",
+  "fill_model": "M0",
+  "scar_bps": 0.0,
+  "paper_nav": 100000.0,
+  "hard_limits": {
+    "max_notional_pct": 1.5,
+    "max_positions": 15,
+    "max_daily_loss_pct": 0.10,
+    "max_portfolio_dd": 0.25,
+    "notional_breach_policy": "pro_rata_trim_for_new_entry"
+  },
+  "bars": [
+    {
+      "ts": "2026-09-15T18:00:00+00:00",
+      "ticker": "NVDA",
+      "mid": 99.0
+    },
+    {
+      "ts": "2026-09-15T18:16:00+00:00",
+      "ticker": "NVDA",
+      "mid": 125.0
+    },
+    {
+      "ts": "2026-09-15T18:16:00+00:00",
+      "ticker": "AAPL",
+      "mid": 10.0
+    }
+  ],
+  "proposal": {
+    "proposal_id": "prop-m0-acked",
+    "decision_clock": "2026-09-15T18:15:00+00:00",
+    "mode": "paper",
+    "tickers": ["NVDA"],
+    "regime": "trend_day",
+    "size_ner_pct": 0.25,
+    "confidence": 0.7,
+    "abstain": false,
+    "abstain_reason": null,
+    "citations": [
+      {
+        "source_id": "tl-1",
+        "source_type": "trade_log",
+        "chunk_id": "c-acked",
+        "excerpt": "Trade log: filled $NVDA long. Size NER 0.25%. Playbook cites trend-day continuation only.",
+        "timestamp": "2026-09-15T18:10:00+00:00"
+      }
+    ],
+    "thesis": "sealed M0 replay: go long, mark next fixture mid",
+    "setup_summary": "$NVDA long NER 0.25%",
+    "hard_limits_snapshot": {
+      "max_notional_pct": 1.5,
+      "max_positions": 15,
+      "max_daily_loss_pct": 0.10,
+      "max_portfolio_dd": 0.25,
+      "notional_breach_policy": "pro_rata_trim_for_new_entry",
+      "paper_equity": 100000.0,
+      "max_notional": 150000.0,
+      "max_daily_loss": 10000.0
+    }
+  },
+  "intent": {
+    "intent_id": "intent-m0-acked",
+    "proposal_id": "prop-m0-acked",
+    "mode": "paper",
+    "ticker": "NVDA",
+    "side": "buy",
+    "order_type": "market",
+    "limit_px": null,
+    "invalidation": null,
+    "notional": 250.0,
+    "qty": 2.0,
+    "size_ner_pct": 0.25,
+    "decision_clock": "2026-09-15T18:15:00+00:00",
+    "ref_px": 125.0,
+    "ref_px_source": "next_fixture_mid",
+    "abstain": false,
+    "abstain_reason": null
+  },
+  "expected_fill": {
+    "fill_ts": "2026-09-15T18:16:00+00:00",
+    "fill_px": 125.0,
+    "qty_filled": 2.0,
+    "qty_left": 0.0,
+    "status": "acked",
+    "venue": "paper_sim",
+    "latency_ms": 60000.0,
+    "intent_id": "intent-m0-acked",
+    "proposal_id": "prop-m0-acked",
+    "filled": true,
+    "fill_model": "M0",
+    "scar_bps": 0.0,
+    "scar_label": "fixture_mid_0bps_not_alex_slippage"
+  },
+  "notes": "M0 mark-to-next-available mid; 0bps scar is a fixture label, not Alex slippage."
+}
