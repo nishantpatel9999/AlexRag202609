@@ -1,0 +1,165 @@
+{
+  "version": "DECISION_QUALITY_PASS_V1_LOCK",
+  "lock_date_pt": "2026-09-15",
+  "owner": "Research",
+  "implements": false,
+  "capital": 0,
+  "paper_authority_default": false,
+  "market_fighter": false,
+  "upstream_lock": "MODEL_EVAL_LOCK_V0",
+  "upstream_lock_still_binds": true,
+  "fixture_path": "/workspace/alexrag/golden_cases_v0_frozen.json",
+  "fixture_sha256_16": "1a3cb17781211ad0",
+  "orthogonal_to": [
+    "Quant_M0_fill_receipts",
+    "Dev_realistic_fill_0bps_mid_kill"
+  ],
+  "baseline_kills": {
+    "runs": [
+      "inferhub-cbcn-v0",
+      "inferhub-cbcn-v1"
+    ],
+    "identical": true,
+    "n_pass": 4,
+    "n_fail": 28,
+    "n_ambiguous": 16,
+    "behavioral_action_match": 0.125,
+    "cfp": 0,
+    "model_eval_clear": false,
+    "enter_pass": 0,
+    "emitter_abstains_v1": 42,
+    "parse_failure": 12,
+    "parse_retry_recovered": 0,
+    "pass_case_ids_all_gt_abstain": [
+      "GC-04-2022-12-09",
+      "GC-09-2023-03-19",
+      "GC-28-2025-03-04",
+      "GC-30-2025-03-07"
+    ]
+  },
+  "desk_rules": {
+    "no_identical_rescores": true,
+    "no_soft_relabel_ambiguous_16": true,
+    "gc15_gc29_hard_thin_prior_kills": true,
+    "model_eval_lock_v0_binds": true,
+    "capital": 0,
+    "fill_scar_orthogonal": true
+  },
+  "goal": {
+    "raise_sealed_decision_quality": true,
+    "without_relaxing_lock": true,
+    "priorities": [
+      "enter_PASS_on_non_ambiguous_enter_goldens",
+      "cut_parse_failure_abstains",
+      "cut_default_abstain_swamp",
+      "keep_cfp_0",
+      "keep_gc15_gc29_honest"
+    ]
+  },
+  "allowed_changes": [
+    "prompt",
+    "output_schema_emitter",
+    "parse_retry",
+    "model_id",
+    "temperature_decoding",
+    "tools_under_eligible_filter",
+    "max_tokens_truncation_handling"
+  ],
+  "forbidden_changes": [
+    "soft_relabel_16_ambiguous",
+    "inject_gt_target_action_fill_body_banned_ids",
+    "loosen_eligible_filter",
+    "unseal_ts_gte_decision_ts",
+    "cheat_gc15_gc29_via_peek",
+    "identical_noop_rescore",
+    "flip_paper_authority_or_capital",
+    "submit_broker"
+  ],
+  "research_rescore_mvp_bar": {
+    "A_parse_health": {
+      "parse_failure_max": 2,
+      "parse_retry_recovered_min": 1,
+      "or_zero_parse_failure_without_retry": true
+    },
+    "B_abstain_swamp": {
+      "emitter_abstain_max": 30,
+      "baseline_v1": 42
+    },
+    "C_enter_quality": {
+      "min_enter_pass_on_non_ambiguous_enter_goldens": 1,
+      "ambiguous_enter_pass_does_not_count_alone": true
+    },
+    "D_cfp": {
+      "cfp_max": 0
+    },
+    "E_kill_scars": {
+      "gc15_gc29_no_banned_or_future_retrieval_or_cite": true,
+      "honest_fail_or_abstain_ok": true
+    },
+    "F_lock_surface": {
+      "fixture_sha256_16": "1a3cb17781211ad0",
+      "no_soft_relabel": true,
+      "eligible_filter_unchanged": true
+    },
+    "all_of_A_through_F_required": true,
+    "explicit_kill_if_enter_pass_still_0": {
+      "allowed": true,
+      "requires": [
+        "A",
+        "B",
+        "D",
+        "E",
+        "F"
+      ],
+      "desk_acknowledged": true,
+      "not_model_eval_clear_path": true,
+      "purpose": "document parse/abstain improved, enter still dead"
+    }
+  },
+  "not_required_for_mvp_rescore_trigger": [
+    "full_model_eval_clear_match_0_70",
+    "no_trade_precision_recall_bars",
+    "manage_exit_passes",
+    "paper_authority"
+  ],
+  "hard_keeps": {
+    "cfp_max": 0,
+    "gc15_gc29_honest_ok": true,
+    "ambiguous_16_no_soft_relabel": true,
+    "sealed_cutoff": "only artifacts with timestamp < decision_ts",
+    "banned_same_day_ids_hard_exclude": true,
+    "never_inject_gt": true,
+    "capital": 0,
+    "paper_authority": false
+  },
+  "paper_unlock_still_requires": [
+    "model_eval_clear_under_MODEL_EVAL_LOCK_V0",
+    "quant_fill_scar_cleared_kill_0bps_mid",
+    "risk_red_shadow_gate_green",
+    "human_approval"
+  ],
+  "dev_hook_checklist": [
+    "Ship real delta (prompt/schema/parse-retry/model/temp/tools), not noop re-run",
+    "New run_id; pin model_id, fixture hash, lock version",
+    "Report n_parse_failure, n_parse_retry_recovered, n_abstain, action mix",
+    "Self-check MVP gates A-F before pinging Research",
+    "No soft-relabel; no eligible_filter loosen; no GT inject",
+    "GC-15/29 audit dump ready",
+    "paper_authority=false, capital=0",
+    "Research re-scores only when A-F met (or Desk-ack kill for enter-still-0)"
+  ],
+  "dev_five_bullet_summary": [
+    "Goal: raise sealed enter quality + kill parse_failure abstains; do not relax MODEL_EVAL_LOCK_V0 (CFP=0, GC-15/29 hard, no soft-relabel).",
+    "Ship levers: prompt / schema / parse retry / model id / temperature / tools only \u2014 never GT injection, never eligible_filter loosen, never AMBIGUOUS soft-relabel.",
+    "Ping Research only when: parse_failure <= 2 (+ retry recovered or zero failures), abstains <= 30, >= 1 non-AMBIGUOUS enter PASS, CFP=0, GC-15/29 honest, same fixture hash \u2014 else no formal re-score.",
+    "v0===v1 kill stands: 4/28/16, match 0.125, enter PASS=0, ~42 abstains, 12 parse_failure / 0 recovered \u2014 identical re-scores banned.",
+    "Paper still false; capital 0; fill scar orthogonal \u2014 this pass is quality delta only, not CLEAR/paper unlock."
+  ],
+  "docs": [
+    "docs/DECISION_QUALITY_PASS_V1_LOCK.md",
+    "docs/decision_quality_pass_v1_lock.json",
+    "docs/MODEL_EVAL_LOCK_V0.md",
+    "results/MODEL_GOLDEN48_SCORECARD.md",
+    "results/MODEL_GOLDEN48_SCORECARD_v1.md"
+  ]
+}
