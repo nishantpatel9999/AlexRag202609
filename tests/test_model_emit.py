@@ -1066,6 +1066,66 @@ def test_gc29_stale_alert_vs_same_morning_no_trade_abstains() -> None:
     assert all(c.message_id != "ban-nflx-fill" for c in parsed.citations)
 
 
+def _syn_gc31_case() -> FrozenCase:
+    """GC-31 analog: evening ACMR/MP setup list vs leftover no-trade language."""
+
+    pt = ZoneInfo("America/Los_Angeles")
+    decision = datetime(2025, 3, 10, 6, 57, tzinfo=pt)
+    return FrozenCase(
+        case_id="SYN-GC31",
+        date_pt="2025-03-10",
+        tickers=["MP", "ACMR"],
+        primary_question="enter",
+        decision_ts=decision,
+        fill_ts=decision,
+        target_action=TargetAction(
+            message_id="ban-mp-fill",
+            channel="equity-trades",
+            ts=decision,
+            text="@everyone Long 12% MP @ 25.09 (SSL @ 24.57)",
+            action_classes=["enter"],
+            primary_question="enter",
+        ),
+        eligible_filter=EligibleFilter(
+            channels=["equity-trades", "alex-journal", "prime-report", "pf-update"],
+            ts_lt=decision,
+            tz="America/Los_Angeles",
+        ),
+        banned_same_day_ids=["ban-mp-fill"],
+        key_evidence_ids=["rpt-setup-list", "eq-old-mp", "pf-no-trade-yday"],
+    )
+
+
+def _syn_gc32_case() -> FrozenCase:
+    """GC-32 analog: year-old ERY tape + leftover no-trade, no report alert."""
+
+    pt = ZoneInfo("America/Los_Angeles")
+    decision = datetime(2025, 3, 13, 7, 39, tzinfo=pt)
+    return FrozenCase(
+        case_id="SYN-GC32",
+        date_pt="2025-03-13",
+        tickers=["ERY"],
+        primary_question="enter",
+        decision_ts=decision,
+        fill_ts=decision,
+        target_action=TargetAction(
+            message_id="ban-ery-fill",
+            channel="equity-trades",
+            ts=decision,
+            text="@everyone Long 11% ERY @ 23.82 (SSL @ 23.57)",
+            action_classes=["enter"],
+            primary_question="enter",
+        ),
+        eligible_filter=EligibleFilter(
+            channels=["equity-trades", "alex-journal", "prime-report", "pf-update"],
+            ts_lt=decision,
+            tz="America/Los_Angeles",
+        ),
+        banned_same_day_ids=["ban-ery-fill"],
+        key_evidence_ids=["eq-old-ery", "j-ppi", "pf-no-trade-yday"],
+    )
+
+
 def test_no_trade_plan_does_not_block_contemporaneous_enter() -> None:
     """Same-morning no-trade + same-session Long listed ticker must still enter."""
 
@@ -1115,6 +1175,157 @@ def test_no_trade_plan_does_not_block_contemporaneous_enter() -> None:
     assert pred.ticker == "AAA"
     assert pred.citations[0].message_id == "eq-long-aaa"
     assert "ban-fill" not in pred.retrieved_ids
+
+
+def test_gc31_setup_list_does_not_conflict_abstain() -> None:
+    """GC-31-like: ACMR/MP setup list + leftover no-trade + old tape must not fire."""
+
+    case = _syn_gc31_case()
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="rpt-setup-list",
+            channel="prime-report",
+            ts=datetime(2025, 3, 9, 19, 9, tzinfo=pt),
+            text=(
+                "Still dropping some good chart setups if you guys still want "
+                "to engage. ACMR AEM ASTS GFL MP PAAS UBER WGS"
+            ),
+            source_type="report",
+        ),
+        CorpusMessage(
+            message_id="pf-no-trade-yday",
+            channel="pf-update",
+            ts=datetime(2025, 3, 9, 18, 20, tzinfo=pt),
+            text="PORTFOLIO UPDATE 03/09 No trades again today. Breadth still contracting.",
+            source_type="pf_update",
+        ),
+        CorpusMessage(
+            message_id="eq-old-mp",
+            channel="equity-trades",
+            ts=datetime(2024, 5, 28, 7, 49, tzinfo=pt),
+            text="@everyone Long 16% MP @ 16.91 (SL @ 16.76)",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="rpt-stale-mp-alert",
+            channel="prime-report",
+            ts=datetime(2024, 5, 27, 18, 10, tzinfo=pt),
+            text="MP (Long) daily - Alert: 16.91, SL: 16.76 Base still constructive.",
+            source_type="report",
+        ),
+        CorpusMessage(
+            message_id="ban-mp-fill",
+            channel="equity-trades",
+            ts=datetime(2025, 3, 10, 6, 57, tzinfo=pt),
+            text="@everyone Long 12% MP @ 25.09 (SSL @ 24.57)",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+    eligible = eligible_messages(case, corpus)
+    retrieved = select_retrieved_ids(case, eligible)
+    ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+    assert conflict_no_trade_plan_vs_stale_setup(case, ctx, extra_messages=eligible) is None
+
+    called = {"n": 0}
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            called["n"] += 1
+            blob = "\n".join(m["content"] for m in messages)
+            assert "target_action" not in blob
+            return {"status": "ok", "text": _model_abstain_payload(), "model": INFERHUB_MODEL}
+
+    pred, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="gc31-no-fire",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert called["n"] == 1
+    assert pred.action == "enter"
+    assert pred.ticker == "MP"
+    assert pred.abstain_reason is None
+    assert "ban-mp-fill" not in pred.retrieved_ids
+
+
+def test_gc32_ancient_tape_does_not_conflict_abstain() -> None:
+    """GC-32-like: year-old ERY Long + leftover no-trade is not a stale report alert."""
+
+    case = _syn_gc32_case()
+    lock = load_model_eval_lock()
+    pt = ZoneInfo("America/Los_Angeles")
+    extra = [
+        CorpusMessage(
+            message_id="j-ppi",
+            channel="alex-journal",
+            ts=datetime(2025, 3, 13, 5, 51, tzinfo=pt),
+            text=(
+                "03/13 Good morning everyone! Mixed reaction to a soft PPI "
+                "report this morning, with the market under pressure."
+            ),
+            source_type="journal",
+        ),
+        CorpusMessage(
+            message_id="pf-no-trade-yday",
+            channel="pf-update",
+            ts=datetime(2025, 3, 12, 18, 20, tzinfo=pt),
+            text="PORTFOLIO UPDATE 03/12 No trades again today. Day #10 of MCSI downtrend.",
+            source_type="pf_update",
+        ),
+        CorpusMessage(
+            message_id="eq-old-ery",
+            channel="equity-trades",
+            ts=datetime(2023, 3, 10, 7, 20, tzinfo=pt),
+            text="Long 5% ERY @ 31.37 (SL 30.56) - BORS",
+            source_type="trade_log",
+        ),
+        CorpusMessage(
+            message_id="ban-ery-fill",
+            channel="equity-trades",
+            ts=datetime(2025, 3, 13, 7, 39, tzinfo=pt),
+            text="@everyone Long 11% ERY @ 23.82 (SSL @ 23.57)",
+            source_type="trade_log",
+        ),
+    ]
+    corpus = SealedCorpus(extra)
+    eligible = eligible_messages(case, corpus)
+    retrieved = select_retrieved_ids(case, eligible)
+    ctx = build_model_context(case, eligible, retrieved_ids=retrieved)
+    assert conflict_no_trade_plan_vs_stale_setup(case, ctx, extra_messages=eligible) is None
+
+    called = {"n": 0}
+
+    class Client:
+        configured = True
+
+        def complete(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+            called["n"] += 1
+            blob = "\n".join(m["content"] for m in messages)
+            assert "target_action" not in blob
+            return {"status": "ok", "text": _model_abstain_payload(), "model": INFERHUB_MODEL}
+
+    pred, _ = emit_one_case(
+        case,
+        corpus,
+        lock,
+        run_id="gc32-no-fire",
+        model_id=INFERHUB_MODEL,
+        dry_run=False,
+        client=Client(),  # type: ignore[arg-type]
+    )
+    assert called["n"] == 1
+    assert pred.action == "enter"
+    assert pred.ticker == "ERY"
+    assert pred.abstain_reason is None
+    assert "ban-ery-fill" not in pred.retrieved_ids
 
 
 def test_false_abstain_coerced_when_sealed_long_language() -> None:
