@@ -58,21 +58,21 @@ uv run alexrag emit-model-predictions \
   --out results/model_eval_runs
 ```
 
-Live Inferhub (operator Mac; `INFERHUB_API_KEY` in env only — never committed/logged). Locked route is `cbcn` / `cbcn/glm-5.3-flash` (case-insensitive accept of `cbcn/GLM-5.3-flash`) at `https://api.inferhub.dev/v1`. Decode: `temperature=0.1`, `max_tokens=8192`, `response_format=json_object` (HTTP 400 drops the format field and retries). Parse failure, thin sealed evidence, or GC-29 no-trade vs stale-setup conflict fail-closed to `abstain`. **Do not claim CLEAR.** Next live audit `run_id` **must** be `inferhub-cbcn-v5-gc29` (v0/v1/v2/v3/v4 identical re-scores are banned):
+Live Inferhub (operator Mac; `INFERHUB_API_KEY` in env only — never committed/logged). Locked route is `cbcn` / `cbcn/glm-5.3-flash` (case-insensitive accept of `cbcn/GLM-5.3-flash`) at `https://api.inferhub.dev/v1`. Decode: `temperature=0.1`, `max_tokens=8192`, `response_format=json_object` (HTTP 400 drops the format field and retries). Parse failure, thin sealed evidence, or GC-29 no-trade vs stale-setup conflict fail-closed to `abstain`. **Do not claim CLEAR.** Next live audit `run_id` **must** be `inferhub-cbcn-v6-restore` (v0/v1/v2/v3/v4/v5 identical re-scores are banned):
 
 ```bash
 uv run alexrag emit-model-predictions \
   --no-dry-run \
   --ingest data/ingest \
   --out results/model_eval_runs \
-  --run-id inferhub-cbcn-v5-gc29
+  --run-id inferhub-cbcn-v6-restore
 ```
 
 Then score (offline):
 
 ```bash
 uv run alexrag score-model \
-  --predictions results/model_eval_runs/inferhub-cbcn-v5-gc29/predictions.jsonl \
+  --predictions results/model_eval_runs/inferhub-cbcn-v6-restore/predictions.jsonl \
   --ingest data/ingest \
   --frozen eval/golden_cases_v0_frozen.json \
   --out results/model_score_runs
@@ -115,7 +115,8 @@ ALEXRAG_KILL_SWITCH=true uv run alexrag run-paper-day --dry-run --fixtures tests
 | `docs/DECISION_QUALITY_V2_QUALITY_DELTA.md` | V2 emitter delta (formal pack `inferhub-cbcn-v2-quality`; CLEAR KILL) |
 | `docs/DECISION_QUALITY_V3_QUALITY_DELTA.md` | V3 emitter delta (live smoke `inferhub-cbcn-v3-quality`; match HIT / no-trade P FAIL) |
 | `docs/DECISION_QUALITY_V4_QUALITY_DELTA.md` | V4 emitter delta + live `run_id=inferhub-cbcn-v4-quality` (quality baseline stands) |
-| `docs/DECISION_QUALITY_V5_GC29_SCAR.md` | GC-29 C1 stale-alert vs no-trade scar; next live `run_id=inferhub-cbcn-v5-gc29` |
+| `docs/DECISION_QUALITY_V5_GC29_SCAR.md` | GC-29 C1 stale-alert vs no-trade scar; live `run_id=inferhub-cbcn-v5-gc29` (scar HIT, CLEAR MISS) |
+| `docs/DECISION_QUALITY_V6_RESTORE.md` | V6 narrow conflict restore; next live `run_id=inferhub-cbcn-v6-restore` |
 | `eval/baselines/abstain_everywhere_v0.jsonl` | Smoke predictions (abstain all 48) |
 | `docs/EVAL_SPEC_V0.md` | Enter/abstain/size/manage/exit + citation scoring |
 | `docs/FILL_FIDELITY_M0.md` | PaperFill / FillIntent / M0 (legacy 0bps fixture mid) |

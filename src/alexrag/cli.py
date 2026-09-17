@@ -143,7 +143,7 @@ def emit_model_predictions_cmd(
     (excludes banned_same_day_ids), never injects target_action / GT fill bodies,
     and writes one JSON object per case_id. Default --dry-run is offline CI.
     Live Inferhub (--no-dry-run) needs INFERHUB_API_KEY (Mac); never logged.
-    Next live run_id: inferhub-cbcn-v5-gc29. Capital 0; does not claim CLEAR.
+    Next live run_id: inferhub-cbcn-v6-restore. Capital 0; does not claim CLEAR.
     """
 
     if not dry_run and not inferhub_key_present():

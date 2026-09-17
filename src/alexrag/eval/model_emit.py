@@ -6,7 +6,7 @@ MODEL_EVAL_LOCK_V0 prediction per frozen case.
 
 ``--dry-run`` skips Inferhub and emits honest abstains (``model_id=dry_run_abstain``).
 Live Inferhub needs ``INFERHUB_API_KEY`` on the operator Mac; pytest stays offline.
-Next live ``run_id`` is ``inferhub-cbcn-v5-gc29`` (GC-29 stale-alert vs no-trade scar).
+Next live ``run_id`` is ``inferhub-cbcn-v6-restore`` (narrow GC-29 conflict; restore CLEAR bars).
 Does not claim model CLEAR; capital 0; paper stays KILL.
 """
 
@@ -47,10 +47,13 @@ DRY_RUN_MODEL_ID = "dry_run_abstain"
 DEFAULT_MAX_MESSAGES = 48
 DEFAULT_MAX_TEXT_CHARS = 480
 DEFAULT_OUT_ROOT = Path("results/model_eval_runs")
-SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v5-gc29"
-QUALITY_DELTA = "decision_quality_v5_gc29"
+SUGGESTED_LIVE_RUN_ID = "inferhub-cbcn-v6-restore"
+QUALITY_DELTA = "decision_quality_v6_restore"
 STALE_SETUP_MAX_AGE_DAYS = 1
 CONFLICT_NO_TRADE_STALE_REASON = "conflict_no_trade_plan_vs_stale_setup"
+# Report/alert channels only — year-old equity-trades tape is not a stale setup.
+_STALE_ALERT_CHANNELS = frozenset({"prime-report", "report"})
+_STALE_ALERT_SOURCE_TYPES = frozenset({"report"})
 # Previous calendar-day 16:00 PT: evening report / sealed same-morning for next session.
 _PLAN_WINDOW_PREV_EVENING_HOUR = 16
 PARSE_REPAIR_USER = (
@@ -292,13 +295,16 @@ def _schema_instruction(lock: ModelEvalLock) -> str:
         "When primary_question is abstain you MUST abstain; do not invent a fill "
         "for the listed ticker. Same-day Long/Short tape in other names is not a "
         "reason to enter the rejected ticker. "
-        "CONFLICT: if decision-day or sealed same-morning context "
-        "has explicit no-trade / no-focuslist language, and the only enter "
-        "support is older-than-1-day (or older-than-same-session) ticker alerts "
-        "without a same-day Long/Short/bought/filled setup naming a listed "
+        "CONFLICT: if same-morning sealed context (previous calendar-day 16:00 "
+        "PT through decision_ts) has explicit no-trade / no-focuslist language, "
+        "and the only listed-ticker enter support is a stale (>1 day) "
+        "report/alert (Alert: / LONG setup / Long|Short) — not year-old "
+        "equity-trades tape — without a contemporaneous enter on a listed "
         "ticker, you MUST action=abstain with "
-        "abstain_reason=conflict_no_trade_plan_vs_stale_setup. Do not enter from "
-        "stale chart alerts. Enter only with contemporaneous enter evidence. "
+        "abstain_reason=conflict_no_trade_plan_vs_stale_setup. If that "
+        "same-morning focuslist or setup list names a listed ticker, do not "
+        "abstain. Do not enter from stale chart alerts. Enter only with "
+        "contemporaneous enter evidence. "
         "ACTION MAP: enter → action=enter, ticker+side from sealed 'Long TICKER' / "
         "'Short TICKER' / bought / filled / entered; cite that retrieved_id. "
         "size → action=size (or enter); copy size_pct from the percentage beside "
@@ -345,12 +351,13 @@ def build_prompt_messages(ctx: ModelContext, lock: ModelEvalLock) -> list[dict[s
         "and name the ticker (or leave ticker empty on manage if unclear). "
         "For exit/manage, an open Long/Short on a listed ticker is enough — do "
         "not abstain waiting for a post-cutoff Sold/Closed/ADD fill. "
-        "If decision-day or same-morning sealed_context says no trades / no "
-        "focuslist and listed-ticker alerts are older than the same session "
-        "(no same-day enter setup), abstain "
-        "(abstain_reason=conflict_no_trade_plan_vs_stale_setup). "
-        "Abstain only if primary_question is abstain, that evidence is thin, "
-        "or that no-trade vs stale-setup conflict holds."
+        "If same-morning sealed_context (prev 16:00 PT → decision_ts) says no "
+        "trades / no focuslist and the only listed-ticker support is a stale "
+        "report/alert (not old equity-trades tape, no same-session enter), "
+        "abstain (abstain_reason=conflict_no_trade_plan_vs_stale_setup). "
+        "If that window's focuslist/setup list names a listed ticker, do not "
+        "abstain. Abstain only if primary_question is abstain, that evidence "
+        "is thin, or that no-trade vs stale-setup conflict holds."
     )
     user = "\n".join(lines)
     payload = {"system": _schema_instruction(lock), "user": user}
@@ -664,6 +671,17 @@ _NO_TRADE_OR_NO_FOCUSLIST = re.compile(
     r")",
     re.IGNORECASE,
 )
+# Stale setup must be an alert/enter cue — not a bare ticker mention.
+_ALERT_OR_SETUP_INTENT = re.compile(
+    r"(alert\s*:|\blong\s+setup\b|\bshort\s+setup\b|\bchart\s+alert\b)",
+    re.IGNORECASE,
+)
+_SETUP_LIST_CUE = re.compile(
+    r"\bfocuslists?\b|\bchart setups?\b|\bsetups?\b",
+    re.IGNORECASE,
+)
+# GC-31 style: "ACMR AEM ASTS GFL MP PAAS UBER WGS"
+_TICKER_RUN = re.compile(r"\b[A-Z]{2,5}(?:\s+[A-Z]{2,5}){2,}\b")
 
 
 def _case_tz(case: FrozenCase) -> ZoneInfo:
@@ -720,6 +738,33 @@ def _is_stale_vs_decision(ts: datetime | None, case: FrozenCase) -> bool:
     return age >= timedelta(days=STALE_SETUP_MAX_AGE_DAYS)
 
 
+def _has_enter_or_alert_intent(text: str) -> bool:
+    blob = text or ""
+    return _ENTER_SIZE_INTENT.search(blob) is not None or _ALERT_OR_SETUP_INTENT.search(blob) is not None
+
+
+def _is_stale_alert_channel(msg: Any) -> bool:
+    """Prime-report / report alerts only — not equity-trades tape."""
+
+    channel = str(getattr(msg, "channel", "") or "").strip().lower()
+    source = str(getattr(msg, "source_type", "") or "").strip().lower()
+    return channel in _STALE_ALERT_CHANNELS or source in _STALE_ALERT_SOURCE_TYPES
+
+
+def _plan_names_listed_ticker_in_setup_list(text: str, tickers: Sequence[str]) -> bool:
+    """Same-morning focuslist/setup list that names a case ticker (GC-31)."""
+
+    blob = text or ""
+    named = [t for t in tickers if ticker_mentioned(blob, t)]
+    if not named:
+        return False
+    if _SETUP_LIST_CUE.search(blob):
+        return True
+    if _TICKER_RUN.search(blob):
+        return True
+    return len(named) >= 2
+
+
 def _iter_conflict_messages(
     ctx: ModelContext,
     extra_messages: Sequence[Any] | None = None,
@@ -742,13 +787,15 @@ def conflict_no_trade_plan_vs_stale_setup(
     ctx: ModelContext,
     extra_messages: Sequence[Any] | None = None,
 ) -> str | None:
-    """GC-29 C1: same-morning no-trade/no-focuslist vs stale ticker alerts.
+    """GC-29 C1: same-morning no-trade/no-focuslist vs stale report alerts.
 
-    Fires only on enter/size when plan-window text is explicit no-trade /
-    no-focuslist, there is no contemporaneous (age < STALE_SETUP_MAX_AGE_DAYS)
-    Long/Short/bought/filled setup on a listed ticker, and the only enter
-    support is older ticker alerts. Does not read target_action / banned ids /
-    conflict_class. Does not fire on thin priors with no ticker at all (GC-15).
+    Same-morning window is previous calendar-day 16:00 local through decision_ts.
+    ``has_stale_ticker_alert`` requires enter/alert intent on a report/alert
+    channel for a **case ticker** — not a bare mention and not year-old
+    equity-trades tape. A plan-window focuslist/setup list that names a listed
+    ticker (GC-31 ``ACMR … MP …``) vetoes the conflict. Does not read
+    target_action / banned ids / conflict_class. Does not fire on thin priors
+    with no ticker at all (GC-15).
     """
 
     if case.primary_question not in {"enter", "size"}:
@@ -759,19 +806,29 @@ def conflict_no_trade_plan_vs_stale_setup(
     has_plan_no_trade = False
     has_contemporaneous_enter = False
     has_stale_ticker_alert = False
+    has_ticker_scoped_plan = False
     for msg in _iter_conflict_messages(ctx, extra_messages):
         text = getattr(msg, "text", "") or ""
         ts = getattr(msg, "ts", None)
-        if _in_plan_window(ts, case) and _NO_TRADE_OR_NO_FOCUSLIST.search(text):
-            has_plan_no_trade = True
+        if _in_plan_window(ts, case):
+            if _NO_TRADE_OR_NO_FOCUSLIST.search(text):
+                has_plan_no_trade = True
+            if _plan_names_listed_ticker_in_setup_list(text, tickers):
+                has_ticker_scoped_plan = True
         ticker_hit = any(ticker_mentioned(text, t) for t in tickers)
         if not ticker_hit:
             continue
         enter_intent = _ENTER_SIZE_INTENT.search(text) is not None
         if enter_intent and _is_contemporaneous_setup(ts, case):
             has_contemporaneous_enter = True
-        elif _is_stale_vs_decision(ts, case):
+        elif (
+            _is_stale_vs_decision(ts, case)
+            and _is_stale_alert_channel(msg)
+            and _has_enter_or_alert_intent(text)
+        ):
             has_stale_ticker_alert = True
+    if has_ticker_scoped_plan:
+        return None
     if has_plan_no_trade and has_stale_ticker_alert and not has_contemporaneous_enter:
         return CONFLICT_NO_TRADE_STALE_REASON
     return None
